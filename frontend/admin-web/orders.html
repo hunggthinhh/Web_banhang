@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Đơn Hàng - Admin</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div style="padding: 20px 0; text-align: center;">
+            <img src="img/logo.png" alt="Logo" style="width: 50px; margin-bottom: 10px;">
+            <div style="color: var(--primary); font-weight: bold; font-size: 18px;">La Pâtisserie</div>
+        </div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="products.html">Sản Phẩm</a>
+        <a href="categories.html">Danh Mục</a>
+        <a href="orders.html">Đơn Hàng</a>
+        <a href="../store-web/index.html">Xem Website</a>
+    </div>
+
+    <div class="admin-wrapper">
+        <header class="admin-header">
+            <h2></h2>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="#" class="btn btn-danger" id="logout-btn" style="padding: 5px 15px; font-size: 13px;">Đăng
+                    Xuất</a>
+            </div>
+        </header>
+        <div class="main-content">
+            <h1>Quản Lý Đơn Hàng</h1>
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="order-search" placeholder="Tìm tên khách hoặc mã ĐH..."
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã ĐH</th>
+                        <th>Khách</th>
+                        <th>Số ĐT</th>
+                        <th>Tổng</th>
+                        <th>Trạng thái</th>
+                        <th>Tuỳ chỉnh</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-tbody"><!-- Loaded via JS --></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/admin-app.js"></script>
+    <script>
+        let allOrders = [];
+
+        const renderOrders = (orders) => {
+            const tbody = document.getElementById('orders-tbody');
+            tbody.innerHTML = orders.map(o => `
+                <tr>
+                    <td>#${o.id}</td>
+                    <td>${o.customer_name}</td>
+                    <td>${o.customer_phone}</td>
+                    <td>${formatPrice(o.total_amount)}</td>
+                    <td>
+                        <select onchange="updateStatus(${o.id}, this.value)">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
+                            <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Đang làm</option>
+                            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Đang giao</option>
+                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Hoàn thành</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Hủy</option>
+                        </select>
+                    </td>
+                    <td><button class="btn" style="background: #e0e0e0;">Chi tiết</button></td>
+                </tr>
+            `).join('');
+        };
+
+        const loadOrders = async () => {
+            allOrders = await adminFetch('/admin/orders');
+            renderOrders(allOrders);
+        };
+
+        document.getElementById('order-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allOrders.filter(o =>
+                o.customer_name.toLowerCase().includes(term) ||
+                o.status.toLowerCase().includes(term) ||
+                o.total_amount.toString().includes(term) ||
+                o.id.toString().includes(term)
+            );
+            renderOrders(filtered);
+        });
+
+        const updateStatus = async (id, status) => {
+            await adminFetch(`/admin/orders/${id}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status })
+            });
+            alert('Đã cập nhật trạng thái!');
+        };
+
+        document.addEventListener('DOMContentLoaded', loadOrders);
+    </script>
+</body>
+
+</html>

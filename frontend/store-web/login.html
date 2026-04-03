@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng Nhập - La Pâtisserie</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="index.html" class="logo">
+                <img src="img/logo.png" alt="Logo">
+                <span>La Pâtisserie</span>
+            </a>
+        </div>
+    </header>
+
+    <div class="login-box">
+        <h2 style="text-align: center;">Đăng Nhập</h2>
+        <form id="login-form">
+            <div style="margin-bottom: 20px;">
+                <label>Email</label>
+                <input type="email" id="email" style="width: 100%; padding: 10px;" required>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label>Mật khẩu</label>
+                <input type="password" id="password" style="width: 100%; padding: 10px;" required>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Vào hệ thống</button>
+        </form>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
+            if (data.access_token) {
+                localStorage.setItem('auth_token', data.access_token);
+                localStorage.setItem('user_role', data.user.role);
+                if (data.user.role === 'admin') {
+                    window.location.href = '../admin-web/dashboard.html';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } else {
+                alert('Sai tài khoản hoặc mật khẩu!');
+            }
+        });
+    </script>
+</body>
+</html>

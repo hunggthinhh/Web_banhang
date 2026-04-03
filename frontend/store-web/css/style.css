@@ -1,0 +1,25 @@
+/* CSS for Storefront */
+:root {
+    --primary: #c98d63;
+    --primary-hover: #b3774d;
+    --secondary: #fff5eb;
+    --text-main: #4a3b32;
+    --text-light: #8c7e73;
+    --white: #ffffff;
+    --border: #f0ddd1;
+}
+
+body { font-family: 'Poppins', sans-serif; background: var(--secondary); color: var(--text-main); margin: 0; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+header { background: var(--white); padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.nav { display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; text-decoration: none; }
+.logo img { height: 40px; margin-right: 10px; }
+.logo span { font-size: 24px; font-weight: bold; color: var(--primary); }
+.nav-links a { margin-left: 20px; text-decoration: none; color: var(--text-main); }
+.hero { background: #4a3b32; color: white; padding: 100px 0; text-align: center; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; padding: 40px 0; }
+.product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; padding-bottom: 20px; }
+.product-card img { width: 100%; height: 200px; object-fit: cover; }
+.btn { background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; }
+footer { background: #3b2c24; color: white; padding: 40px 0; margin-top: 50px; text-align: center; }

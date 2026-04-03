@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tiệm Bánh Hạnh Phúc</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="index.html" class="logo">
+                <img src="img/logo.png" alt="Logo">
+                <span>La Pâtisserie</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Trang chủ</a>
+                <a href="shop.html">Thực đơn</a>
+                <a href="cart.html">Giỏ hàng (<span id="cart-count">0</span>)</a>
+                <a href="login.html" id="login-link">Đăng nhập</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>Vị Ngọt Của Yêu Thương</h1>
+        <p>Bánh tươi mỗi ngày</p>
+    </div>
+
+    <div class="container">
+        <h2 style="margin-top: 40px; text-align: center;">Bánh Nổi Bật</h2>
+        <div id="featured-products" class="products-grid">
+            <!-- Products will be loaded here -->
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 La Pâtisserie</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const products = await apiFetch('/products?featured=1');
+            const grid = document.getElementById('featured-products');
+            grid.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <img src="${p.image}" alt="${p.name}">
+                    <h3>${p.name}</h3>
+                    <p>${formatPrice(p.price)}</p>
+                    <a href="product.html?slug=${p.slug}" class="btn">Xem chi tiết</a>
+                </div>
+            `).join('');
+
+            // Update cart count from local storage
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            document.getElementById('cart-count').innerText = cart.length;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh Toán - La Pâtisserie</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav">
+            <a href="index.html" class="logo">
+                <img src="img/logo.png" alt="Logo">
+                <span>La Pâtisserie</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Trang chủ</a>
+                <a href="shop.html">Thực đơn</a>
+                <a href="cart.html">Giỏ hàng (<span id="cart-count">0</span>)</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container" style="max-width: 600px; margin-top: 50px;">
+        <h1>Thông Tin Giao Hàng</h1>
+        <form id="checkout-form">
+            <div class="form-group">
+                <label>Họ và tên</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label>Số điện thoại</label>
+                <input type="text" id="phone" required>
+            </div>
+            <div class="form-group">
+                <label>Địa chỉ</label>
+                <input type="text" id="address" required>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Xác Nhận Đặt Hàng</button>
+        </form>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (cart.length === 0) return alert('Giỏ hàng trống!');
+
+            const orderData = {
+                customer_name: document.getElementById('name').value,
+                customer_phone: document.getElementById('phone').value,
+                customer_address: document.getElementById('address').value,
+                items: cart
+            };
+
+            const response = await apiFetch('/checkout', {
+                method: 'POST',
+                body: JSON.stringify(orderData)
+            });
+
+            if (response.order) {
+                alert('Đặt hàng thành công!');
+                localStorage.removeItem('cart');
+                window.location.href = 'index.html';
+            } else {
+                alert('Có lỗi xảy ra: ' + (response.message || 'Vui lòng thử lại'));
+            }
+        });
+    </script>
+</body>
+</html>
