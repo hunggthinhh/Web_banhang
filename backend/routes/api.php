@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\DashboardController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // Categories & Products
 Route::get('/categories', [CategoryController::class, 'index']);

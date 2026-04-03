@@ -11,11 +11,14 @@ const adminFetch = async (endpoint, options = {}) => {
     }
 
     const headers = {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`,
         ...options.headers,
     };
+    
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
     
     const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
     if (response.status === 401) {

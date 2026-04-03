@@ -115,10 +115,25 @@
 
         const deleteCategory = async (id) => {
             if (confirm('Chắc chắn muốn xóa danh mục này?')) {
-                // await adminFetch(`/admin/categories/${id}`, { method: 'DELETE' });
-                alert('Chức năng bảo trì');
+                await adminFetch(`/admin/categories/${id}`, { method: 'DELETE' });
+                loadCategories();
             }
         };
+
+        document.getElementById('category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('category-id').value;
+            const data = {
+                name: document.getElementById('cat-name').value,
+                description: document.getElementById('cat-desc').value
+            };
+            const method = id ? 'PUT' : 'POST';
+            const endpoint = id ? `/admin/categories/${id}` : '/admin/categories';
+            
+            await adminFetch(endpoint, { method, body: JSON.stringify(data) });
+            closeModal();
+            loadCategories();
+        });
 
         document.getElementById('add-category-btn').addEventListener('click', () => {
             document.getElementById('category-form').reset();

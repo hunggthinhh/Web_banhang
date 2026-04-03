@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>Giỏ Hàng - La Pâtisserie</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; border-bottom: 1px solid var(--border); text-align: left; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
     </style>
 </head>
+
 <body>
     <header>
         <div class="container nav">
@@ -46,7 +58,7 @@
                 return;
             }
             let total = 0;
-            let html = `<table><thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Tổng</th><th>Hành động</th></tr></thead><tbody>`;
+            let html = `<table><thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th>Tổng</th><th>Tuỳ chỉnh</th></tr></thead><tbody>`;
             cart.forEach((item, index) => {
                 const subtotal = item.price * item.quantity;
                 total += subtotal;
@@ -76,4 +88,5 @@
         document.addEventListener('DOMContentLoaded', renderCart);
     </script>
 </body>
+
 </html>

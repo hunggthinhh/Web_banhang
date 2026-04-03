@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập - La Pâtisserie</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <title>Tạo Tài Khoản - La Pâtisserie</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -22,7 +24,7 @@
             border-radius: 40px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             text-align: center;
             margin: 60px auto;
             box-sizing: border-box;
@@ -62,6 +64,10 @@
             font-size: 1rem;
         }
 
+        .form-group label span {
+            color: #e53e3e;
+        }
+
         .form-control {
             width: 100%;
             padding: 18px 20px;
@@ -99,9 +105,9 @@
             font-size: 1.2rem;
         }
 
-        .btn-auth {
-            background-color: #c98d63;
-            color: white;
+        .btn-register {
+            background-color: #ffda91;
+            color: #1a202c;
             width: 100%;
             border: none;
             padding: 18px;
@@ -109,15 +115,15 @@
             font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(201, 141, 99, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 218, 145, 0.4);
         }
 
-        .btn-auth:hover {
-            background-color: #b3774d;
+        .btn-register:hover {
+            background-color: #fcc96b;
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(201, 141, 99, 0.4);
+            box-shadow: 0 6px 15px rgba(255, 218, 145, 0.6);
         }
 
         @media (max-width: 600px) {
@@ -125,7 +131,10 @@
                 padding: 40px 25px;
                 border-radius: 30px;
             }
-            .auth-title { font-size: 2rem; }
+
+            .auth-title {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
@@ -138,35 +147,58 @@
                 <span>La Pâtisserie</span>
             </a>
             <div class="nav-links">
+                <a href="about.html">Giới thiệu</a>
                 <a href="shop.html">Sản phẩm</a>
+                <a href="policy.html">Chính sách</a>
+                <a href="contact.html">Liên hệ</a>
                 <a href="cart.html">Giỏ hàng (<span id="cart-count">0</span>)</a>
                 <span id="auth-links">
-                    <a href="login.html" class="nav-btn active">Đăng nhập</a>
-                    <a href="register.html" class="nav-btn">Đăng ký</a>
+                    <a href="login.html" id="login-link" class="nav-btn">Đăng nhập</a>
+                    <a href="register.html" class="nav-btn active">Đăng ký</a>
                 </span>
             </div>
         </div>
     </header>
 
     <div class="auth-container">
-        <h1 class="auth-title">Đăng Nhập</h1>
-        <p class="auth-subtitle">Bạn mới bắt đầu? <a href="register.html">Đăng ký ngay</a></p>
+        <h1 class="auth-title">Tạo tài khoản của bạn</h1>
+        <p class="auth-subtitle">Bạn đã có tài khoản? <a href="login.html">Đăng nhập ngay</a></p>
 
-        <form id="login-form">
+        <form id="register-form">
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="email" class="form-control" placeholder="Nhập email của bạn" required>
+                <label>Tên đăng nhập <span>*</span></label>
+                <input type="text" id="username" class="form-control" placeholder="Nhập tên đăng nhập" required>
             </div>
 
             <div class="form-group">
-                <label>Mật khẩu</label>
+                <label>Email <span>*</span></label>
+                <input type="email" id="email" class="form-control" placeholder="Nhập email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Họ và tên <span>*</span></label>
+                <input type="text" id="name" class="form-control" placeholder="Nhập họ và tên" required>
+            </div>
+
+            <div class="form-group">
+                <label>Số điện thoại <span>*</span></label>
+                <input type="tel" id="phone" class="form-control" placeholder="Nhập số điện thoại" required>
+            </div>
+
+            <div class="form-group">
+                <label>Địa chỉ <span>*</span></label>
+                <input type="text" id="address" class="form-control" placeholder="Nhập địa chỉ" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mật khẩu <span>*</span></label>
                 <div class="password-field">
                     <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required>
                     <i class="fa-regular fa-eye password-toggle" id="togglePassword"></i>
                 </div>
             </div>
 
-            <button type="submit" class="btn-auth">Đăng nhập</button>
+            <button type="submit" class="btn-register">Đăng ký</button>
         </form>
     </div>
 
@@ -184,32 +216,41 @@
         });
 
         // Form submission
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+
+            const formData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                password: document.getElementById('password').value
+            };
 
             try {
-                const response = await fetch(`${API_URL}/login`, {
+                const response = await fetch(`${API_URL}/register`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
                 });
 
                 const data = await response.json();
-                if (data.access_token) {
+
+                if (response.ok) {
+                    alert('Đăng ký thành công!');
                     localStorage.setItem('auth_token', data.access_token);
-                    localStorage.setItem('user_role', data.user.role);
                     localStorage.setItem('user_name', data.user.name);
-                    
-                    alert('Đăng nhập thành công!');
-                    if (data.user.role === 'admin') {
-                        window.location.href = '../admin-web/dashboard.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
+                    window.location.href = 'index.html';
                 } else {
-                    alert(data.message || 'Sai tài khoản hoặc mật khẩu!');
+                    let errorMsg = data.message || 'Đăng ký thất bại';
+                    if (data.errors) {
+                        errorMsg = Object.values(data.errors).flat().join('\n');
+                    }
+                    alert(errorMsg);
                 }
             } catch (error) {
                 console.error('Error:', error);

@@ -50,13 +50,39 @@
         </div>
     </div>
 
+    <!-- Order Details Modal -->
+    <div id="order-modal" class="modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 3000;">
+        <div style="background: white; padding: 30px; border-radius: 10px; width: 600px; max-height: 80vh; overflow-y: auto;">
+            <h2>Chi Tiết Đơn Hàng <span id="modal-order-id"></span></h2>
+            <div id="modal-order-info" style="margin-bottom: 20px;"></div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <th style="padding: 10px 5px; text-align: left;">Sản phẩm</th>
+                        <th style="padding: 10px 5px; text-align: center;">SL</th>
+                        <th style="padding: 10px 5px; text-align: right;">Đơn giá</th>
+                        <th style="padding: 10px 5px; text-align: right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-order-tbody"></tbody>
+            </table>
+            <div style="text-align: right; margin-top: 20px; font-weight: bold; font-size: 1.2rem;">
+                Tổng cộng: <span id="modal-order-total"></span>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="btn" onclick="closeModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/admin-app.js"></script>
     <script>
         let allOrders = [];
 
         const renderOrders = (orders) => {
             const tbody = document.getElementById('orders-tbody');
-            tbody.innerHTML = orders.map(o => `
+            tbody.innerHTML = orders.map((o, index) => `
                 <tr>
                     <td>#${o.id}</td>
                     <td>${o.customer_name}</td>
@@ -71,14 +97,44 @@
                             <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Hủy</option>
                         </select>
                     </td>
-                    <td><button class="btn" style="background: #e0e0e0;">Chi tiết</button></td>
+                    <td><button class="btn" style="background: #e0e0e0;" onclick="showOrderDetails(${index})">Chi tiết</button></td>
                 </tr>
             `).join('');
         };
 
         const loadOrders = async () => {
-            allOrders = await adminFetch('/admin/orders');
+            const res = await adminFetch('/admin/orders');
+            allOrders = res;
             renderOrders(allOrders);
+        };
+
+        const showOrderDetails = (index) => {
+            const o = allOrders[index];
+            document.getElementById('modal-order-id').innerText = '#' + o.id;
+            document.getElementById('modal-order-total').innerText = formatPrice(o.total_amount);
+            
+            document.getElementById('modal-order-info').innerHTML = `
+                <p><strong>Khách hàng:</strong> ${o.customer_name}</p>
+                <p><strong>Số điện thoại:</strong> ${o.customer_phone}</p>
+                <p><strong>Địa chỉ:</strong> ${o.customer_address}</p>
+                <p><strong>Ngày đặt:</strong> ${new Date(o.created_at).toLocaleString()}</p>
+            `;
+
+            const tbody = document.getElementById('modal-order-tbody');
+            tbody.innerHTML = o.items.map(item => `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px 5px;">${item.product_name}</td>
+                    <td style="padding: 10px 5px; text-align: center;">${item.quantity}</td>
+                    <td style="padding: 10px 5px; text-align: right;">${formatPrice(item.price)}</td>
+                    <td style="padding: 10px 5px; text-align: right;">${formatPrice(item.price * item.quantity)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('order-modal').style.display = 'flex';
+        };
+
+        const closeModal = () => {
+            document.getElementById('order-modal').style.display = 'none';
         };
 
         document.getElementById('order-search').addEventListener('input', (e) => {

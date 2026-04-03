@@ -45,8 +45,17 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required',
             'category_id' => 'required',
-            'price' => 'required|numeric'
+            'price' => 'required|numeric',
         ]);
+
+        $imagePath = $request->image ?? 'https://images.unsplash.com/photo-1542826438-bd32f43d626f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80';
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $imagePath = asset('uploads/' . $filename);
+        }
 
         $product = Product::create([
             'name' => $request->name,
@@ -54,7 +63,7 @@ class ProductController extends Controller
             'category_id' => $request->category_id,
             'price' => $request->price,
             'description' => $request->description,
-            'image' => $request->image ?? 'https://images.unsplash.com/photo-1542826438-bd32f43d626f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+            'image' => $imagePath,
             'is_active' => $request->boolean('is_active', true)
         ]);
 
@@ -65,13 +74,22 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
         
+        $imagePath = $request->image ?? $product->image;
+        
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads'), $filename);
+            $imagePath = asset('uploads/' . $filename);
+        }
+
         $product->update([
             'name' => $request->name ?? $product->name,
             'slug' => $request->name ? Str::slug($request->name) : $product->slug,
             'category_id' => $request->category_id ?? $product->category_id,
             'price' => $request->price ?? $product->price,
             'description' => $request->description ?? $product->description,
-            'image' => $request->image ?? $product->image,
+            'image' => $imagePath,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active
         ]);
 
