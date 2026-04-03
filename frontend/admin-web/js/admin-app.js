@@ -6,7 +6,7 @@ const adminFetch = async (endpoint, options = {}) => {
     
     if (!token || role !== 'admin') {
         alert('Bạn không có quyền truy cập!');
-        window.location.href = '../store-web/login.html';
+        window.location.href = '../store-web/login.php';
         return;
     }
 
@@ -23,7 +23,7 @@ const adminFetch = async (endpoint, options = {}) => {
     const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
     if (response.status === 401) {
         localStorage.removeItem('auth_token');
-        window.location.href = '../store-web/login.html';
+        window.location.href = '../store-web/login.php';
     }
     return response.json();
 };

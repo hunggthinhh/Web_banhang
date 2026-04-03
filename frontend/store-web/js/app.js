@@ -27,15 +27,11 @@ const updateAuthUI = () => {
 
     if (token && userName) {
         authContainer.innerHTML = `
-            <span style="color: var(--primary); margin-right: 15px;">Xin chào, ${userName}!</span>
-            <a href="#" id="logout-link">Đăng xuất</a>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-user" style="color: #001f3f; font-size: 20px;"></i>
+                <a href="profile.php" class="nav-btn-user">Xin chào, ${userName}</a>
+            </div>
         `;
-        
-        document.getElementById('logout-link').onclick = (e) => {
-            e.preventDefault();
-            localStorage.clear();
-            window.location.reload();
-        };
     }
 };
 
