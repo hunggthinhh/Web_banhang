@@ -42,11 +42,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+                    ->orWhere('username', $request->email)
+                    ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Thông tin đăng nhập không chính xác.'], 401);

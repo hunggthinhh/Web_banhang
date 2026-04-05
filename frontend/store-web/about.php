@@ -2,7 +2,7 @@
 $pageTitle = "Giới thiệu";
 include 'includes/header.php';
 ?>
-<div class="page-card" style="padding: 40px;">
+<div class="page-card about-page" style="padding: 40px;">
         <div style="display: flex; gap: 50px; align-items: center;">
                 <div style="flex: 1.2;">
                         <h1 style="text-align: left; margin-bottom: 25px; font-size: 42px;">Chào mừng bạn đến với La

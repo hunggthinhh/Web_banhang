@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = window.location.origin + '/Web_banhang/backend/public/api';
 
 const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('auth_token');
@@ -26,12 +26,28 @@ const updateAuthUI = () => {
     const userName = localStorage.getItem('user_name');
 
     if (token && userName) {
+        const role = localStorage.getItem('user_role');
+        const adminLink = (role === 'admin') ? 
+            `<a href="../admin-web/dashboard.php" class="nav-btn admin-btn-header" style="border: 1.5px solid var(--primary); color: var(--primary); padding: 5px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-right: 15px;">
+                Trang Admin
+            </a>` : '';
+            
         authContainer.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-user" style="color: #001f3f; font-size: 20px;"></i>
-                <a href="profile.php" class="nav-btn-user">Xin chào, ${userName}</a>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                ${adminLink}
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-user-circle" style="color: #666; font-size: 18px;"></i>
+                    <a href="profile.php" class="nav-btn-user" style="font-weight: 600; color: #333;">${userName}</a>
+                </div>
+                <a href="#" id="store-logout-btn" class="nav-btn" style="color: #ff4d4d; font-size: 14px;"><i class="fas fa-sign-out-alt"></i></a>
             </div>
         `;
+        
+        document.getElementById('store-logout-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.reload();
+        });
     }
 };
 

@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
-        
+
         // User
         User::updateOrCreate(['email' => 'user@email.com'], [
             'username' => 'user',
@@ -64,14 +64,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Bánh macaron nhiều vị nhập khẩu thơm lừng.',
             'price' => 45000,
             'image' => 'https://images.unsplash.com/photo-1569864358642-9d1684040f43?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-        ]);
-        
-        Product::updateOrCreate(['slug' => 'banh-sanh-dieu'], [
-            'category_id' => $cat3->id,
-            'name' => 'Bánh Muffin Việt Quất',
-            'description' => 'Muffin nướng tươi mỗi ngày, nhân việt quất.',
-            'price' => 35000,
-            'image' => 'https://images.unsplash.com/photo-1605116631885-ec7a3036fe16?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
         ]);
     }
 }

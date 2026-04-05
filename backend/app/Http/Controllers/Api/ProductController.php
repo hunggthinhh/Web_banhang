@@ -53,7 +53,9 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
+            $p = public_path('uploads');
+            if (!file_exists($p)) mkdir($p, 0777, true);
+            $file->move($p, $filename);
             $imagePath = asset('uploads/' . $filename);
         }
 
@@ -79,7 +81,9 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads'), $filename);
+            $p = public_path('uploads');
+            if (!file_exists($p)) mkdir($p, 0777, true);
+            $file->move($p, $filename);
             $imagePath = asset('uploads/' . $filename);
         }
 

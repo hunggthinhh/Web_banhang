@@ -70,4 +70,12 @@ class OrderController extends Controller
         $order->update(['status' => $request->status]);
         return response()->json(['message' => 'Cập nhật trạng thái thành công', 'order' => $order]);
     }
+
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+        $order->items()->delete();
+        $order->delete();
+        return response()->json(['message' => 'Đã xóa đơn hàng thành công']);
+    }
 }
