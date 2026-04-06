@@ -57,6 +57,12 @@ const adminFetch = async (endpoint, options = {}) => {
     }
 
     const text = await response.text();
+    
+    // If status 204 or empty response, no need to parse JSON
+    if (response.status === 204 || !text.trim()) {
+        return {};
+    }
+
     let data;
     try {
         data = JSON.parse(text);

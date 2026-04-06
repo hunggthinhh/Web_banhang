@@ -1,81 +1,554 @@
-<?php 
-$pageTitle = "Thanh toán"; 
-include 'includes/header.php'; 
+<?php
+$pageTitle = "Thanh toán";
+include 'includes/header.php';
 ?>
-        <h1 style="text-align: center; margin-top: 40px; font-family: 'Playfair Display', serif;">Thanh Toán Đơn Hàng</h1>
-        <div style="display: flex; gap: 40px; margin-top: 40px;">
-            <div style="flex: 1.5;">
-                <h3>Thông Tin Giao Hàng</h3>
-                <form id="checkout-form" style="display: flex; flex-direction: column; gap: 15px;">
-                    <input type="text" id="name" placeholder="Họ và tên" required style="padding: 12px; border: 1px solid var(--border); border-radius: 5px;">
-                    <input type="text" id="phone" placeholder="Số điện thoại" required style="padding: 12px; border: 1px solid var(--border); border-radius: 5px;">
-                    <input type="text" id="address" placeholder="Địa chỉ giao hàng" required style="padding: 12px; border: 1px solid var(--border); border-radius: 5px;">
-                    <textarea id="note" placeholder="Ghi chú thêm" style="padding: 12px; border: 1px solid var(--border); border-radius: 5px; height: 100px;"></textarea>
-                </form>
-            </div>
-            <div style="flex: 1; background: var(--white); padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: fit-content;">
-                <h3>Tóm Tắt Đơn Hàng</h3>
-                <div id="checkout-items" style="margin: 20px 0; border-top: 1px solid var(--border); padding-top: 15px;"></div>
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 20px; border-top: 2px solid var(--primary); padding-top: 15px;">
-                    <span>Tổng cộng</span>
-                    <span id="final-total" style="color: var(--primary);">0 đ</span>
+
+<div class="checkout-layout">
+    <div class="checkout-left">
+        <h1 class="page-title">Thanh toán và giao hàng</h1>
+
+        <div class="checkout-section">
+            <h3 class="section-title">Thông tin tài khoản</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Họ và tên <span class="required">*</span></label>
+                    <input type="text" id="name" placeholder="Họ tên của bạn" required>
                 </div>
-                <button type="submit" form="checkout-form" class="btn" style="width: 100%; margin-top: 30px; padding: 15px;">XÁC NHẬN ĐẶT HÀNG</button>
+                <div class="form-group">
+                    <label>Số điện thoại <span class="required">*</span></label>
+                    <input type="text" id="phone" placeholder="Số điện thoại" required>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Địa chỉ email <span class="required">*</span></label>
+                <input type="email" id="email" placeholder="Email của bạn" required>
             </div>
         </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            if (cart.length === 0) {
-                alert('Giỏ hàng trống!');
-                window.location.href = 'shop.php';
+        <div class="checkout-section">
+            <h3 class="section-title">Thông tin Giao hàng</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tỉnh/Thành phố <span class="required">*</span></label>
+                    <select id="city" required>
+                        <option value="">Chọn tỉnh thành</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quận/Huyện <span class="required">*</span></label>
+                    <select id="district" required disabled>
+                        <option value="">Chọn quận huyện</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-grid" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Xã/Phường <span class="required">*</span></label>
+                    <select id="ward" required disabled>
+                        <option value="">Chọn xã/phường</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ <span class="required">*</span></label>
+                    <input type="text" id="address" placeholder="Ví dụ: Số 20, ngõ 90" required>
+                </div>
+            </div>
+
+            <div class="delivery-date-container"
+                style="margin-top: 25px; padding: 25px; background: #fffaf5; border: 1.5px solid #f0c07d; border-radius: 20px;">
+                <label
+                    style="display: block; font-weight: 700; margin-bottom: 15px; color: #001f3f; font-size: 16px;">Ngày
+                    giao hàng (tùy chọn)</label>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="date-select-item">
+                        <select id="deliv-day-sel"
+                            style="width: 100px; padding: 12px; border: 1.5px solid #001f3f; border-radius: 12px;">
+                            <option value="">Ngày</option>
+                            <?php for ($i = 1; $i <= 31; $i++)
+                                echo "<option value='$i'>$i</option>"; ?>
+                        </select>
+                    </div>
+
+                    <div class="date-select-item">
+                        <select id="deliv-month-sel"
+                            style="width: 100px; padding: 12px; border: 1.5px solid #001f3f; border-radius: 12px;">
+                            <option value="">Tháng</option>
+                            <?php for ($i = 1; $i <= 12; $i++)
+                                echo "<option value='$i'>$i</option>"; ?>
+                        </select>
+                    </div>
+
+                    <div class="date-select-item">
+                        <select id="deliv-year-sel"
+                            style="width: 100px; padding: 12px; border: 1.5px solid #001f3f; border-radius: 12px;">
+                            <option value="">Năm</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Khung giờ giao (tùy chọn)</label>
+                <select id="deliv-time">
+                    <option value="">Chọn khung giờ</option>
+                    <option value="08:00 - 10:00">08:00 - 10:00</option>
+                    <option value="10:00 - 12:00">10:00 - 12:00</option>
+                    <option value="13:00 - 15:00">13:00 - 15:00</option>
+                    <option value="15:00 - 17:00">15:00 - 17:00</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Yêu cầu khác (tùy chọn)</label>
+                <textarea id="note" placeholder="Ví dụ: Giao lên lầu 3, gọi trước khi đến..."
+                    style="height: 80px;"></textarea>
+            </div>
+        </div>
+
+        <div class="checkout-section">
+            <h3 class="section-title">Phương thức thanh toán</h3>
+            <div class="payment-options">
+                <label class="payment-item">
+                    <input type="radio" name="payment" value="cod" checked>
+                    <span>Thanh toán khi nhận hàng (COD)</span>
+                </label>
+                <label class="payment-item">
+                    <input type="radio" name="payment" value="momo">
+                    <span>Thanh toán qua ngân hàng</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-sidebar">
+        <div class="sidebar-inner">
+            <h3 class="section-title">Chi tiết đơn hàng</h3>
+            <div id="checkout-items"></div>
+            <div class="summary-line">
+                <span>Tạm tính</span>
+                <span id="sub-total">0 đ</span>
+            </div>
+            <div class="summary-line">
+                <span>Phí giao hàng</span>
+                <span>Miễn phí</span>
+            </div>
+            <div class="summary-total">
+                <span>Tổng cộng</span>
+                <span id="final-total">0 đ</span>
+            </div>
+            <button type="button" onclick="placeOrder()" id="btn-submit" class="btn-place-order">XÁC NHẬN ĐẶT
+                HÀNG</button>
+            <p style="text-align: center; font-size: 13px; color: #666; margin-top: 15px;">Bằng cách đặt hàng, bạn đồng
+                ý với Điều khoản dịch vụ của chúng tôi.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .checkout-layout {
+        display: flex;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .checkout-left {
+        flex: 1.6;
+    }
+
+    .checkout-sidebar {
+        flex: 1;
+    }
+
+    .sidebar-inner {
+        background: #fff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        position: sticky;
+        top: 120px;
+    }
+
+    .checkout-section {
+        background: #fff;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #001f3f;
+        border-bottom: 1.5px solid #fef0e4;
+        padding-bottom: 10px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #001f3f;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 16px 20px;
+        border: 1.5px solid #001f3f;
+        border-radius: 12px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 15px;
+        background: #fff;
+        transition: all 0.3s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-group select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23001f3f%22%20d%3D%22M10.293%203.293L6%207.586%201.707%203.293A1%201%200%2000.293%204.707l5%205a1%201%200%20001.414%200l5-5a1%201%200%2010-1.414-1.414z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 20px center;
+        cursor: pointer;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(0, 31, 63, 0.05);
+    }
+
+    .required {
+        color: #e53e3e;
+    }
+
+    .payment-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .payment-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px;
+        border: 1.5px solid #001f3f;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .payment-item:hover {
+        border-color: var(--primary);
+        background: #fefaf7;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        color: #666;
+        font-size: 15px;
+    }
+
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #001f3f;
+        font-size: 24px;
+        font-weight: 800;
+        color: #001f3f;
+    }
+
+    .btn-place-order {
+        width: 100%;
+        padding: 20px;
+        background: #001f3f;
+        color: #fff;
+        border: none;
+        border-radius: 15px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 25px;
+        transition: 0.3s;
+        letter-spacing: 1px;
+    }
+
+    .btn-place-order:hover {
+        background: var(--primary);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 32px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 900px) {
+        .checkout-layout {
+            flex-direction: column;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    let cart = [];
+    let total = 0;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (cart.length === 0) {
+            alert('Giỏ hàng trống!');
+            window.location.href = 'shop.php';
+            return;
+        }
+
+        window.reRenderCheckout = () => {
+            let totalVal = 0;
+            const itemsContainer = document.getElementById('checkout-items');
+            itemsContainer.innerHTML = cart.map((item, index) => {
+                const sub = item.price * item.quantity;
+                totalVal += sub;
+                return `
+                    <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: flex-start;">
+                        <img src="${item.image}" width="65" height="65" style="border-radius: 12px; object-fit: cover; border: 1.5px solid #eee;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 15px; color: #001f3f;">${item.name}</div>
+                            <div style="font-size: 13px; color: #666; margin-top: 2px;">Số lượng: ${item.quantity} × ${formatPrice(item.price)}</div>
+                            <div style="margin-top: 10px;">
+                                <small style="display: block; font-size: 11px; font-weight: 600; color: #f0c07d; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Lời chúc cho bánh:</small>
+                                <textarea onchange="updateCheckoutGreeting(${index}, this.value)" 
+                                    placeholder="Nhập lời chúc..." 
+                                    style="width: 100%; height: 50px; padding: 8px; border: 1px dashed #f0c07d; border-radius: 8px; font-size: 12px; background: #fffaf2; resize: none; font-family: inherit; outline: none; transition: 0.3s;">${item.greeting || ''}</textarea>
+                            </div>
+                        </div>
+                        <div style="font-weight: 700; color: var(--primary); font-size: 15px;">${formatPrice(sub)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('sub-total').innerText = formatPrice(totalVal);
+            document.getElementById('final-total').innerText = formatPrice(totalVal);
+            total = totalVal; // Sync global total
+        };
+
+        reRenderCheckout();
+
+        // Pre-fill from profile
+        const savedName = localStorage.getItem('user_name');
+        const savedEmail = localStorage.getItem('user_email');
+        const savedPhone = localStorage.getItem('user_phone');
+        const savedAddr = localStorage.getItem('user_address');
+        const savedCityCode = localStorage.getItem('user_city_code');
+        const savedDistCode = localStorage.getItem('user_district_code');
+        const savedWardCode = localStorage.getItem('user_ward_code');
+
+        if (savedName) document.getElementById('name').value = savedName;
+        if (savedEmail) document.getElementById('email').value = savedEmail;
+        if (savedPhone) document.getElementById('phone').value = savedPhone;
+        if (savedAddr) document.getElementById('address').value = savedAddr;
+
+        const citySelect = document.getElementById('city');
+        const districtSelect = document.getElementById('district');
+        const wardSelect = document.getElementById('ward');
+
+        // Fetch Provinces
+        const resP = await fetch('https://provinces.open-api.vn/api/p/');
+        const provinces = await resP.json();
+        provinces.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.code;
+            opt.dataset.name = p.name;
+            opt.innerText = p.name;
+            citySelect.appendChild(opt);
+        });
+
+        // Auto-select from Profile
+        if (savedCityCode) {
+            citySelect.value = savedCityCode;
+            const resD = await fetch(`https://provinces.open-api.vn/api/p/${savedCityCode}?depth=2`);
+            const dataD = await resD.json();
+            dataD.districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.dataset.name = d.name;
+                opt.innerText = d.name;
+                districtSelect.appendChild(opt);
+            });
+            districtSelect.disabled = false;
+
+            if (savedDistCode) {
+                districtSelect.value = savedDistCode;
+                const resW = await fetch(`https://provinces.open-api.vn/api/d/${savedDistCode}?depth=2`);
+                const dataW = await resW.json();
+                dataW.wards.forEach(w => {
+                    const opt = document.createElement('option');
+                    opt.value = w.code;
+                    opt.dataset.name = w.name;
+                    opt.innerText = w.name;
+                    wardSelect.appendChild(opt);
+                });
+                wardSelect.disabled = false;
+
+                if (savedWardCode) {
+                    wardSelect.value = savedWardCode;
+                }
+            }
+        }
+
+        // City Change -> Fetch Districts
+        citySelect.addEventListener('change', async (e) => {
+            const pCode = e.target.value;
+            districtSelect.innerHTML = '<option value="">Chọn quận huyện</option>';
+            wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+            wardSelect.disabled = true;
+
+            if (pCode) {
+                fetch(`https://provinces.open-api.vn/api/p/${pCode}?depth=2`)
+                    .then(res => res.json())
+                    .then(data => {
+                        data.districts.forEach(d => {
+                            const opt = document.createElement('option');
+                            opt.value = d.code;
+                            opt.dataset.name = d.name;
+                            opt.innerText = d.name;
+                            districtSelect.appendChild(opt);
+                        });
+                        districtSelect.disabled = false;
+                    });
+            } else {
+                districtSelect.disabled = true;
+            }
+        });
+
+        // District Change -> Fetch Wards
+        districtSelect.addEventListener('change', (e) => {
+            const dCode = e.target.value;
+            wardSelect.innerHTML = '<option value="">Chọn xã/phường</option>';
+
+            if (dCode) {
+                fetch(`https://provinces.open-api.vn/api/d/${dCode}?depth=2`)
+                    .then(res => res.json())
+                    .then(data => {
+                        data.wards.forEach(w => {
+                            const opt = document.createElement('option');
+                            opt.value = w.code;
+                            opt.dataset.name = w.name;
+                            opt.innerText = w.name;
+                            wardSelect.appendChild(opt);
+                        });
+                        wardSelect.disabled = false;
+                    });
+            } else {
+                wardSelect.disabled = true;
+            }
+        });
+    });
+
+    window.updateCheckoutGreeting = (index, text) => {
+        cart[index].greeting = text;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        // No need to re-render to avoid losing focus, the text is already there
+    };
+
+    async function placeOrder() {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            alert('Vui lòng đăng nhập để thanh toán!');
+            window.location.href = 'login.php';
+            return;
+        }
+
+        // Basic validation
+        const fields = ['name', 'phone', 'email', 'city', 'district', 'ward', 'address'];
+        for (let f of fields) {
+            if (!document.getElementById(f).value) {
+                alert('Vui lòng điền đầy đủ các thông tin giao hàng bắt buộc!');
+                document.getElementById(f).focus();
                 return;
             }
-            let total = 0;
-            const items = document.getElementById('checkout-items');
-            items.innerHTML = cart.map(item => {
-                const sub = item.price * item.quantity;
-                total += sub;
-                return `<div style="display: flex; justify-content: space-between; margin-bottom: 10px;"><span>${item.name} x ${item.quantity}</span><span>${formatPrice(sub)}</span></div>`;
-            }).join('');
-            document.getElementById('final-total').innerText = formatPrice(total);
-            const count = document.getElementById('cart-count');
-            if(count) count.innerText = cart.length;
+        }
 
-            document.getElementById('checkout-form').onsubmit = async (e) => {
-                e.preventDefault();
-                const token = localStorage.getItem('auth_token');
-                if (!token) {
-                    alert('Vui lòng đăng nhập để thanh toán!');
-                    window.location.href = 'login.php';
-                    return;
-                }
-                const btn = e.target.querySelector('button');
-                btn.disabled = true;
-                btn.innerText = 'Đang xử lý...';
-                const itemsList = cart.map(i => ({ product_id: i.id, quantity: i.quantity, price: i.price }));
-                const response = await apiFetch('/orders', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        customer_name: document.getElementById('name').value,
-                        customer_phone: document.getElementById('phone').value,
-                        shipping_address: document.getElementById('address').value,
-                        note: document.getElementById('note').value,
-                        total_amount: total,
-                        items: itemsList
-                    })
-                });
-                if (response.id) {
-                    alert('Đặt hàng thành công!');
-                    localStorage.removeItem('cart');
-                    window.location.href = 'profile.php';
-                } else {
-                    alert('Có lỗi xảy ra, vui lòng thử lại!');
-                    btn.disabled = false;
-                    btn.innerText = 'XÁC NHẬN ĐẶT HÀNG';
-                }
-            };
-        });
-    </script>
+        const cityTxt = document.getElementById('city').options[document.getElementById('city').selectedIndex].dataset.name;
+        const distTxt = document.getElementById('district').options[document.getElementById('district').selectedIndex].dataset.name;
+        const wardTxt = document.getElementById('ward').options[document.getElementById('ward').selectedIndex].dataset.name;
+        const fullAddress = `${document.getElementById('address').value}, ${wardTxt}, ${distTxt}, ${cityTxt}`;
+
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+        btn.innerText = 'Đang xử lý...';
+
+        const d = document.getElementById('deliv-day-sel').value;
+        const m = document.getElementById('deliv-month-sel').value;
+        const y = document.getElementById('deliv-year-sel').value;
+        const delivDate = (d && m && y) ? `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}` : null;
+
+        const orderData = {
+            customer_name: document.getElementById('name').value,
+            customer_phone: document.getElementById('phone').value,
+            customer_email: document.getElementById('email').value,
+            customer_address: fullAddress,
+            delivery_date: delivDate,
+            delivery_time: document.getElementById('deliv-time').value,
+            note: document.getElementById('note').value,
+            total_amount: total,
+            items: cart.map(i => ({
+                id: i.id,
+                quantity: i.quantity,
+                price: i.price,
+                name: i.name,
+                greeting: i.greeting || ''
+            }))
+        };
+
+        try {
+            const response = await apiFetch('/orders', {
+                method: 'POST',
+                body: JSON.stringify(orderData)
+            });
+
+            if (response.order && response.order.id) {
+                alert('Đặt hàng thành công! Cảm ơn bạn đã ủng hộ tiệm bánh.');
+                localStorage.removeItem('cart');
+                window.location.href = 'profile.php';
+            } else {
+                throw new Error('Order failed');
+            }
+        } catch (err) {
+            alert('Có lỗi xảy ra khi đặt hàng, vui lòng thử lại!');
+            btn.disabled = false;
+            btn.innerText = 'XÁC NHẬN ĐẶT HÀNG';
+        }
+    }
+</script>
+
 <?php include 'includes/footer.php'; ?>

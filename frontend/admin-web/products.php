@@ -33,19 +33,43 @@ include 'includes/sidebar.php';
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div class="form-group">
-                        <label>Giá (VNĐ)</label>
-                        <input type="number" id="pPrice" required placeholder="Ví dụ: 50000">
-                    </div>
-                    <div class="form-group">
-                        <label>Ảnh Sản Phẩm</label>
-                        <input type="file" id="pImage" accept="image/*">
-                        <div id="currentImageContainer" style="margin-top: 10px;"></div>
+                <div class="form-group">
+                    <label>Giá (VNĐ)</label>
+                    <input type="number" id="pPrice" required placeholder="Ví dụ: 50000">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Hình Ảnh (1 Chính - 4 Phụ)</label>
+                    <div class="image-uploader-grid" style="display: grid; grid-template-columns: 100px 1fr; gap: 15px; margin-top: 10px;">
+                        <!-- Sub images -->
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div class="sub-img-box" onclick="document.getElementById('pSub0').click()">
+                                <img id="pSub0_preview" src="https://via.placeholder.com/100" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                                <input type="file" id="pSub0" accept="image/*" style="display: none" onchange="previewImage(this, 'pSub0_preview')">
+                            </div>
+                            <div class="sub-img-box" onclick="document.getElementById('pSub1').click()">
+                                <img id="pSub1_preview" src="https://via.placeholder.com/100" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                                <input type="file" id="pSub1" accept="image/*" style="display: none" onchange="previewImage(this, 'pSub1_preview')">
+                            </div>
+                            <div class="sub-img-box" onclick="document.getElementById('pSub2').click()">
+                                <img id="pSub2_preview" src="https://via.placeholder.com/100" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                                <input type="file" id="pSub2" accept="image/*" style="display: none" onchange="previewImage(this, 'pSub2_preview')">
+                            </div>
+                            <div class="sub-img-box" onclick="document.getElementById('pSub3').click()">
+                                <img id="pSub3_preview" src="https://via.placeholder.com/100" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
+                                <input type="file" id="pSub3" accept="image/*" style="display: none" onchange="previewImage(this, 'pSub3_preview')">
+                            </div>
+                        </div>
+                        <!-- Main image -->
+                        <div class="main-img-box" onclick="document.getElementById('pImage').click()" style="height: 430px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer; position: relative;">
+                            <img id="pMain_preview" src="https://via.placeholder.com/400" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">
+                            <input type="file" id="pImage" accept="image/*" style="display: none" onchange="previewImage(this, 'pMain_preview')">
+                            <div style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px;">Ảnh Chính</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 10px;">
+                <div class="form-group" style="margin-top: 20px;">
                     <label>Mô tả chi tiết</label>
                     <div id="editor-container" style="height: 250px; background: white;"></div>
                 </div>
@@ -56,6 +80,25 @@ include 'includes/sidebar.php';
             </form>
         </div>
     </div>
+
+    <style>
+        .sub-img-box {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed #000;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            background: #fdfdfd;
+        }
+        .main-img-box {
+            border: 2.5px solid #000 !important;
+        }
+        .sub-img-box:hover, .main-img-box:hover {
+            opacity: 0.8;
+            background: #f0f7ff;
+        }
+    </style>
 
     <script>
         let allProducts = [];
@@ -140,6 +183,16 @@ include 'includes/sidebar.php';
             }
         }
 
+        function previewImage(input, previewId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(previewId).src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         function openModal(p = null) {
             document.getElementById('productModal').style.display = 'block';
             document.getElementById('modalTitle').innerText = p ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm';
@@ -155,8 +208,18 @@ include 'includes/sidebar.php';
                 quill.root.innerHTML = '';
             }
 
-            document.getElementById('currentImageContainer').innerHTML = p ? 
-                `<img src="${p.image}" width="100" style="border-radius: 8px; border: 1px solid #ddd;">` : '';
+            // Set Previews
+            document.getElementById('pMain_preview').src = p ? p.image : 'https://via.placeholder.com/400';
+            
+            // Sub images previews
+            for(let i=0; i<4; i++) {
+                const src = (p && p.sub_images && p.sub_images[i]) ? p.sub_images[i] : 'https://via.placeholder.com/100';
+                document.getElementById(`pSub${i}_preview`).src = src;
+            }
+            
+            // Reset files
+            document.getElementById('pImage').value = '';
+            for(let i=0; i<4; i++) document.getElementById(`pSub${i}`).value = '';
         }
 
         function closeModal() { document.getElementById('productModal').style.display = 'none'; }
@@ -168,15 +231,24 @@ include 'includes/sidebar.php';
             formData.append('name', document.getElementById('pName').value);
             formData.append('category_id', document.getElementById('pCategory').value);
             formData.append('price', document.getElementById('pPrice').value);
-            
-            // Get HTML from Quill
             formData.append('description', quill.root.innerHTML);
             
+            // Main image
             const imageFile = document.getElementById('pImage').files[0];
             if (imageFile) formData.append('image', imageFile);
             
+            // Sub images
+            for(let i=0; i<4; i++) {
+                const subFile = document.getElementById(`pSub${i}`).files[0];
+                if (subFile) formData.append(`sub_image_${i}`, subFile);
+            }
+            
             const endpoint = id ? `/admin/products/${id}` : '/admin/products';
-            const method  = id ? 'PUT' : 'POST';
+            const method  = id ? 'POST' : 'POST'; // We use POST for both due to FormData (Multipart)
+            
+            // For updates, add _method spoofing if needed
+            if (id) formData.append('_method', 'PUT');
+
             const res = await adminFetch(endpoint, { method, body: formData });
             if (res) { closeModal(); loadProducts(); }
         }

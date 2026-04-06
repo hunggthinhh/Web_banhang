@@ -57,10 +57,24 @@ class OrderController extends Controller
         }
     }
 
+    // Lịch sử đơn hàng của User đang đăng nhập
+    public function userOrders()
+    {
+        $user = auth()->user();
+        $orders = Order::where('user_id', $user->id)
+            ->orWhere(function ($query) use ($user) {
+                $query->whereNull('user_id')
+                    ->where('customer_phone', $user->phone);
+            })
+            ->latest()
+            ->get();
+        return response()->json($orders);
+    }
+
     // Của Admin
     public function index()
     {
-        $orders = Order::with('items')->latest()->get();
+        $orders = Order::with('items')->oldest()->get();
         return response()->json($orders);
     }
 

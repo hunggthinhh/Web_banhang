@@ -14,14 +14,23 @@ include 'includes/header.php';
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const products = await apiFetch('/products?featured=1');
+        const products = await apiFetch('/products?featured=1') || [];
         const grid = document.getElementById('featured-products');
+        
+        if (products.length === 0) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; margin: 40px 0;">Hiện chưa có sản phẩm nổi bật.</p>';
+            return;
+        }
+
         grid.innerHTML = products.map(p => `
-                <div class="product-card">
-                    <img src="${p.image}" alt="${p.name}">
-                    <h3>${p.name}</h3>
-                    <p>${formatPrice(p.price)}</p>
-                    <a href="product.php?slug=${p.slug}" class="btn">Xem chi tiết</a>
+                <div class="product-card" onclick="location.href='product.php?slug=${p.slug || p.id}'">
+                    <div class="card-image-wrap">
+                        <img src="${p.image}" alt="${p.name}">
+                    </div>
+                    <div class="card-body">
+                        <h3>${p.name}</h3>
+                        <p class="card-price">Giá từ: <span>${formatPrice(p.price)}</span></p>
+                    </div>
                 </div>
             `).join('');
 

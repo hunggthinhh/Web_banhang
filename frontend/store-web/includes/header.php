@@ -61,8 +61,12 @@
     <?php endif; ?>
 
     <?php if ($current != 'index.php' && $current != 'login.php' && $current != 'register.php'): ?>
-        <div class="container" style="margin-top: 20px;">
-            <div class="breadcrumbs">
-                <a href="index.php">Trang chủ</a> <span>/</span> <?php echo $pageTitle; ?>
+        <div class="breadcrumbs-wrapper">
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="index.php">Trang chủ</a> <span>/</span> <?php echo $pageTitle; ?>
+                </div>
             </div>
+        </div>
+        <div class="container" style="margin-top: 20px;">
     <?php endif; ?>

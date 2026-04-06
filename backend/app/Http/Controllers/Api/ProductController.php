@@ -11,16 +11,25 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category')->where('is_active', true);
+        $query = Product::with('category');
+        
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        
         if ($request->has('featured')) {
             $query->take(4);
         }
+        
         return response()->json($query->latest()->get());
     }
 
-    public function show($slug)
+    public function show($idOrSlug)
     {
-        $product = Product::with('category')->where('slug', $slug)->firstOrFail();
+        $product = Product::with('category')
+            ->where('id', $idOrSlug)
+            ->orWhere('slug', $idOrSlug)
+            ->firstOrFail();
         
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
@@ -59,6 +68,18 @@ class ProductController extends Controller
             $imagePath = asset('uploads/' . $filename);
         }
 
+        $subImages = [];
+        for ($i = 0; $i < 4; $i++) {
+            if ($request->hasFile("sub_image_$i")) {
+                $file = $request->file("sub_image_$i");
+                $filename = time() . "_sub_{$i}_" . $file->getClientOriginalName();
+                $p = public_path('uploads');
+                if (!file_exists($p)) mkdir($p, 0777, true);
+                $file->move($p, $filename);
+                $subImages[] = asset('uploads/' . $filename);
+            }
+        }
+
         $product = Product::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
@@ -66,6 +87,7 @@ class ProductController extends Controller
             'price' => $request->price,
             'description' => $request->description,
             'image' => $imagePath,
+            'sub_images' => $subImages,
             'is_active' => $request->boolean('is_active', true)
         ]);
 
@@ -87,6 +109,19 @@ class ProductController extends Controller
             $imagePath = asset('uploads/' . $filename);
         }
 
+        $subImages = $product->sub_images ?? [];
+        for ($i = 0; $i < 4; $i++) {
+            if ($request->hasFile("sub_image_$i")) {
+                $file = $request->file("sub_image_$i");
+                $filename = time() . "_sub_{$i}_" . $file->getClientOriginalName();
+                $p = public_path('uploads');
+                if (!file_exists($p)) mkdir($p, 0777, true);
+                $file->move($p, $filename);
+                // Replace or add
+                $subImages[$i] = asset('uploads/' . $filename);
+            }
+        }
+
         $product->update([
             'name' => $request->name ?? $product->name,
             'slug' => $request->name ? Str::slug($request->name) : $product->slug,
@@ -94,6 +129,7 @@ class ProductController extends Controller
             'price' => $request->price ?? $product->price,
             'description' => $request->description ?? $product->description,
             'image' => $imagePath,
+            'sub_images' => $subImages,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active
         ]);
 

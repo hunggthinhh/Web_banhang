@@ -10,12 +10,28 @@ const apiFetch = async (endpoint, options = {}) => {
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
-    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-    if (response.status === 401) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_name');
+    try {
+        const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+        
+        if (response.status === 401) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_name');
+            localStorage.removeItem('user_role');
+            return null;
+        }
+
+        if (response.status === 204) return {};
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Lỗi server');
+        }
+        return data;
+    } catch (error) {
+        console.error('Fetch error:', error);
+        alert('Lỗi kết nối: ' + error.message);
+        return null;
     }
-    return response.json();
 };
 
 const updateAuthUI = () => {
@@ -51,8 +67,20 @@ const updateAuthUI = () => {
     }
 };
 
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+const updateCartBadge = () => {
+    const countElement = document.getElementById('cart-count');
+    if (!countElement) return;
+
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    countElement.innerText = totalQty;
 };
 
-document.addEventListener('DOMContentLoaded', updateAuthUI);
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateAuthUI();
+    updateCartBadge();
+});

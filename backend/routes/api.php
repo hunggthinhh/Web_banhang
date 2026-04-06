@@ -16,13 +16,16 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
-Route::post('/checkout', [OrderController::class, 'checkout']);
 Route::post('/contacts', [ContactController::class, 'store']);
 
 // Protected User/Admin routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    // User routes
+    Route::get('/orders', [OrderController::class, 'userOrders']);
+    Route::post('/orders', [OrderController::class, 'checkout']); // Chuyển vào đây để nhận diện user_id
 
     // Admin Only Routes
     Route::prefix('admin')->group(function () {
@@ -35,8 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
         Route::get('/orders', [OrderController::class, 'index']);
-        Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
-        Route::post('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::put('/orders/{id}', [OrderController::class, 'updateStatus']);
+        Route::post('/orders/{id}', [OrderController::class, 'updateStatus']); // _method=PUT spoofing
         Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
         Route::post('/orders/{id}', [OrderController::class, 'destroy']); // _method=DELETE spoofing
 
