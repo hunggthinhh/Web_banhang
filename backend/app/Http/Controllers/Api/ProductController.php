@@ -86,6 +86,7 @@ class ProductController extends Controller
             'category_id' => $request->category_id,
             'price' => $request->price,
             'description' => $request->description,
+            'content' => $request->content,
             'image' => $imagePath,
             'sub_images' => $subImages,
             'is_active' => $request->boolean('is_active', true)
@@ -128,6 +129,7 @@ class ProductController extends Controller
             'category_id' => $request->category_id ?? $product->category_id,
             'price' => $request->price ?? $product->price,
             'description' => $request->description ?? $product->description,
+            'content' => $request->content ?? $product->content,
             'image' => $imagePath,
             'sub_images' => $subImages,
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active

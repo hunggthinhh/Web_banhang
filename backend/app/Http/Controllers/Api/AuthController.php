@@ -73,4 +73,40 @@ class AuthController extends Controller
     {
         return response()->json($request->user());
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'password' => 'nullable|min:6|confirmed',
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->address = $request->address;
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/avatars'), $filename);
+            $user->image = 'uploads/avatars/' . $filename;
+        }
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Cập nhật thông tin thành công',
+            'user' => $user
+        ]);
+    }
 }

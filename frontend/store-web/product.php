@@ -180,40 +180,71 @@ include 'includes/header.php';
         padding: 18px 40px;
         border-radius: 12px;
     }
+
+    .content-rich-text h1,
+    .content-rich-text h2,
+    .content-rich-text h3 {
+        color: #000000ff;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+
+    .content-rich-text p {
+        margin-bottom: 20px;
+    }
+
+    .content-rich-text img {
+        max-width: 100%;
+        border-radius: 15px;
+        margin: 20px 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 1);
+    }
 </style>
 
 <div class="product-detail-container">
-    <div id="product-content">
-        <!-- Loaded via JS -->
+    <div id="product-hero"></div>
+</div>
+
+</div> <!-- Close the .container coming from header.php -->
+
+<div style="background: #fff; width: 100%;">
+    <div class="container">
+        <div class="product-detail-container">
+            <div id="product-detailed-info"></div>
+        </div>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const slug = urlParams.get('slug');
-        if (!slug) return;
+<div class="container"> <!-- Re-open the .container for footer.php and next section -->
+    <div class="product-detail-container" style="padding-top: 20px;">
+        <div id="product-related-info"></div>
+    </div>
 
-        const data = await apiFetch(`/products/${slug}`);
-        if (!data || !data.product) return;
-        const product = data.product;
-        const related = data.related || [];
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const slug = urlParams.get('slug');
+            if (!slug) return;
 
-        // Update Breadcrumbs
-        const breadcrumbs = document.querySelector('.breadcrumbs');
-        if (breadcrumbs) {
-            breadcrumbs.innerHTML = `
+            const data = await apiFetch(`/products/${slug}`);
+            if (!data || !data.product) return;
+            const product = data.product;
+
+            // Update Breadcrumbs
+            const breadcrumbs = document.querySelector('.breadcrumbs');
+            if (breadcrumbs) {
+                breadcrumbs.innerHTML = `
                 <a href="index.php">Trang chủ</a> <span>/</span> 
                 <a href="shop.php">Sản phẩm</a> <span>/</span> 
                 <span>${product.name}</span>
             `;
-        }
+            }
 
-        const subImages = product.sub_images || [];
-        const allImgs = [product.image, ...subImages].slice(0, 4);
+            const subImages = product.sub_images || [];
+            const allImgs = [product.image, ...subImages].slice(0, 4);
 
-        const content = document.getElementById('product-content');
-        content.innerHTML = `
+            // Inject Hero Section (Top part)
+            document.getElementById('product-hero').innerHTML = `
             <div class="gallery-layout">
                 <div class="thumb-list">
                     ${allImgs.map((img, i) => `
@@ -236,7 +267,7 @@ include 'includes/header.php';
                     <p class="price-notice">(Giá chưa bao gồm thuế VAT)</p>
 
                     <p class="product-desc">
-                        ${product.description || 'Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất, được làm từ sự tận tâm và nguyên liệu thượng hạng.'}
+                        ${product.description || 'Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất...'}
                     </p>
 
                     <div style="background: #fff9f0; padding: 30px; border-radius: 20px;">
@@ -260,44 +291,72 @@ include 'includes/header.php';
                 </div>
             </div>
         `;
-    });
 
-    function changeMainImg(el, src) {
-        document.getElementById('main-view-img').src = src;
-        document.querySelectorAll('.thumb-item').forEach(item => item.classList.remove('active'));
-        el.classList.add('active');
-    }
+        // Inject Detailed Info Section (Full width part)
+        document.getElementById('product-detailed-info').innerHTML = `
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; color: #000; margin-bottom: 40px; text-align: left; letter-spacing: -0.5px;">Thông tin sản phẩm</h2>
+            <div class="content-rich-text" style="font-family: 'Roboto', sans-serif; line-height: 2; color: #000; font-size: 18px; text-align: left;">
+                ${product.content || '<p>Sản phẩm này hiện chưa có bài giới thiệu chi tiết. Vui lòng quay lại sau.</p>'}
+            </div>
+        `;
 
-    function changeQty(amt) {
-        const input = document.getElementById('qty-val');
-        let val = parseInt(input.value) + amt;
-        if (val < 1) val = 1;
-        input.value = val;
-    }
+            const related = data.related || [];
+            if (related.length > 0) {
+                document.getElementById('product-related-info').innerHTML = `
+                <div class="related-products" style="margin-top: 80px;">
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #001f3f; margin-bottom: 35px; text-align: left; letter-spacing: -0.5px;">Sản phẩm liên quan</h2>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                        ${related.map(r => `
+                            <div style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fff; cursor: pointer;" onclick="window.location.href='product.php?slug=${r.slug}'">
+                                <img src="${r.image}" style="width: 100%; height: 200px; object-fit: cover;">
+                                <div style="padding: 15px;">
+                                    <h3 style="font-size: 16px; margin: 0 0 10px 0; color: #333;">${r.name}</h3>
+                                    <div style="color: #ff0000ff; font-weight: bold;">${formatPrice(r.price)}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            }
+        });
 
-    function addCart(id, name, price, image, silent = false) {
-        const qtyVal = document.getElementById('qty-val');
-        const qty = qtyVal ? parseInt(qtyVal.value) : 1;
-        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        const idx = cart.findIndex(item => item.id === id);
-        if (idx > -1) {
-            cart[idx].quantity += qty;
-        } else {
-            cart.push({ id, name, price, image, quantity: qty });
+        function changeMainImg(el, src) {
+            document.getElementById('main-view-img').src = src;
+            document.querySelectorAll('.thumb-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
         }
-        localStorage.setItem('cart', JSON.stringify(cart));
 
-        if (typeof updateCartBadge === 'function') updateCartBadge();
-
-        if (!silent) {
-            alert('Đã thêm sản phẩm vào giỏ hàng!');
+        function changeQty(amt) {
+            const input = document.getElementById('qty-val');
+            let val = parseInt(input.value) + amt;
+            if (val < 1) val = 1;
+            input.value = val;
         }
-    }
 
-    function buyNow(id, name, price, image) {
-        addCart(id, name, price, image, true);
-        window.location.href = 'cart.php';
-    }
-</script>
+        function addCart(id, name, price, image, silent = false) {
+            const qtyVal = document.getElementById('qty-val');
+            const qty = qtyVal ? parseInt(qtyVal.value) : 1;
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const idx = cart.findIndex(item => item.id === id);
+            if (idx > -1) {
+                cart[idx].quantity += qty;
+            } else {
+                cart.push({ id, name, price, image, quantity: qty });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
 
-<?php include 'includes/footer.php'; ?>
+            if (typeof updateCartBadge === 'function') updateCartBadge();
+
+            if (!silent) {
+                alert('Đã thêm sản phẩm vào giỏ hàng!');
+            }
+        }
+
+        function buyNow(id, name, price, image) {
+            addCart(id, name, price, image, true);
+            window.location.href = 'cart.php';
+        }
+    </script>
+
+    <?php include 'includes/footer.php'; ?>

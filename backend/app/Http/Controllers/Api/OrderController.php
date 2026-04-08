@@ -61,7 +61,7 @@ class OrderController extends Controller
     public function userOrders()
     {
         $user = auth()->user();
-        $orders = Order::where('user_id', $user->id)
+        $orders = Order::with('items.product')->where('user_id', $user->id)
             ->orWhere(function ($query) use ($user) {
                 $query->whereNull('user_id')
                     ->where('customer_phone', $user->phone);
@@ -74,7 +74,7 @@ class OrderController extends Controller
     // Của Admin
     public function index()
     {
-        $orders = Order::with('items')->oldest()->get();
+        $orders = Order::with('items.product')->oldest()->get();
         return response()->json($orders);
     }
 

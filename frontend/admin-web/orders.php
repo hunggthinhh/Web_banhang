@@ -28,8 +28,6 @@ include 'includes/sidebar.php';
             <tr>
                 <th>ID</th>
                 <th>Khách hàng</th>
-                <th>Địa chỉ</th>
-                <th>Số điện thoại</th>
                 <th>Tổng tiền</th>
                 <th>Trạng thái</th>
                 <th>Thao tác</th>
@@ -39,19 +37,26 @@ include 'includes/sidebar.php';
     </table>
 
     <div id="orderModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 650px;">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Chi Tiết Đơn Hàng #<span id="modalOrderId"></span></h2>
-            <div id="order-details-content"></div>
-            <div class="form-group" style="margin-top: 20px;">
-                <label>Cập nhật trạng thái</label>
-                <select id="update-status" onchange="updateOrderStatus()">
-                    <option value="pending">Chờ xử lý</option>
-                    <option value="processing">Đang làm bánh</option>
-                    <option value="shipped">Đang giao hàng</option>
-                    <option value="delivered">Đã giao hàng / Hoàn tất</option>
-                    <option value="cancelled">Đã hủy đơn</option>
-                </select>
+            <h2 style="margin-bottom: 20px;">Chi Tiết Đơn Hàng #<span id="modalOrderId"></span></h2>
+            
+            <div id="order-details-content">
+                <!-- Content injected via JS -->
+            </div>
+
+            <div class="status-update-section" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+                <label style="display: block; font-weight: 700; margin-bottom: 10px;">Cập nhật trạng thái đơn hàng</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="update-status" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="processing">Đang làm bánh</option>
+                        <option value="shipped">Đang giao hàng</option>
+                        <option value="delivered">Đã giao hàng / Hoàn tất</option>
+                        <option value="cancelled">Đã hủy đơn</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="updateOrderStatus()">Cập nhật</button>
+                </div>
             </div>
         </div>
     </div>
@@ -75,8 +80,6 @@ include 'includes/sidebar.php';
                 <tr>
                     <td>#${o.id}</td>
                     <td>${o.customer_name}</td>
-                    <td>${o.customer_address}</td>
-                    <td>${o.customer_phone}</td>
                     <td>${formatPrice(o.total_amount)}</td>
                     <td><span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span></td>
                     <td>
@@ -97,9 +100,59 @@ include 'includes/sidebar.php';
             document.getElementById('orderModal').style.display = 'block';
             document.getElementById('modalOrderId').innerText = o.id;
             document.getElementById('update-status').value = o.status;
-            let html = `<p><strong>Ngày đặt:</strong> ${new Date(o.created_at).toLocaleString('vi-VN')}</p><h3>Sản phẩm:</h3><ul>`;
-            o.items.forEach(i => { html += `<li>${i.product_name} x ${i.quantity} - ${formatPrice(i.price * i.quantity)}</li>`; });
-            html += `</ul><p><strong>Ghi chú:</strong> ${o.note || 'Không có'}</p>`;
+
+            const statusLabels = {
+                'pending': 'CHỜ XỬ LÝ',
+                'processing': 'ĐANG LÀM BÁNH',
+                'shipped': 'ĐANG GIAO HÀNG',
+                'delivered': 'HOÀN TẤT',
+                'cancelled': 'ĐÃ HỦY'
+            };
+
+            const baseUrl = window.location.origin + '/Web_banhang/backend/public/';
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <p style="margin-bottom: 8px;"><strong>Ngày đặt:</strong> ${new Date(o.created_at).toLocaleString('vi-VN')}</p>
+                    <p style="margin-bottom: 8px;"><strong>Trạng thái:</strong> <span class="status-badge status-${o.status}" style="font-size: 12px; padding: 4px 10px;">${statusLabels[o.status]}</span></p>
+                    <p style="margin-bottom: 8px;"><strong>Khách hàng:</strong> ${o.customer_name}</p>
+                    <p style="margin-bottom: 8px;"><strong>Số điện thoại:</strong> ${o.customer_phone}</p>
+                    <p style="margin-bottom: 8px;"><strong>Địa chỉ giao:</strong> ${o.customer_address}</p>
+                    <p style="margin-bottom: 8px;"><strong>Ghi chú:</strong> ${o.note || 'Không có'}</p>
+                </div>
+                
+                <h3 style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 25px;">Sản phẩm đã mua</h3>
+                <div class="order-items-list" style="margin-top: 15px;">
+            `;
+
+            o.items.forEach(i => {
+                let imgPath = '../assets/images/default-cake.jpg';
+                if (i.product && i.product.image) {
+                    // Nếu là URL tuyệt đối (bắt đầu bằng http) thì dùng luôn, nếu không thì ghép với baseUrl
+                    imgPath = (i.product.image.indexOf('http') === 0) ? i.product.image : baseUrl + i.product.image;
+                }
+                html += `
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #eee;">
+                        <img src="${imgPath}" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid #eee;" onerror="this.src='../assets/images/default-cake.jpg'">
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0; font-size: 16px;">${i.product_name}</h4>
+                            <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Số lượng: ${i.quantity} x ${formatPrice(i.price)}</p>
+                        </div>
+                        <div style="font-weight: 700; color: #d1b06b;">
+                            ${formatPrice(i.price * i.quantity)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #fafafa; border-radius: 8px;">
+                    <span style="font-weight: 700; font-size: 18px;">Tổng thanh toán:</span>
+                    <span style="font-weight: 700; font-size: 20px; color: var(--primary);">${formatPrice(o.total_amount)}</span>
+                </div>
+            `;
+            
             document.getElementById('order-details-content').innerHTML = html;
         }
 

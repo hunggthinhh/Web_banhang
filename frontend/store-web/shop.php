@@ -42,6 +42,13 @@ include 'includes/header.php';
     }
 
     /* Sidebar Styles */
+    .shop-sidebar {
+        position: sticky;
+        top: 100px;
+        height: max-content;
+        align-self: start;
+    }
+    
     .sidebar-title {
         font-family: 'Playfair Display', serif;
         font-size: 36px;
@@ -137,7 +144,7 @@ include 'includes/header.php';
         allProducts = await apiFetch('/products') || [];
 
         categoriesContainer.innerHTML = allCategories.map(cat => `
-            <div class="category-item" onclick="reorderAndShow('${cat.id}', this)">
+            <div class="category-item" onclick="scrollToSection('${cat.id}', this)">
                 <img src="https://cdn-icons-png.flaticon.com/512/992/992751.png" alt="icon">
                 ${cat.name}
             </div>
@@ -145,11 +152,22 @@ include 'includes/header.php';
 
         // Initial render (default order)
         renderSections();
+
+        // Check for hash in URL and scroll
+        if (window.location.hash) {
+            const hash = window.location.hash;
+            const catId = hash.replace('#section-', '');
+            const targetElement = document.querySelector(`.category-item[onclick*='${catId}']`);
+            if (targetElement) {
+                setTimeout(() => {
+                    scrollToSection(catId, targetElement);
+                }, 500); // Give it a moment to render
+            }
+        }
     });
 
-    function renderSections(topCatId = null) {
+    function renderSections() {
         const productsGrid = document.getElementById('products-list');
-
 
         // Group products by category ID
         const grouped = {};
@@ -159,15 +177,8 @@ include 'includes/header.php';
             grouped[cid].products.push(p);
         });
 
-        // Determine order: topCatId first, then others
-        let keys = Object.keys(grouped);
-        if (topCatId) {
-            keys = [topCatId, ...keys.filter(k => k != topCatId)];
-            const topCat = allCategories.find(c => c.id == topCatId);
-            // Header removed from HTML
-        } else {
-            // Header removed from HTML
-        }
+        // Use natural order of categories
+        let keys = allCategories.map(c => c.id.toString()).filter(id => grouped[id]);
 
         let html = '';
         if (keys.length === 0) {
@@ -199,20 +210,20 @@ include 'includes/header.php';
         }
 
         productsGrid.innerHTML = html;
-
-        // Scroll to top of content area smoothly if a category was picked
-        if (topCatId) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
     }
 
-    function reorderAndShow(catId, element) {
-        // Update active state in sidebar
+    function scrollToSection(catId, element) {
+        // Cập nhật trạng thái active cho sidebar
         document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
         element.classList.add('active');
 
-        // Re-render sections with this one on top
-        renderSections(catId);
+        // Cuộn đến section mong muốn mà KHÔNG sắp xếp lại thứ tự
+        const section = document.getElementById(`section-${catId}`);
+        if (section) {
+            const yOffset = -100; // Khoảng cách trừ hao cho header
+            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
     }
 </script>
 

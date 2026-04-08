@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ContactController;
@@ -22,10 +23,17 @@ Route::post('/contacts', [ContactController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
 
     // User routes
     Route::get('/orders', [OrderController::class, 'userOrders']);
     Route::post('/orders', [OrderController::class, 'checkout']); // Chuyển vào đây để nhận diện user_id
+    
+    Route::get('/addresses', [UserAddressController::class, 'index']);
+    Route::post('/addresses', [UserAddressController::class, 'store']);
+    Route::put('/addresses/{id}', [UserAddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [UserAddressController::class, 'destroy']);
+    Route::post('/addresses/{id}/default', [UserAddressController::class, 'setDefault']);
 
     // Admin Only Routes
     Route::prefix('admin')->group(function () {

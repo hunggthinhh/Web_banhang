@@ -3,10 +3,12 @@ const API_URL = window.location.origin + '/Web_banhang/backend/public/api';
 const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('auth_token');
     const headers = {
-        'Content-Type': 'application/json',
         'Accept': 'application/json',
         ...options.headers,
     };
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
@@ -74,6 +76,11 @@ const updateCartBadge = () => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
     countElement.innerText = totalQty;
+
+    // Add bump animation
+    countElement.classList.remove('bump');
+    void countElement.offsetWidth; // trigger reflow
+    countElement.classList.add('bump');
 };
 
 const formatPrice = (price) => {
