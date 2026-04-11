@@ -29,7 +29,7 @@ class DashboardController extends Controller
             for ($i = 0; $i < 24; $i++) {
                 $hourStart = $start->copy()->addHours($i);
                 $hourEnd = $hourStart->copy()->endHour();
-                $amount = Order::whereIn('status', ['shipped', 'completed'])
+                $amount = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
                     ->whereBetween('created_at', [$hourStart, $hourEnd])
                     ->sum('total_amount');
                 $data[] = [
@@ -44,7 +44,7 @@ class DashboardController extends Controller
 
             for ($i = 0; $i < 7; $i++) {
                 $day = $start->copy()->addDays($i);
-                $amount = Order::whereIn('status', ['shipped', 'completed'])
+                $amount = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
                     ->whereDate('created_at', $day)
                     ->sum('total_amount');
                 $data[] = [
@@ -61,7 +61,7 @@ class DashboardController extends Controller
 
             for ($i = 0; $i < $daysInMonth; $i++) {
                 $day = $start->copy()->addDays($i);
-                $amount = Order::whereIn('status', ['shipped', 'completed'])
+                $amount = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
                     ->whereDate('created_at', $day)
                     ->sum('total_amount');
                 $data[] = [
@@ -77,9 +77,10 @@ class DashboardController extends Controller
             'date' => $date->toDateString(),
             'totalRevenue' => $totalRevenue,
             'chartData' => $data,
-            'orders' => Order::whereIn('status', ['shipped', 'completed'])
+            'orders' => Order::with('items')
                 ->whereBetween('created_at', [$start, $end])
                 ->orderBy('created_at', 'desc')
+                ->take(10)
                 ->get()
         ]);
     }
@@ -89,20 +90,20 @@ class DashboardController extends Controller
         $now = Carbon::now();
 
         // Revenue by period
-        $revenueWeek  = Order::whereIn('status', ['shipped', 'completed'])
+        $revenueWeek  = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
             ->whereBetween('created_at', [$now->startOfWeek()->copy(), $now->copy()->endOfWeek()])
             ->sum('total_amount');
 
-        $revenueMonth = Order::whereIn('status', ['shipped', 'completed'])
+        $revenueMonth = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->sum('total_amount');
 
-        $revenueYear  = Order::whereIn('status', ['shipped', 'completed'])
+        $revenueYear  = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
             ->whereYear('created_at', Carbon::now()->year)
             ->sum('total_amount');
 
-        $revenueTotal = Order::whereIn('status', ['shipped', 'completed'])
+        $revenueTotal = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
             ->sum('total_amount');
 
         // Order status counts
@@ -121,7 +122,7 @@ class DashboardController extends Controller
         $revenueByMonth = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
-            $amount = Order::whereIn('status', ['shipped', 'completed'])
+            $amount = Order::whereIn('status', ['shipped', 'completed', 'delivered'])
                 ->whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
                 ->sum('total_amount');

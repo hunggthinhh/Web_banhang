@@ -8,6 +8,7 @@
     <a href="categories.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'categories.php') ? 'active' : ''; ?>">Danh Mục</a>
     <a href="orders.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'orders.php') ? 'active' : ''; ?>">Đơn Hàng</a>
     <a href="contacts.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'contacts.php') ? 'active' : ''; ?>">Liên Hệ</a>
+    <a href="users.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'users.php') ? 'active' : ''; ?>">Người Dùng</a>
 </div>
 <div class="admin-wrapper">
     <header class="admin-header">

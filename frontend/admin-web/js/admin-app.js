@@ -85,3 +85,17 @@ const adminFetch = async (endpoint, options = {}) => {
 const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
 };
+// Hệ thống đóng toàn bộ Modal bằng phím ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (modal.style.display === 'block' || modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                // Nếu có hàm closeModal đặc thù trên trang, hãy gọi nó để dọn dẹp (nếu cần)
+                if (typeof closeModal === 'function') closeModal();
+                if (typeof closeImageModal === 'function') closeImageModal();
+            }
+        });
+    }
+});

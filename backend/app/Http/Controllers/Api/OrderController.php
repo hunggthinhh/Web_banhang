@@ -15,13 +15,17 @@ class OrderController extends Controller
     {
         $request->validate([
             'customer_name' => 'required',
-            'customer_phone' => 'required',
+            'customer_phone' => 'required|regex:/^0\d{9}$/',
+            'customer_email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/',
             'customer_address' => 'required',
             'items' => 'required|array',
             'items.*.id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric',
             'items.*.name' => 'required',
+        ], [
+            'customer_email.regex' => 'Email phải có định dạng @gmail.com',
+            'customer_phone.regex' => 'Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0'
         ]);
 
         DB::beginTransaction();
@@ -72,9 +76,13 @@ class OrderController extends Controller
     }
 
     // Của Admin
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with('items.product')->oldest()->get();
+        $query = Order::with('items.product');
+        if ($request->has('status') && $request->status != 'all') {
+            $query->where('status', $request->status);
+        }
+        $orders = $query->oldest()->get();
         return response()->json($orders);
     }
 

@@ -25,10 +25,13 @@ class ContactController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'fullname' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/|max:255',
+            'phone' => 'nullable|regex:/^0\d{9}$/',
             'subject' => 'nullable|string|max:255',
             'message' => 'required|string',
+        ], [
+            'email.regex' => 'Email phải có định dạng @gmail.com',
+            'phone.regex' => 'Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0'
         ]);
 
         if ($validator->fails()) {

@@ -28,10 +28,10 @@ include 'includes/sidebar.php';
         <tr>
             <th>ID</th>
             <th>Ảnh</th>
+            <th>Nổi bật</th>
             <th>Tên sản phẩm</th>
             <th>Danh mục</th>
             <th>Giá</th>
-            <th>Mô tả</th>
             <th>Thao tác</th>
         </tr>
     </thead>
@@ -58,6 +58,14 @@ include 'includes/sidebar.php';
             <div class="form-group">
                 <label>Giá (VNĐ)</label>
                 <input type="number" id="pPrice" required placeholder="Ví dụ: 50000">
+            </div>
+            <div class="form-group" style="margin-top: 10px;">
+                <label
+                    style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fff8e1; padding: 10px; border-radius: 8px; border: 1px solid #ffe0b2;">
+                    <input type="checkbox" id="pIsFeatured" style="width: 20px; height: 20px; margin: 0;">
+                    <span style="font-weight: 700; color: #f57c00;"><i class="fas fa-star"
+                            style="margin-right: 5px;"></i> Sản phẩm nổi bật (Hiện ở Trang chủ)</span>
+                </label>
             </div>
 
             <div class="form-group" style="margin-top: 20px;">
@@ -123,6 +131,13 @@ include 'includes/sidebar.php';
                     Lại Sản Phẩm</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imageModal" class="modal" onclick="closeImageModal()">
+    <div style="max-width: 90%; max-height: 90%; display: flex; align-items: center; justify-content: center; margin: auto;">
+        <img id="previewFullImage" src="" style="max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 10px; border: 4px solid white; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
     </div>
 </div>
 
@@ -227,13 +242,15 @@ include 'includes/sidebar.php';
         tbody.innerHTML = dataToRender.map(p => `
                 <tr>
                     <td>${p.id}</td>
-                    <td><img src="${p.image}" width="60" height="45" style="object-fit: cover; border-radius: 6px;"></td>
+                    <td><img src="${p.image}" width="60" height="45" style="object-fit: cover; border-radius: 6px; cursor: zoom-in;" onclick="viewImage('${p.image}')"></td>
+                    <td style="text-align: center;">
+                        <span onclick="toggleFeatured(${p.id}, ${p.is_featured})" style="cursor: pointer;">
+                            ${p.is_featured ? '<i class="fas fa-star" style="color: #ffc107; font-size: 18px;" title="Bấm để tắt nổi bật"></i>' : '<i class="far fa-star" style="color: #ddd; font-size: 18px;" title="Bấm để đặt nổi bật"></i>'}
+                        </span>
+                    </td>
                     <td><strong>${p.name}</strong></td>
                     <td><span class="badge" style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${p.category ? p.category.name : 'N/A'}</span></td>
                     <td><span style="color: var(--primary); font-weight: bold;">${formatPrice(p.price || 0)}</span></td>
-                    <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${(p.description || '-').replace(/<[^>]*>?/gm, '')}
-                    </td>
                     <td>
                         <button class="btn btn-warning" onclick="editProduct(${p.id})">Sửa</button>
                         <button class="btn btn-danger" onclick="deleteProduct(${p.id})">Xóa</button>
@@ -251,6 +268,22 @@ include 'includes/sidebar.php';
         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')) {
             const res = await adminFetch(`/admin/products/${id}`, { method: 'DELETE' });
             if (res) loadProducts();
+        }
+    }
+
+    async function toggleFeatured(id, currentStatus) {
+        const newStatus = currentStatus ? 0 : 1;
+        // Optimization: UI feedback first or just show loading
+        const res = await adminFetch(`/admin/products/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_featured: newStatus })
+        });
+        if (res) {
+            // Update local state and re-render or just reload
+            const product = allProducts.find(p => p.id === id);
+            if (product) product.is_featured = newStatus;
+            applyFilters();
         }
     }
 
@@ -272,6 +305,7 @@ include 'includes/sidebar.php';
         document.getElementById('pCategory').value = (p && p.category) ? p.category.id : '';
         document.getElementById('pPrice').value = p ? p.price : '';
         document.getElementById('pDescription').value = p ? (p.description || '') : '';
+        document.getElementById('pIsFeatured').checked = p ? !!p.is_featured : false;
 
         // Set Quill content
         if (p && p.content) {
@@ -304,6 +338,7 @@ include 'includes/sidebar.php';
         formData.append('category_id', document.getElementById('pCategory').value);
         formData.append('price', document.getElementById('pPrice').value);
         formData.append('description', document.getElementById('pDescription').value);
+        formData.append('is_featured', document.getElementById('pIsFeatured').checked ? 1 : 0);
         formData.append('content', quill.root.innerHTML);
 
         // Main image
@@ -329,6 +364,16 @@ include 'includes/sidebar.php';
     window.onclick = function (event) {
         const modal = document.getElementById('productModal');
         if (event.target == modal) closeModal();
+        if (event.target == document.getElementById('imageModal')) closeImageModal();
+    }
+
+    function viewImage(src) {
+        document.getElementById('previewFullImage').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
     }
 </script>
 <?php include 'includes/footer.php'; ?>

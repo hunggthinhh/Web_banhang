@@ -79,14 +79,35 @@ include 'includes/header.php';
     const registerForm = document.getElementById('register-form');
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+
+        if (!email.endsWith('@gmail.com')) {
+            alert('Email phải có định dạng @gmail.com');
+            return;
+        }
+
+        if (!/^0\d{9}$/.test(phone)) {
+            alert('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0');
+            return;
+        }
+
+        const password = document.getElementById('password').value;
+        const password_confirmation = document.getElementById('password_confirmation').value;
+
+        if (password !== password_confirmation) {
+            alert('Mật khẩu xác nhận không trùng khớp!');
+            return;
+        }
+
         const payload = {
             name: document.getElementById('name').value,
             username: document.getElementById('username').value,
-            email: document.getElementById('email').value,
-            phone: document.getElementById('phone').value,
+            email: email,
+            phone: phone,
             address: document.getElementById('address').value,
-            password: document.getElementById('password').value,
-            password_confirmation: document.getElementById('password_confirmation').value
+            password: password,
+            password_confirmation: password_confirmation
         };
         const response = await fetch('http://127.0.0.1:8000/api/register', {
             method: 'POST',

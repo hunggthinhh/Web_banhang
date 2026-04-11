@@ -22,8 +22,7 @@ class CategoryController extends Controller
 
         $category = Category::create([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'description' => $request->description
+            'slug' => Str::slug($request->name)
         ]);
 
         return response()->json($category, 201);
@@ -39,8 +38,7 @@ class CategoryController extends Controller
 
         $category->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
-            'description' => $request->description
+            'slug' => Str::slug($request->name)
         ]);
 
         return response()->json($category);

@@ -83,6 +83,20 @@ include 'includes/header.php';
 document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    // Validation
+    const email = this.querySelector('[name="email"]').value;
+    const phone = this.querySelector('[name="phone"]').value;
+
+    if (!email.endsWith('@gmail.com')) {
+        showMessage('Email phải có định dạng @gmail.com', 'error');
+        return;
+    }
+
+    if (phone && !/^0\d{9}$/.test(phone)) {
+        showMessage('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0', 'error');
+        return;
+    }
+
     // Captcha validation
     if (!document.getElementById('captcha-check').checked) {
         showMessage('Vui lòng xác nhận bạn không phải là người máy.', 'error');

@@ -18,7 +18,7 @@ class ProductController extends Controller
         }
         
         if ($request->has('featured')) {
-            $query->take(4);
+            $query->where('is_featured', true)->take(10);
         }
         
         return response()->json($query->latest()->get());
@@ -89,7 +89,8 @@ class ProductController extends Controller
             'content' => $request->content,
             'image' => $imagePath,
             'sub_images' => $subImages,
-            'is_active' => $request->boolean('is_active', true)
+            'is_active' => $request->boolean('is_active', true),
+            'is_featured' => $request->boolean('is_featured', false)
         ]);
 
         return response()->json(['message' => 'Thêm thành công', 'product' => $product]);
@@ -132,7 +133,8 @@ class ProductController extends Controller
             'content' => $request->content ?? $product->content,
             'image' => $imagePath,
             'sub_images' => $subImages,
-            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active,
+            'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured
         ]);
 
         return response()->json(['message' => 'Cập nhật thành công', 'product' => $product]);

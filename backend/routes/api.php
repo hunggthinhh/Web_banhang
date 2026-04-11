@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\UserController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -63,5 +64,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/contacts/{id}', [ContactController::class, 'updateStatus']);
         Route::post('/contacts/{id}', [ContactController::class, 'updateStatus']); // _method=PUT spoofing
         Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+        // Users Admin
+        Route::get('/users', [UserController::class, 'index']);
+        Route::put('/users/{id}/role', [UserController::class, 'updateRole']);
+        Route::post('/users/{id}/role', [UserController::class, 'updateRole']); // Spoofing
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
     });
 });

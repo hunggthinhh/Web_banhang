@@ -8,7 +8,7 @@ include 'includes/sidebar.php';
         <button class="btn btn-primary" onclick="openModal()">Thêm Danh Mục</button>
     </div>
     <table id="categories-table">
-        <thead><tr><th>ID</th><th>Tên danh mục</th><th>Mô tả</th><th>Sản phẩm</th><th>Thao tác</th></tr></thead>
+        <thead><tr><th>ID</th><th>Tên danh mục</th><th>Sản phẩm</th><th>Thao tác</th></tr></thead>
         <tbody><!-- Loaded via JS --></tbody>
     </table>
 
@@ -19,7 +19,6 @@ include 'includes/sidebar.php';
             <form id="categoryForm">
                 <input type="hidden" id="categoryId">
                 <div class="form-group"><label>Tên Danh Mục</label><input type="text" id="catName" required></div>
-                <div class="form-group"><label>Mô tả</label><textarea id="catDescription"></textarea></div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Lưu Lại</button>
             </form>
         </div>
@@ -37,7 +36,6 @@ include 'includes/sidebar.php';
                 <tr>
                     <td>${c.id}</td>
                     <td><strong>${c.name}</strong></td>
-                    <td>${c.description || '-'}</td>
                     <td>${c.products_count || 0}</td>
                     <td>
                         <button class="btn btn-warning" onclick="editCategory(${c.id})">Sửa</button>
@@ -64,7 +62,6 @@ include 'includes/sidebar.php';
             document.getElementById('modalTitle').innerText = c ? 'Sửa Danh Mục' : 'Thêm Danh Mục';
             document.getElementById('categoryId').value = c ? c.id : '';
             document.getElementById('catName').value = c ? c.name : '';
-            document.getElementById('catDescription').value = c ? c.description : '';
         }
 
         function closeModal() { document.getElementById('categoryModal').style.display = 'none'; }
@@ -73,8 +70,7 @@ include 'includes/sidebar.php';
             e.preventDefault();
             const id = document.getElementById('categoryId').value;
             const payload = { 
-                name: document.getElementById('catName').value, 
-                description: document.getElementById('catDescription').value 
+                name: document.getElementById('catName').value
             };
             const endpoint = id ? `/admin/categories/${id}` : '/admin/categories';
             const method  = id ? 'PUT' : 'POST';

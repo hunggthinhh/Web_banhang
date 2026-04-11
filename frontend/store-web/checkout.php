@@ -231,7 +231,9 @@ include 'includes/header.php';
         cursor: pointer;
     }
 
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
         border-color: var(--primary);
         outline: none;
         box-shadow: 0 0 0 4px rgba(0, 31, 63, 0.05);
@@ -355,7 +357,7 @@ include 'includes/header.php';
                     </div>
                 `;
             }).join('');
-            
+
             document.getElementById('sub-total').innerText = formatPrice(totalVal);
             document.getElementById('final-total').innerText = formatPrice(totalVal);
             total = totalVal; // Sync global total
@@ -363,19 +365,38 @@ include 'includes/header.php';
 
         reRenderCheckout();
 
-        // Pre-fill from profile
-        const savedName = localStorage.getItem('user_name');
-        const savedEmail = localStorage.getItem('user_email');
-        const savedPhone = localStorage.getItem('user_phone');
-        const savedAddr = localStorage.getItem('user_address');
+        // Mặc định lấy từ thông tin tài khoản (Profile)
+        const user = await apiFetch('/me');
+        if (user) {
+            document.getElementById('name').value = user.name || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('phone').value = user.phone || '';
+        }
+
+        // Ưu tiên cực kỳ: Nếu có địa chỉ mặc định trong Sổ địa chỉ thì ghi đè thông tin giao hàng
+        const addresses = await apiFetch('/addresses');
+        let defaultAddr = null;
+        if (addresses && addresses.length > 0) {
+            defaultAddr = addresses.find(a => a.is_default);
+            if (defaultAddr) {
+                // Ghi đè thông tin người nhận theo địa chỉ mặc định
+                document.getElementById('name').value = defaultAddr.receiver_name || user.name;
+                document.getElementById('phone').value = defaultAddr.receiver_phone || user.phone;
+                if (defaultAddr.receiver_email) document.getElementById('email').value = defaultAddr.receiver_email;
+                
+                // Điền địa chỉ chi tiết
+                document.getElementById('address').value = defaultAddr.detail_address || '';
+                
+                // Lưu code để auto-select tỉnh/huyện/xã bên dưới
+                localStorage.setItem('user_city_code', defaultAddr.province_code);
+                localStorage.setItem('user_district_code', defaultAddr.district_code);
+                localStorage.setItem('user_ward_code', defaultAddr.ward_code);
+            }
+        }
+
         const savedCityCode = localStorage.getItem('user_city_code');
         const savedDistCode = localStorage.getItem('user_district_code');
         const savedWardCode = localStorage.getItem('user_ward_code');
-
-        if (savedName) document.getElementById('name').value = savedName;
-        if (savedEmail) document.getElementById('email').value = savedEmail;
-        if (savedPhone) document.getElementById('phone').value = savedPhone;
-        if (savedAddr) document.getElementById('address').value = savedAddr;
 
         const citySelect = document.getElementById('city');
         const districtSelect = document.getElementById('district');
@@ -496,6 +517,19 @@ include 'includes/header.php';
                 document.getElementById(f).focus();
                 return;
             }
+        }
+
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+
+        if (!email.endsWith('@gmail.com')) {
+            alert('Email phải có định dạng @gmail.com');
+            return;
+        }
+
+        if (!/^0\d{9}$/.test(phone)) {
+            alert('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0');
+            return;
         }
 
         const cityTxt = document.getElementById('city').options[document.getElementById('city').selectedIndex].dataset.name;

@@ -120,11 +120,12 @@ include 'includes/sidebar.php';
     let revenueChart = null;
 
     const statusConfig = {
-        'pending': { label: 'Chờ xử lý', color: '#e67e22', icon: '⏳', html: '<span style="background: #fef3e2; color: #e67e22; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">⏳ Chờ xử lý</span>' },
-        'processing': { label: 'Đang xử lý', color: '#3498db', icon: '🔄', html: '<span style="background: #e8f4fd; color: #3498db; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">🔄 Đang xử lý</span>' },
-        'shipped': { label: 'Đã giao', color: '#27ae60', icon: '✅', html: '<span style="background: #eafaf1; color: #27ae60; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">✅ Đã giao</span>' },
-        'cancelled': { label: 'Đã hủy', color: '#e74c3c', icon: '❌', html: '<span style="background: #fdf0f0; color: #e74c3c; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">❌ Đã hủy</span>' },
-        'completed': { label: 'Hoàn thành', color: '#8e44ad', icon: '🎉', html: '<span style="background: #f4ecfc; color: #8e44ad; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">🎉 Hoàn thành</span>' },
+        'pending': { label: 'Chờ xử lý', color: '#ffbd00', icon: '⏳', html: '<span style="background: rgba(255, 193, 7, 0.1); color: #856404; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Chờ xử lý</span>' },
+        'processing': { label: 'Đang làm bánh', color: '#007bff', icon: '🔄', html: '<span style="background: rgba(0, 123, 255, 0.1); color: #004085; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Đang làm bánh</span>' },
+        'shipped': { label: 'Đang giao hàng', color: '#6f42c1', icon: '🚚', html: '<span style="background: rgba(111, 66, 193, 0.1); color: #4a148c; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Đang giao hàng</span>' },
+        'completed': { label: 'Hoàn tất', color: '#28a745', icon: '✅', html: '<span style="background: rgba(40, 167, 69, 0.1); color: #155724; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Hoàn tất</span>' },
+        'delivered': { label: 'Hoàn tất', color: '#28a745', icon: '✅', html: '<span style="background: rgba(40, 167, 69, 0.1); color: #155724; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Hoàn tất</span>' },
+        'cancelled': { label: 'Đã hủy', color: '#dc3545', icon: '❌', html: '<span style="background: rgba(220, 53, 69, 0.1); color: #721c24; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Đã hủy</span>' },
     };
 
     const updateChart = (labels, values) => {
@@ -197,7 +198,7 @@ include 'includes/sidebar.php';
         const tbody = document.querySelector('#recent-orders tbody');
         if (report.orders && report.orders.length > 0) {
             tbody.innerHTML = report.orders.map(o => `
-                <tr>
+                <tr onclick="window.location.href='orders.php?search=${o.id}'" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='white'">
                     <td><strong>#${o.id}</strong></td>
                     <td>${o.customer_name}</td>
                     <td>${o.customer_phone || '-'}</td>
@@ -231,11 +232,11 @@ include 'includes/sidebar.php';
         // Order Status Breakdown
         const statusEl = document.getElementById('order-status-list');
         const statuses = data.ordersByStatus || {};
-        const allStatuses = ['pending', 'processing', 'shipped', 'cancelled', 'completed'];
+        const allStatuses = ['pending', 'processing', 'shipped', 'cancelled', 'delivered'];
         statusEl.innerHTML = allStatuses.map(key => {
             const cfg = statusConfig[key] || { label: key, color: '#999', icon: '📌' };
             const count = statuses[key] || 0;
-            return `<div style="background: #f9f9f9; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px; border-left: 4px solid ${cfg.color};">
+            return `<div onclick="window.location.href='orders.php?status=${key}'" style="cursor: pointer; background: #f9f9f9; border-radius: 12px; padding: 14px; display: flex; align-items: center; gap: 12px; border-left: 4px solid ${cfg.color}; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
             <span style="font-size: 22px;">${cfg.icon}</span>
             <div>
                 <div style="font-size: 11px; color: #888; text-transform: uppercase;">${cfg.label}</div>

@@ -14,10 +14,13 @@ class AuthController extends Controller
         $request->validate([
             'username' => 'required|unique:users',
             'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'phone' => 'nullable',
+            'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/|unique:users',
+            'password' => 'required|min:6|confirmed',
+            'phone' => 'nullable|regex:/^0\d{9}$/',
             'address' => 'nullable',
+        ], [
+            'email.regex' => 'Email phải có định dạng @gmail.com',
+            'phone.regex' => 'Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0'
         ]);
 
         $user = User::create([
@@ -80,10 +83,13 @@ class AuthController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20',
+            'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/|unique:users,email,' . $user->id,
+            'phone' => 'nullable|regex:/^0\d{9}$/',
             'address' => 'nullable|string|max:255',
             'password' => 'nullable|min:6|confirmed',
+        ], [
+            'email.regex' => 'Email phải có định dạng @gmail.com',
+            'phone.regex' => 'Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0'
         ]);
 
         $user->name = $request->name;

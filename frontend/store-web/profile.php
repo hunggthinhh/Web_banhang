@@ -576,6 +576,20 @@ include 'includes/header.php';
             const email = document.getElementById('user-email').value;
             const phone = document.getElementById('user-phone').value;
 
+            if (!email.endsWith('@gmail.com')) {
+                alert('Email phải có định dạng @gmail.com');
+                btn.innerText = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            if (!/^0\d{9}$/.test(phone)) {
+                alert('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0');
+                btn.innerText = originalText;
+                btn.disabled = false;
+                return;
+            }
+
             let payload = {
                 name: name,
                 email: email,
@@ -585,6 +599,12 @@ include 'includes/header.php';
             const newPass = document.getElementById('new-pass').value;
             const cfmPass = document.getElementById('cfm-pass').value;
             if (newPass) {
+                if (newPass !== cfmPass) {
+                    alert('Mật khẩu mới không trùng khớp!');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    return;
+                }
                 payload.password = newPass;
                 payload.password_confirmation = cfmPass;
             }
@@ -671,6 +691,12 @@ include 'includes/header.php';
 
     async function saveAddress() {
         const id = document.getElementById('edit-address-id').value;
+        const phone = document.getElementById('addr-phone').value;
+        if (!/^0\d{9}$/.test(phone)) {
+            alert('Số điện thoại người nhận phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0');
+            return;
+        }
+
         const payload = {
             alias: document.getElementById('addr-alias').value,
             receiver_name: document.getElementById('addr-name').value,
