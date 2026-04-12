@@ -48,14 +48,16 @@ include 'includes/header.php';
         background: #fff;
         border-radius: 25px;
         overflow: hidden;
-        border: 2px solid #000;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        border: 2.5px solid #001f3f;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+        height: 400px; /* Adjusted for 4 thumbnails: 4*90 + 3*10 = 390px */
     }
 
     .main-image-wrap img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: 0.5s ease;
     }
 
     .product-info {
@@ -80,21 +82,21 @@ include 'includes/header.php';
     .product-title {
         font-family: 'Playfair Display', serif;
         font-size: 42px;
-        color: #001f3f;
+        color: var(--name-color);
         margin-bottom: 15px;
         font-weight: 900;
     }
 
     .product-price-v {
         font-size: 32px;
-        color: #ff6b35;
+        color: var(--price-color);
         font-weight: 700;
         margin-bottom: 10px;
     }
 
     .price-notice {
         font-size: 14px;
-        color: #ff6b35;
+        color: var(--price-color);
         margin-bottom: 30px;
     }
 
@@ -248,12 +250,12 @@ include 'includes/header.php';
             <div class="gallery-layout">
                 <div class="thumb-list">
                     ${allImgs.map((img, i) => `
-                        <div class="thumb-item ${i === 0 ? 'active' : ''}" onmouseover="changeMainImg(this, '${img}')">
+                        <div class="thumb-item ${i === 0 ? 'active' : ''}" onclick="changeMainImg(this, '${img}')">
                             <img src="${img}">
                         </div>
                     `).join('')}
                     ${allImgs.length < 4 ? Array(4 - allImgs.length).fill().map(() => `
-                        <div class="thumb-item"><img src="${product.image}"></div>
+                        <div class="thumb-item" onclick="changeMainImg(this, '${product.image}')"><img src="${product.image}"></div>
                     `).join('') : ''}
                 </div>
                 
@@ -270,23 +272,25 @@ include 'includes/header.php';
                         ${product.description || 'Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất...'}
                     </p>
 
-                    <div style="background: #fff9f0; padding: 30px; border-radius: 20px;">
-                        <div class="buy-btns">
-                            <div class="qty-controls">
+                    <div style="background: #fff9f0; padding: 25px; border-radius: 20px; border: 1px solid #f0ddd1;">
+                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                            <div class="qty-controls" style="flex: 0 0 auto;">
                                 <button class="qty-btn" onclick="changeQty(-1)">-</button>
                                 <input type="number" id="qty-val" value="1" min="1" oninput="if(this.value < 1) this.value = 1;">
                                 <button class="qty-btn" onclick="changeQty(1)">+</button>
                             </div>
-                            <button class="btn-cart" onclick="addCart(${product.id}, '${product.name}', ${product.price}, '${product.image}')">
-                                Thêm vào giỏ hàng <i class="fas fa-shopping-bag" style="margin-left: 10px;"></i>
+                            
+                            <button class="btn-add-cart" onclick="addCart(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
+                                    style="width: 60px; height: 50px; padding: 0; border:1.5px solid #d1d5db; border-radius: 10px; background:#f0f4f8; color:#001f3f; display:flex; align-items:center; justify-content:center; margin-top:0;">
+                                <i class="fas fa-shopping-basket"></i>
+                            </button>
+                            
+                            <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
+                                    style="flex: 1; height: 50px; background: #e53e3e; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer;">
+                                Mua ngay
                             </button>
                         </div>
-                        <div style="display: flex; gap: 15px; margin-top: 15px;">
-                            <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${product.price}, '${product.image}')" style="flex: 1; border: none; font-weight: 700;">Mua ngay</button>
-                            <button style="flex: 1; background: #ffe5b4; border: 1.5px solid #f0c07d; border-radius: 12px; font-weight: 700; color: #7a5a3a; display: flex; align-items: center; justify-content: center; gap: 10px;">
-                                Liên hệ tư vấn <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Zalo_logo_2019.svg" style="width: 24px;">
-                            </button>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -332,30 +336,6 @@ include 'includes/header.php';
             let val = parseInt(input.value) + amt;
             if (val < 1) val = 1;
             input.value = val;
-        }
-
-        function addCart(id, name, price, image, silent = false) {
-            const qtyVal = document.getElementById('qty-val');
-            const qty = qtyVal ? parseInt(qtyVal.value) : 1;
-            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            const idx = cart.findIndex(item => item.id === id);
-            if (idx > -1) {
-                cart[idx].quantity += qty;
-            } else {
-                cart.push({ id, name, price, image, quantity: qty });
-            }
-            localStorage.setItem('cart', JSON.stringify(cart));
-
-            if (typeof updateCartBadge === 'function') updateCartBadge();
-
-            if (!silent) {
-                alert('Đã thêm sản phẩm vào giỏ hàng!');
-            }
-        }
-
-        function buyNow(id, name, price, image) {
-            addCart(id, name, price, image, true);
-            window.location.href = 'cart.php';
         }
     </script>
 

@@ -281,13 +281,13 @@ include 'includes/header.php';
         border-top: 2px solid #001f3f;
         font-size: 24px;
         font-weight: 800;
-        color: #001f3f;
+        color: var(--price-color);
     }
 
     .btn-place-order {
         width: 100%;
         padding: 20px;
-        background: #001f3f;
+        background: var(--price-color);
         color: #fff;
         border: none;
         border-radius: 15px;
@@ -300,9 +300,9 @@ include 'includes/header.php';
     }
 
     .btn-place-order:hover {
-        background: var(--primary);
+        filter: brightness(1.1);
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 20px rgba(230, 81, 0, 0.2);
     }
 
     .page-title {
@@ -344,7 +344,7 @@ include 'includes/header.php';
                     <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: flex-start;">
                         <img src="${item.image}" width="65" height="65" style="border-radius: 12px; object-fit: cover; border: 1.5px solid #eee;">
                         <div style="flex: 1;">
-                            <div style="font-weight: 700; font-size: 15px; color: #001f3f;">${item.name}</div>
+                            <div style="font-weight: 700; font-size: 15px; color: var(--name-color);">${item.name}</div>
                             <div style="font-size: 13px; color: #666; margin-top: 2px;">Số lượng: ${item.quantity} × ${formatPrice(item.price)}</div>
                             <div style="margin-top: 10px;">
                                 <small style="display: block; font-size: 11px; font-weight: 600; color: #f0c07d; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Lời chúc cho bánh:</small>
@@ -353,7 +353,7 @@ include 'includes/header.php';
                                     style="width: 100%; height: 50px; padding: 8px; border: 1px dashed #f0c07d; border-radius: 8px; font-size: 12px; background: #fffaf2; resize: none; font-family: inherit; outline: none; transition: 0.3s;">${item.greeting || ''}</textarea>
                             </div>
                         </div>
-                        <div style="font-weight: 700; color: var(--primary); font-size: 15px;">${formatPrice(sub)}</div>
+                        <div style="font-weight: 700; color: var(--price-color); font-size: 15px;">${formatPrice(sub)}</div>
                     </div>
                 `;
             }).join('');

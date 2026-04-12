@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\UserController;
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
 // Categories & Products
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/products', [ProductController::class, 'adminIndex']);
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{id}', [ProductController::class, 'update']);
+        Route::post('/products/{id}', [ProductController::class, 'update']); // _method=PUT spoofing
         Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
         Route::get('/orders', [OrderController::class, 'index']);

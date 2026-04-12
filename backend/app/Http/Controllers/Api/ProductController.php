@@ -86,7 +86,7 @@ class ProductController extends Controller
             'category_id' => $request->category_id,
             'price' => $request->price,
             'description' => $request->description,
-            'content' => $request->content,
+            'content' => $request->input('content'),
             'image' => $imagePath,
             'sub_images' => $subImages,
             'is_active' => $request->boolean('is_active', true),
@@ -98,46 +98,53 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
-        
-        $imagePath = $request->image ?? $product->image;
-        
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $p = public_path('uploads');
-            if (!file_exists($p)) mkdir($p, 0777, true);
-            $file->move($p, $filename);
-            $imagePath = asset('uploads/' . $filename);
-        }
-
-        $subImages = $product->sub_images ?? [];
-        for ($i = 0; $i < 4; $i++) {
-            if ($request->hasFile("sub_image_$i")) {
-                $file = $request->file("sub_image_$i");
-                $filename = time() . "_sub_{$i}_" . $file->getClientOriginalName();
+        try {
+            $product = Product::findOrFail($id);
+            
+            $imagePath = $request->image ?? $product->image;
+            
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
                 $p = public_path('uploads');
                 if (!file_exists($p)) mkdir($p, 0777, true);
                 $file->move($p, $filename);
-                // Replace or add
-                $subImages[$i] = asset('uploads/' . $filename);
+                $imagePath = asset('uploads/' . $filename);
             }
+
+            $subImages = $product->sub_images ?? [];
+            if (!is_array($subImages)) $subImages = [];
+
+            for ($i = 0; $i < 4; $i++) {
+                if ($request->hasFile("sub_image_$i")) {
+                    $file = $request->file("sub_image_$i");
+                    $filename = time() . "_sub_{$i}_" . $file->getClientOriginalName();
+                    $p = public_path('uploads');
+                    if (!file_exists($p)) mkdir($p, 0777, true);
+                    $file->move($p, $filename);
+                    $subImages[$i] = asset('uploads/' . $filename);
+                }
+            }
+
+            $product->update([
+                'name' => $request->name ?? $product->name,
+                'slug' => $request->name ? Str::slug($request->name) : $product->slug,
+                'category_id' => $request->category_id ?? $product->category_id,
+                'price' => $request->price ?? $product->price,
+                'description' => $request->description ?? $product->description,
+                'content' => $request->input('content') ?? $product->content,
+                'image' => $imagePath,
+                'sub_images' => $subImages,
+                'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active,
+                'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured
+            ]);
+
+            return response()->json(['message' => 'Cập nhật thành công', 'product' => $product]);
+        } catch (\Exception $e) {
+            \Log::error('Product Update Error: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+            return response()->json(['error' => 'Lỗi server: ' . $e->getMessage()], 500);
         }
-
-        $product->update([
-            'name' => $request->name ?? $product->name,
-            'slug' => $request->name ? Str::slug($request->name) : $product->slug,
-            'category_id' => $request->category_id ?? $product->category_id,
-            'price' => $request->price ?? $product->price,
-            'description' => $request->description ?? $product->description,
-            'content' => $request->content ?? $product->content,
-            'image' => $imagePath,
-            'sub_images' => $subImages,
-            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active,
-            'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured
-        ]);
-
-        return response()->json(['message' => 'Cập nhật thành công', 'product' => $product]);
     }
 
     public function destroy($id)

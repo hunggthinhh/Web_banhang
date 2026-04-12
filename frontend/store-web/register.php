@@ -32,10 +32,7 @@ include 'includes/header.php';
                 <input type="text" id="phone" class="form-input" placeholder="Nhập số điện thoại" required>
             </div>
 
-            <div class="form-group">
-                <label for="address" class="form-label">Địa chỉ <span class="required">*</span></label>
-                <input type="text" id="address" class="form-input" placeholder="Nhập địa chỉ" required>
-            </div>
+
 
             <div class="form-group">
                 <label for="password" class="form-label">Mật khẩu <span class="required">*</span></label>
@@ -49,7 +46,8 @@ include 'includes/header.php';
                 <label for="password_confirmation" class="form-label">Xác nhận mật khẩu <span
                         class="required">*</span></label>
                 <div class="password-wrapper">
-                    <input type="password" id="password_confirmation" class="form-input" placeholder="Xác nhận mật khẩu"required>
+                    <input type="password" id="password_confirmation" class="form-input" placeholder="Xác nhận mật khẩu"
+                        required>
                     <i class="fas fa-eye password-toggle" onclick="togglePassword('password_confirmation')"></i>
                 </div>
             </div>
@@ -105,11 +103,10 @@ include 'includes/header.php';
             username: document.getElementById('username').value,
             email: email,
             phone: phone,
-            address: document.getElementById('address').value,
             password: password,
             password_confirmation: password_confirmation
         };
-        const response = await fetch('http://127.0.0.1:8000/api/register', {
+        const response = await fetch('http://localhost/Web_banhang/backend/public/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify(payload)

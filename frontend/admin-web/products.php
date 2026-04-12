@@ -75,7 +75,7 @@ include 'includes/sidebar.php';
             </div>
 
             <div class="form-group" style="margin-top: 15px;">
-                <label>Hình Ảnh (1 Chính - 4 Phụ)</label>
+                <label>Hình Ảnh (1 Chính - 3 Phụ)</label>
                 <div class="image-uploader-grid"
                     style="display: grid; grid-template-columns: 100px 1fr; gap: 15px; margin-top: 10px;">
                     <!-- Sub images -->
@@ -98,16 +98,10 @@ include 'includes/sidebar.php';
                             <input type="file" id="pSub2" accept="image/*" style="display: none"
                                 onchange="previewImage(this, 'pSub2_preview')">
                         </div>
-                        <div class="sub-img-box" onclick="document.getElementById('pSub3').click()">
-                            <img id="pSub3_preview" src="https://via.placeholder.com/100"
-                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;">
-                            <input type="file" id="pSub3" accept="image/*" style="display: none"
-                                onchange="previewImage(this, 'pSub3_preview')">
-                        </div>
                     </div>
                     <!-- Main image -->
                     <div class="main-img-box" onclick="document.getElementById('pImage').click()"
-                        style="height: 430px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer; position: relative;">
+                        style="height: 320px; border: 2px dashed #ddd; border-radius: 8px; cursor: pointer; position: relative;">
                         <img id="pMain_preview" src="https://via.placeholder.com/400"
                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">
                         <input type="file" id="pImage" accept="image/*" style="display: none"
@@ -248,9 +242,9 @@ include 'includes/sidebar.php';
                             ${p.is_featured ? '<i class="fas fa-star" style="color: #ffc107; font-size: 18px;" title="Bấm để tắt nổi bật"></i>' : '<i class="far fa-star" style="color: #ddd; font-size: 18px;" title="Bấm để đặt nổi bật"></i>'}
                         </span>
                     </td>
-                    <td><strong>${p.name}</strong></td>
+                    <td><strong style="color: var(--name-color);">${p.name}</strong></td>
                     <td><span class="badge" style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${p.category ? p.category.name : 'N/A'}</span></td>
-                    <td><span style="color: var(--primary); font-weight: bold;">${formatPrice(p.price || 0)}</span></td>
+                    <td><span style="color: var(--price-color); font-weight: bold;">${formatPrice(p.price || 0)}</span></td>
                     <td>
                         <button class="btn btn-warning" onclick="editProduct(${p.id})">Sửa</button>
                         <button class="btn btn-danger" onclick="deleteProduct(${p.id})">Xóa</button>
@@ -318,14 +312,14 @@ include 'includes/sidebar.php';
         document.getElementById('pMain_preview').src = p ? p.image : 'https://via.placeholder.com/400';
 
         // Sub images previews
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 3; i++) {
             const src = (p && p.sub_images && p.sub_images[i]) ? p.sub_images[i] : 'https://via.placeholder.com/100';
             document.getElementById(`pSub${i}_preview`).src = src;
         }
 
         // Reset files
         document.getElementById('pImage').value = '';
-        for (let i = 0; i < 4; i++) document.getElementById(`pSub${i}`).value = '';
+        for (let i = 0; i < 3; i++) document.getElementById(`pSub${i}`).value = '';
     }
 
     function closeModal() { document.getElementById('productModal').style.display = 'none'; }
@@ -346,7 +340,7 @@ include 'includes/sidebar.php';
         if (imageFile) formData.append('image', imageFile);
 
         // Sub images
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 3; i++) {
             const subFile = document.getElementById(`pSub${i}`).files[0];
             if (subFile) formData.append(`sub_image_${i}`, subFile);
         }

@@ -16,7 +16,8 @@ include 'includes/header.php';
                     style="position: absolute; bottom: 5px; right: 5px; background: var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 3px solid white;">
                     <i class="fas fa-camera"></i>
                 </div>
-                <input type="file" id="avatar-input" style="display: none;" accept="image/*" onchange="uploadAvatar(this)">
+                <input type="file" id="avatar-input" style="display: none;" accept="image/*"
+                    onchange="uploadAvatar(this)">
             </div>
         </div>
         <h3 id="display-name" style="color: #001f3f;">Username</h3>
@@ -59,7 +60,7 @@ include 'includes/header.php';
                 </div>
                 <div class="form-group">
                     <label>Số điện thoại <span class="required">*</span></label>
-                    <input type="text" id="user-phone" placeholder="09xxxxxxx">
+                    <input type="text" id="user-phone" placeholder="">
                 </div>
             </div>
 
@@ -97,9 +98,11 @@ include 'includes/header.php';
         <div id="address-section" class="tab-pane">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
                 <h2 class="form-section-title" style="margin-bottom: 0;">Sổ địa chỉ</h2>
-                <button onclick="openAddressModal()" class="btn-save-profile" style="margin: 0; padding: 10px 20px; font-size: 14px; background: #001f3f; color: white;">+ Thêm địa chỉ mới</button>
+                <button onclick="openAddressModal()" class="btn-save-profile"
+                    style="margin: 0; padding: 10px 20px; font-size: 14px; background: #001f3f; color: white;">+ Thêm
+                    địa chỉ mới</button>
             </div>
-            
+
             <div id="address-list" style="display: grid; gap: 20px;">
                 <!-- Addresses will be loaded here -->
             </div>
@@ -297,11 +300,31 @@ include 'includes/header.php';
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-    .status-pending { background: rgba(255, 193, 7, 0.15) !important; color: #856404 !important; }
-    .status-processing { background: rgba(0, 123, 255, 0.15) !important; color: #004085 !important; }
-    .status-shipped { background: rgba(111, 66, 193, 0.15) !important; color: #4a148c !important; }
-    .status-delivered { background: rgba(40, 167, 69, 0.15) !important; color: #155724 !important; }
-    .status-cancelled { background: rgba(220, 53, 69, 0.15) !important; color: #721c24 !important; }
+
+    .status-pending {
+        background: rgba(255, 193, 7, 0.15) !important;
+        color: #856404 !important;
+    }
+
+    .status-processing {
+        background: rgba(0, 123, 255, 0.15) !important;
+        color: #004085 !important;
+    }
+
+    .status-shipped {
+        background: rgba(111, 66, 193, 0.15) !important;
+        color: #4a148c !important;
+    }
+
+    .status-delivered {
+        background: rgba(40, 167, 69, 0.15) !important;
+        color: #155724 !important;
+    }
+
+    .status-cancelled {
+        background: rgba(220, 53, 69, 0.15) !important;
+        color: #721c24 !important;
+    }
 
     /* Modal Styles */
     .modal {
@@ -312,7 +335,7 @@ include 'includes/header.php';
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.5);
+        background-color: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
         align-items: center;
         justify-content: center;
@@ -325,7 +348,7 @@ include 'includes/header.php';
         border-radius: 20px;
         width: 90%;
         max-width: 500px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         position: relative;
     }
 
@@ -351,23 +374,27 @@ include 'includes/header.php';
 <div id="addressModal" class="modal">
     <div class="modal-content" style="max-width: 800px; padding: 40px;">
         <span class="close" onclick="closeAddressModal()">&times;</span>
-        <h2 class="form-section-title" id="address-modal-title" style="font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 30px;">Thêm địa chỉ mới</h2>
+        <h2 class="form-section-title" id="address-modal-title"
+            style="font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 30px;">Thêm địa chỉ mới</h2>
         <input type="hidden" id="edit-address-id">
-        
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="form-group">
                 <label style="font-weight: 600; color: #001f3f;">Tên gợi nhớ (VD: Nhà riêng, Công ty)</label>
-                <input type="text" id="addr-alias" placeholder="Nhà riêng, Công ty..." style="border: 1px solid #ddd; padding: 12px;">
+                <input type="text" id="addr-alias" placeholder="Nhà riêng, Công ty..."
+                    style="border: 1px solid #ddd; padding: 12px;">
             </div>
             <div class="form-group">
                 <label style="font-weight: 600; color: #001f3f;">Họ và tên người nhận</label>
-                <input type="text" id="addr-name" placeholder="Nhập họ và tên" style="border: 1px solid #ddd; padding: 12px;">
+                <input type="text" id="addr-name" placeholder="Nhập họ và tên"
+                    style="border: 1px solid #ddd; padding: 12px;">
             </div>
         </div>
 
         <div class="form-group">
             <label style="font-weight: 600; color: #001f3f;">Địa chỉ chi tiết (Số nhà, tên đường)</label>
-            <input type="text" id="addr-detail" placeholder="Ví dụ: 123 Đường ABC..." style="border: 1px solid #ddd; padding: 12px;">
+            <input type="text" id="addr-detail" placeholder="Ví dụ: 123 Đường ABC..."
+                style="border: 1px solid #ddd; padding: 12px;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
@@ -388,17 +415,21 @@ include 'includes/header.php';
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             <div class="form-group">
                 <label style="font-weight: 600; color: #001f3f;">Số điện thoại người nhận</label>
-                <input type="text" id="addr-phone" placeholder="Nhập số điện thoại" style="border: 1px solid #ddd; padding: 12px;">
+                <input type="text" id="addr-phone" placeholder="Nhập số điện thoại"
+                    style="border: 1px solid #ddd; padding: 12px;">
             </div>
             <div class="form-group">
                 <label style="font-weight: 600; color: #001f3f;">Email người nhận</label>
-                <input type="email" id="addr-email" placeholder="Nhập địa chỉ email" style="border: 1px solid #ddd; padding: 12px;">
+                <input type="email" id="addr-email" placeholder="Nhập địa chỉ email"
+                    style="border: 1px solid #ddd; padding: 12px;">
             </div>
         </div>
 
         <div style="margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
-            <button onclick="closeAddressModal()" class="btn-save-profile" style="background: #eee; color: #333; padding: 12px 40px;">Hủy</button>
-            <button onclick="saveAddress()" class="btn-save-profile" style="background: var(--primary); color: white; padding: 12px 40px;">Lưu địa chỉ</button>
+            <button onclick="closeAddressModal()" class="btn-save-profile"
+                style="background: #eee; color: #333; padding: 12px 40px;">Hủy</button>
+            <button onclick="saveAddress()" class="btn-save-profile"
+                style="background: var(--primary); color: white; padding: 12px 40px;">Lưu địa chỉ</button>
         </div>
     </div>
 </div>
@@ -477,7 +508,7 @@ include 'includes/header.php';
             };
 
             const content = document.getElementById('order-detail-content');
-            
+
             let itemsHtml = o.items.map(item => {
                 const img = (item.product && item.product.image) ? item.product.image : 'https://via.placeholder.com/50';
                 return `
@@ -673,7 +704,7 @@ include 'includes/header.php';
     function openAddressModal(id = null) {
         document.getElementById('edit-address-id').value = id || '';
         document.getElementById('address-modal-title').innerText = id ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới';
-        
+
         if (!id) {
             document.getElementById('addr-alias').value = '';
             document.getElementById('addr-name').value = '';
@@ -681,7 +712,7 @@ include 'includes/header.php';
             document.getElementById('addr-email').value = '';
             document.getElementById('addr-detail').value = '';
         }
-        
+
         document.getElementById('addressModal').style.display = 'flex';
     }
 
@@ -738,13 +769,13 @@ include 'includes/header.php';
             document.getElementById('addr-phone').value = addr.receiver_phone;
             document.getElementById('addr-email').value = addr.receiver_email || '';
             document.getElementById('addr-detail').value = addr.detail_address;
-            
+
             const citySelect = document.getElementById('addr-city');
             citySelect.value = addr.province_code;
-            
+
             await updateDistricts(addr.province_code, addr.district_code);
             await updateWards(addr.district_code, addr.ward_code);
-            
+
             openAddressModal(id);
         }
     }
@@ -819,7 +850,7 @@ include 'includes/header.php';
         // Sidebar Display
         const baseUrl = window.location.origin + '/Web_banhang/backend/public/';
         const avatarSrc = user.image ? (user.image.startsWith('http') ? user.image : baseUrl + user.image) : `https://ui-avatars.com/api/?name=${user.name}&background=ffd699&color=4a3b32`;
-        
+
         document.getElementById('display-name').innerText = user.name;
         document.getElementById('display-email').innerText = user.email;
         document.getElementById('user-avatar').src = avatarSrc;

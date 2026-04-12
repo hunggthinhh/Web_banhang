@@ -91,7 +91,7 @@ include 'includes/header.php';
     .total-price {
         font-size: 24px;
         font-weight: bold;
-        color: var(--primary);
+        color: var(--price-color);
         margin-bottom: 20px;
     }
 
@@ -168,12 +168,12 @@ include 'includes/header.php';
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <img src="${item.image}" width="80" height="80" style="border-radius: 12px; object-fit: cover; border: 1px solid #eee;">
                             <div style="text-align: left;">
-                                <strong style="font-size: 16px; color: #001f3f; display: block; margin-bottom: 5px;">${item.name}</strong>
+                                <strong style="font-size: 16px; color: var(--name-color); display: block; margin-bottom: 5px;">${item.name}</strong>
                                 <span style="font-size: 13px; color: #8c7e73;">Giao hàng nhanh trong 2h</span>
                             </div>
                         </div>
                     </td>
-                    <td style="font-weight: 500;">${formatPrice(item.price)}</td>
+                    <td style="font-weight: 500; color: var(--price-color);">${formatPrice(item.price)}</td>
                     <td>
                         <div class="qty-controls">
                             <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
@@ -188,7 +188,7 @@ include 'includes/header.php';
                             style="width: 180px; height: 60px; padding: 10px; border-radius: 12px; border: 1.5px solid #f0c07d; background: #fffaf2; font-family: 'Outfit', sans-serif; font-size: 13px; resize: none; outline: none;"
                         >${item.greeting || ''}</textarea>
                     </td>
-                    <td><strong style="color: var(--primary); font-size: 16px;">${formatPrice(subtotal)}</strong></td>
+                    <td><strong style="color: var(--price-color); font-size: 16px;">${formatPrice(subtotal)}</strong></td>
                     <td><button class="remove-btn" onclick="removeItem(${index})">Xóa</button></td>
                 </tr>
             `;
@@ -197,10 +197,10 @@ include 'includes/header.php';
             </tbody></table>
             <div class="total-section">
                 <div style="margin-bottom: 10px; color: #666;">Tạm tính: ${formatPrice(total)}</div>
-                <p class="total-price" style="font-size: 28px;">Tổng thanh toán: ${formatPrice(total)}</p>
+                <p class="total-price" style="font-size: 28px;">Tổng cộng: ${formatPrice(total)}</p>
                 <div style="display: flex; gap: 15px; justify-content: flex-end;">
-                    <a href="shop.php" style="padding: 15px 30px; border: 1.5px solid #000; border-radius: 12px; text-decoration: none; color: #000; font-weight: 600;">Tiếp tục mua bánh</a>
-                    <a href="checkout.php" class="btn" style="padding: 15px 50px; font-size: 18px; border-radius: 12px; font-weight: 700; box-shadow: 0 5px 15px rgba(201, 141, 99, 0.2);">Thanh Toán Ngay</a>
+                    <a href="shop.php" style="padding: 15px 30px; border: 1.5px solid #f0c07d; border-radius: 12px; text-decoration: none; color: #7a5a3a; font-weight: 600;">Tiếp tục mua bánh</a>
+                    <a href="checkout.php" class="btn" style="padding: 15px 50px; font-size: 18px; border-radius: 12px; font-weight: 700; background: var(--price-color); color: #fff; border: none; box-shadow: 0 5px 15px rgba(230, 81, 0, 0.3);">Tiến hành đặt hàng </a>
                 </div>
             </div>
         `;

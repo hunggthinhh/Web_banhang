@@ -57,7 +57,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 // Fetch categories to populate dropdown
-                const response = await fetch('http://localhost:8000/api/categories');
+                const response = await fetch(window.location.origin + '/Web_banhang/backend/public/api/categories');
                 const data = await response.json();
 
                 const dropdownList = document.getElementById('product-dropdown-list');

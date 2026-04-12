@@ -200,6 +200,16 @@ include 'includes/header.php';
                                     <div class="card-body">
                                         <h3>${p.name}</h3>
                                         <p class="card-price">Giá từ: <span>${formatPrice(p.price)}</span></p>
+                                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+                                            <button class="btn-add-cart" onclick="event.stopPropagation(); addCart(${p.id}, '${p.name}', ${p.price}, '${p.image}')" 
+                                                    style="width: 45px; height: 45px; padding: 0; border-radius: 50%; flex-shrink: 0; background:#f0f4f8; color:#001f3f; border:1.5px solid #d1d5db; display:flex; align-items:center; justify-content:center;">
+                                                <i class="fas fa-shopping-basket" style="font-size: 18px;"></i>
+                                            </button>
+                                            <button onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${p.price}, '${p.image}')" 
+                                                    style="flex: 1; height: 45px; background: #e53e3e; color: #fff; border: none; border-radius: 25px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;">
+                                                Mua ngay
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             `).join('')}

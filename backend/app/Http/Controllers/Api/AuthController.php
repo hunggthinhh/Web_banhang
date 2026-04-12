@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
+use Illuminate\Validation\Rule;
+
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -17,7 +19,6 @@ class AuthController extends Controller
             'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/|unique:users',
             'password' => 'required|min:6|confirmed',
             'phone' => 'nullable|regex:/^0\d{9}$/',
-            'address' => 'nullable',
         ], [
             'email.regex' => 'Email phải có định dạng @gmail.com',
             'phone.regex' => 'Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0'
@@ -29,7 +30,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'address' => $request->address,
             'role' => 'user'
         ]);
 
@@ -83,9 +83,13 @@ class AuthController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/|unique:users,email,' . $user->id,
+            'email' => [
+                'required',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/',
+                Rule::unique('users')->ignore($user->id),
+            ],
             'phone' => 'nullable|regex:/^0\d{9}$/',
-            'address' => 'nullable|string|max:255',
             'password' => 'nullable|min:6|confirmed',
         ], [
             'email.regex' => 'Email phải có định dạng @gmail.com',
@@ -95,7 +99,6 @@ class AuthController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->phone = $request->phone;
-        $user->address = $request->address;
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -113,6 +116,27 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Cập nhật thông tin thành công',
             'user' => $user
+        ]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/',
+        ], [
+            'email.regex' => 'Email phải có định dạng @gmail.com'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Email không có trong hệ thống.'], 404);
+        }
+
+        // In a real application, you would send a reset link here.
+        // For now, we simulate success for the demo.
+        return response()->json([
+            'message' => 'Hướng dẫn khôi phục mật khẩu đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư!'
         ]);
     }
 }

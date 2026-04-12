@@ -28,7 +28,7 @@ include 'includes/header.php';
             </div>
 
             <button type="submit" class="auth-btn">Đăng nhập</button>
-            <a href="#" class="forgot-password">Quên mật khẩu?</a>
+            <a href="forgot-password.php" class="forgot-password" style="display: block; text-align: left; margin-top: 15px; color: #001f3f; text-decoration: underline; font-weight: 700; font-size: 14px;">Quên mật khẩu?</a>
         </form>
     </div>
 </div>
@@ -55,7 +55,7 @@ include 'includes/header.php';
         e.preventDefault();
         const identifier = document.getElementById('identifier').value;
         const password = document.getElementById('password').value;
-        const response = await fetch('http://127.0.0.1:8000/api/login', {
+        const response = await fetch('http://localhost/Web_banhang/backend/public/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({ email: identifier, password })

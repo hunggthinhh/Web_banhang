@@ -83,8 +83,30 @@ const updateCartBadge = () => {
     countElement.classList.add('bump');
 };
 
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0);
+const formatPrice = p => Math.round(Number(p) || 0).toLocaleString('vi-VN') + ' VND';
+
+window.addCart = (id, name, price, image, silent = false) => {
+    const qtyVal = document.getElementById('qty-val');
+    const qty = qtyVal ? parseInt(qtyVal.value) : 1;
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const idx = cart.findIndex(item => item.id === id);
+    if (idx > -1) {
+        cart[idx].quantity += qty;
+    } else {
+        cart.push({ id, name, price, image, quantity: qty });
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    if (typeof updateCartBadge === 'function') updateCartBadge();
+
+    if (!silent) {
+        alert('Đã thêm sản phẩm vào giỏ hàng!');
+    }
+};
+
+window.buyNow = (id, name, price, image) => {
+    window.addCart(id, name, price, image, true);
+    window.location.href = 'cart.php';
 };
 
 document.addEventListener('DOMContentLoaded', () => {
