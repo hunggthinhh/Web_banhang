@@ -269,6 +269,37 @@
             cursor: pointer;
         }
 
+        /* Custom Checkbox Styling */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            outline: none;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: var(--price-color);
+            border-color: var(--price-color);
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            color: white;
+            font-size: 12px;
+        }
+
         /* Toast & Loader */
         #toast {
             position: fixed;
@@ -419,6 +450,31 @@
         </div>
     </div>
 
+    <!-- Bank Payment Modal -->
+    <div id="m-payment-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:3000; display:none; align-items:center; justify-content:center; padding:20px;">
+        <div style="background:#fff; width:100%; border-radius:24px; padding:30px 20px; text-align:center; max-width:400px; position:relative;">
+            <i class="fas fa-times" onclick="document.getElementById('m-payment-modal').style.display='none'" style="position:absolute; top:20px; right:20px; font-size:20px; color:#999; padding:5px;"></i>
+            
+            <h3 style="font-family:Georgia; font-size:20px; color:#1a365d; margin-bottom:10px;">Thanh toán đơn hàng</h3>
+            <p style="font-size:14px; color:#666; margin-bottom:25px;">Quét mã VietQR bên dưới để hoàn tất việc thanh toán.</p>
+            
+            <div style="background:#f8f9fa; border-radius:15px; padding:20px; margin-bottom:25px;">
+                <img id="m-qr-code" src="" style="width:100%; max-width:250px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+                <div style="margin-top:15px; text-align:left; border-top:1px dashed #ddd; padding-top:15px;">
+                    <p style="font-size:12px; color:#888; margin-bottom:5px;">Ngân hàng:</p>
+                    <b style="font-size:14px; color:#1a365d; display:block; margin-bottom:10px;">MB BANK (Ngân hàng Quân Đội)</b>
+                    <p style="font-size:12px; color:#888; margin-bottom:5px;">Số tài khoản:</p>
+                    <b style="font-size:18px; color:#1a365d; display:block; margin-bottom:10px;">100012113979</b>
+                    <p style="font-size:12px; color:#888; margin-bottom:5px;">Chủ tài khoản:</p>
+                    <b style="font-size:14px; color:#1a365d; display:block; text-transform:uppercase;">PHAN HUNG THINH</b>
+                </div>
+            </div>
+            
+            <button onclick="confirmBankTransfer()" id="btn-confirm-transfer" style="width:100%; background:#2d1b14; color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px;">TÔI ĐÃ CHUYỂN TIỀN</button>
+            <p style="margin-top:15px; font-size:12px; color:#999;">Nhân viên sẽ xác nhận đơn hàng ngay khi nhận được tiền.</p>
+        </div>
+    </div>
+
     <!-- Toast & Loader -->
     <div id="toast"></div>
     <div id="page-loader">
@@ -540,11 +596,22 @@
             btn.disabled = false; btn.innerText = 'Lưu địa chỉ';
         };
 
+
         async function navigateTo(page, params = null) {
             if (!pages[page]) return;
             document.getElementById('page-loader').style.display = 'flex';
             await pages[page](params);
             document.getElementById('page-loader').style.display = 'none';
+
+            // Hide bottom nav if login, register, or forgot_password
+            const navElements = document.getElementById('bottom-nav');
+            const noNavPages = ['login', 'register', 'forgot_password'];
+            if (noNavPages.includes(page)) {
+                navElements.style.display = 'none';
+            } else {
+                navElements.style.display = 'flex';
+            }
+
             // Scroll to Top
             document.getElementById('page-content').scrollTo(0, 0);
             updateAuthUI();
@@ -654,6 +721,70 @@
         const formatPrice = p => Math.round(Number(p) || 0).toLocaleString('vi-VN') + ' VND';
         function getCart() { return JSON.parse(localStorage.getItem('cart') || '[]'); }
         function saveCart(c) { localStorage.setItem('cart', JSON.stringify(c)); updateCartBadge(); }
+        window.toggleItemMobile = (idx, selected) => {
+            let c = getCart();
+            if (c[idx]) { c[idx].selected = selected; saveCart(c); navigateTo('cart'); }
+        };
+        window.toggleAllMobile = (selected) => {
+            let c = getCart();
+            c.forEach(i => i.selected = selected);
+            saveCart(c); navigateTo('cart');
+        };
+
+        
+        let pollingIntervalMobile = null;
+        window.confirmBankTransfer = async () => {
+            const btn = document.getElementById('btn-confirm-transfer');
+            const orderId = window.currentMobileOrderId;
+            const token = localStorage.getItem('auth_token');
+            
+            btn.disabled = true;
+            btn.innerText = 'Đang kiểm tra...';
+            
+            try {
+                const res = await fetch(`${API_URL}/orders/${orderId}/payment-status`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data && data.payment_status === 'paid') {
+                    if (pollingIntervalMobile) clearInterval(pollingIntervalMobile);
+                    handleMobilePaymentSuccess();
+                } else {
+                    alert('Hệ thống chưa nhận được thanh toán. Vui lòng chờ hoặc thử lại sau vài giây!');
+                    btn.disabled = false;
+                    btn.innerText = 'Tôi đã chuyển tiền';
+                }
+            } catch (e) {
+                alert('Có lỗi xảy ra, vui lòng thử lại!');
+                btn.disabled = false;
+                btn.innerText = 'Tôi đã chuyển tiền';
+            }
+        };
+
+        function startMobilePaymentPolling(orderId) {
+            if (pollingIntervalMobile) clearInterval(pollingIntervalMobile);
+            pollingIntervalMobile = setInterval(async () => {
+                const token = localStorage.getItem('auth_token');
+                try {
+                    const res = await fetch(`${API_URL}/orders/${orderId}/payment-status`, {
+                        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                    });
+                    const data = await res.json();
+                    if (data && data.payment_status === 'paid') {
+                        clearInterval(pollingIntervalMobile);
+                        handleMobilePaymentSuccess();
+                    }
+                } catch (e) { console.error('Polling error:', e); }
+            }, 3000);
+        }
+
+        function handleMobilePaymentSuccess() {
+            localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
+            showToast('🎉 Thanh toán thành công!');
+            document.getElementById('m-payment-modal').style.display = 'none';
+            navigateTo('profile');
+        }
+
         function updateCartBadge() {
             const count = getCart().reduce((s, i) => s + (i.quantity || 1), 0);
             document.getElementById('cart-badge-header').textContent = count;
@@ -672,8 +803,17 @@
         };
 
         window.buyNow = (p) => {
-            window.addToCart(p, true);
-            navigateTo('cart');
+            let cart = getCart();
+            cart.forEach(item => item.selected = false);
+            const idx = cart.findIndex(it => it.id === p.id);
+            if (idx > -1) {
+                cart[idx].quantity = (cart[idx].quantity || 1) + (p.quantity || 1);
+                cart[idx].selected = true;
+            } else {
+                cart.push({ ...p, quantity: p.quantity || 1, selected: true });
+            }
+            saveCart(cart);
+            navigateTo('checkout');
         };
 
         // Helper to fix image URLs from localhost/127.0.0.1 to server IP
@@ -1020,7 +1160,14 @@
 
         pages.cart = async () => {
             const cart = getCart();
-            const total = cart.reduce((s, i) => s + (i.price * (i.quantity || 1)), 0);
+            // Initialize selected if not exists
+            let changed = false;
+            cart.forEach(i => { if(i.selected === undefined) { i.selected = true; changed = true; } });
+            if (changed) localStorage.setItem('cart', JSON.stringify(cart));
+
+            const selectedItems = cart.filter(i => i.selected !== false);
+            const total = selectedItems.reduce((s, i) => s + (i.price * (i.quantity || 1)), 0);
+            const allSelected = cart.length > 0 && cart.every(i => i.selected);
 
             let cartHTML = '';
             if (cart.length === 0) {
@@ -1034,43 +1181,49 @@
             } else {
                 cartHTML = `
                     <div style="padding:20px;">
-                        <h2 style="font-size:24px; color:#1a365d; margin-bottom:5px; font-family:Georgia;">Giỏ hàng</h2>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <h2 style="font-size:24px; color:#1a365d; font-family:Georgia; margin:0;">Giỏ hàng</h2>
+                            <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#666;">
+                                <input type="checkbox" ${allSelected ? 'checked' : ''} onchange="toggleAllMobile(this.checked)"> Chọn tất cả
+                            </label>
+                        </div>
                         <div style="border-bottom:1px solid #f0ddd1; margin-bottom:20px; padding-bottom:5px;"></div>
                         <div style="display:flex; flex-direction:column; gap:20px;">
                             ${cart.map((i, idx) => `
-                                <div style="display:flex; gap:15px; border-bottom:1px solid #f0ddd1; padding-bottom:20px;">
-                                    <img src="${fixImg(i.image)}" style="width:80px; height:80px; border-radius:12px; object-fit:cover; border:1px solid #eee;" onerror="this.src='img/logo.png'">
+                                <div style="display:flex; gap:12px; border-bottom:1px solid #f0ddd1; padding-bottom:20px; align-items:flex-start;">
+                                    <input type="checkbox" ${i.selected ? 'checked' : ''} onchange="toggleItemMobile(${idx}, this.checked)" style="margin-top:30px;">
+                                    <img src="${fixImg(i.image)}" style="width:70px; height:70px; border-radius:12px; object-fit:cover; border:1px solid #eee;" onerror="this.src='img/logo.png'">
                                     <div style="flex:1;">
                                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                            <div>
+                                            <div style="flex:1; padding-right:10px;">
                                                 <b style="font-size:15px; color:var(--name-color); display:block; margin-bottom:3px;">${i.name}</b>
-                                                <span style="font-size:12px; color:#8c7e73;">Giao hàng nhanh trong 2h</span>
+                                                <span style="font-size:11px; color:#8c7e73;">Giao hàng nhanh 2h</span>
                                             </div>
-                                            <i onclick="removeItem(${idx})" class="fas fa-times" style="color:#ccc; font-size:18px; cursor:pointer; padding:5px;"></i>
+                                            <i onclick="setTimeout(() => removeItem(${idx}), 10)" class="fas fa-times" style="color:#ccc; font-size:18px; cursor:pointer; padding:5px;"></i>
                                         </div>
-                                        <p style="color:var(--price-color); font-weight:700; margin:8px 0 10px; font-size:15px;">${formatPrice(i.price)}</p>
+                                        <p style="color:var(--price-color); font-weight:700; margin:5px 0; font-size:14px;">${formatPrice(i.price)}</p>
                                         
-                                        <div style="margin-bottom:12px;">
-                                            <p style="font-size:12px; color:#7a5a3a; margin-bottom:5px; font-weight:600;">Lời chúc trên bánh:</p>
+                                        <div style="margin-bottom:10px;">
                                             <textarea onchange="updateGreeting(${idx}, this.value)" 
-                                                      placeholder="Nhập lời chúc cho bánh..." 
-                                                      style="width:100%; height:55px; background:#fffaf4; border:1.5px solid #f0c07d; border-radius:10px; padding:10px; font-size:13px; outline:none; resize:none; color:#5a4a3a; font-family:inherit;">${i.greeting || ''}</textarea>
+                                                      placeholder="Lời chúc trên bánh..." 
+                                                      style="width:100%; height:45px; background:#fffaf4; border:1.3px solid #f0c07d; border-radius:8px; padding:8px; font-size:12px; outline:none; resize:none; color:#5a4a3a; font-family:inherit;">${i.greeting || ''}</textarea>
                                         </div>
-
+ 
                                         <div style="display:flex; align-items:center; justify-content:space-between;">
-                                            <div style="display:flex; align-items:center; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#f8fafc;">
-                                                <button onclick="updateQty(${idx}, -1)" style="width:35px; height:35px; border:none; background:none; font-size:18px; color:#64748b; cursor:pointer;">-</button>
-                                                <span style="padding:0 12px; font-weight:700; font-size:15px; color:#1e293b;">${i.quantity || 1}</span>
-                                                <button onclick="updateQty(${idx}, 1)" style="width:35px; height:35px; border:none; background:none; font-size:18px; color:#64748b; cursor:pointer;">+</button>
+                                            <div style="display:flex; align-items:center; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#f8fafc;">
+                                                <button onclick="setTimeout(() => updateQty(${idx}, -1), 10)" style="width:30px; height:30px; border:none; background:none; font-size:16px; color:#64748b;">-</button>
+                                                <span style="padding:0 10px; font-weight:700; font-size:14px; color:#1e293b;">${i.quantity || 1}</span>
+                                                <button onclick="setTimeout(() => updateQty(${idx}, 1), 10)" style="width:30px; height:30px; border:none; background:none; font-size:16px; color:#64748b;">+</button>
                                             </div>
-                                            <b style="color:var(--price-color); font-size:15px;">${formatPrice(i.price * (i.quantity || 1))}</b>
+                                            <b style="color:var(--price-color); font-size:14px;">${formatPrice(i.price * (i.quantity || 1))}</b>
                                         </div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
-
-                        <div style="margin-top:25px; background:#fffbf7; padding:20px; border-radius:15px; border:1px solid #f0ddd1;">
+ 
+                        <div style="margin-top:25px; background:#fffbf7; padding:15px; border-radius:15px; border:1px solid #f0ddd1;">
+                            <div style="margin-bottom:10px; font-size:13px; color:#666;">Đã chọn: ${selectedItems.length} sản phẩm</div>
                             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                                 <span style="color:#666; font-size:14px;">Tạm tính</span>
                                 <span style="color:#666; font-size:14px;">${formatPrice(total)}</span>
@@ -1084,8 +1237,8 @@
                                 <b style="font-size:18px; color:var(--price-color);">${formatPrice(total)}</b>
                             </div>
                         </div>
-
-                        <button onclick="navigateTo('checkout')" style="width:100%; margin-top:15px; background:var(--price-color); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(230, 81, 0, 0.3); letter-spacing:1px;">THANH TOÁN NGAY</button>
+ 
+                        <button onclick="if(getCart().some(i=>i.selected)){ navigateTo('checkout'); }else{ alert('Vui lòng chọn bánh!'); }" style="width:100%; margin-top:15px; background:var(--price-color); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(230, 81, 0, 0.3); letter-spacing:1px;">THANH TOÁN NGAY</button>
                         
                         <button onclick="navigateTo('shop')" style="width:100%; margin-top:10px; background:transparent; color:#7a5a3a; border:1.5px solid #f0c07d; padding:14px; border-radius:12px; font-weight:700; font-size:14px;">
                             Tiếp tục mua bánh
@@ -1115,7 +1268,8 @@
             if (!token) { navigateTo('login'); return; }
 
             const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-            if (cart.length === 0) { navigateTo('cart'); return; }
+            const selectedItems = cart.filter(i => i.selected !== false);
+            if (selectedItems.length === 0) { navigateTo('cart'); return; }
 
             let user = { name: '', email: '', phone: '' };
             let addresses = [];
@@ -1130,7 +1284,7 @@
 
             let defaultAddr = addresses.find(a => a.is_default) || addresses[0] || {};
 
-            const total = cart.reduce((acc, i) => acc + (i.price * (i.quantity || 1)), 0);
+            const total = selectedItems.reduce((acc, i) => acc + (i.price * (i.quantity || 1)), 0);
 
             document.getElementById('page-content').innerHTML = `
                 <div style="background:#fdfaf7; min-height:100vh; padding:20px 15px;">
@@ -1223,10 +1377,10 @@
                     </div>
 
                     <!-- Step 3: Order Summary -->
-                    <div style="background:#fff; border-radius:15px; padding:20px; box-shadow:0 5px 15px rgba(0,0,0,0.03); margin-bottom:100px;">
+                    <div style="background:#fff; border-radius:15px; padding:20px; box-shadow:0 5px 15px rgba(0,0,0,0.03); margin-bottom:15px;">
                         <h3 style="font-size:16px; margin-bottom:15px; display:flex; align-items:center; gap:8px;"><i class="fas fa-shopping-basket" style="color:var(--primary);"></i> Chi tiết đơn hàng</h3>
                         <div style="display:flex; flex-direction:column; gap:12px;">
-                            ${cart.map(i => `
+                            ${selectedItems.map(i => `
                                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fafafa; padding-bottom:8px;">
                                     <div style="flex:1;">
                                         <b style="font-size:13px; color:var(--name-color);">${i.name}</b>
@@ -1241,11 +1395,11 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Fixed Bottom Button -->
-                <div style="position:fixed; bottom:0; left:0; right:0; background:#fff; padding:15px 20px; border-top:1px solid #eee; z-index:1000; padding-bottom:calc(15px + var(--safe-bottom));">
-                    <button onclick="submitOrderMobile()" id="btn-submit-order" style="width:100%; background:var(--price-color); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(230, 81, 0, 0.3);">Xác nhận đặt hàng</button>
+                    <!-- Bottom Button -->
+                    <div style="margin-bottom: 80px;">
+                        <button onclick="submitOrderMobile()" id="btn-submit-order" style="width:100%; background:var(--price-color); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(230, 81, 0, 0.3);">Xác nhận đặt hàng</button>
+                    </div>
                 </div>
             `;
 
@@ -1330,26 +1484,19 @@
             let deliveryDate = '';
             if (day && month && year) deliveryDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 
+            const selectedItems = cart.filter(i => i.selected !== false);
             const payload = {
-                receiver_name: name,
-                receiver_phone: phone,
-                receiver_email: document.getElementById('chk-email').value,
-                province: city.options[city.selectedIndex].text,
-                district: district.options[district.selectedIndex].text,
-                ward: ward.options[ward.selectedIndex].text,
-                province_code: city.value,
-                district_code: district.value,
-                ward_code: ward.value,
-                detail_address: address,
-                delivery_date: deliveryDate,
-                delivery_time: document.getElementById('chk-time').value,
+                customer_name: name,
+                customer_phone: phone,
+                customer_email: document.getElementById('chk-email').value,
+                customer_address: `${address}, ${ward.options[ward.selectedIndex].text}, ${district.options[district.selectedIndex].text}, ${city.options[city.selectedIndex].text}`,
                 note: document.getElementById('chk-note').value,
                 payment_method: method,
-                items: cart.map(i => ({
-                    product_id: i.id,
+                items: selectedItems.map(i => ({
+                    id: i.id,
+                    name: i.name,
                     quantity: i.quantity || 1,
-                    price: i.price,
-                    greeting: i.note || ''
+                    price: i.price
                 }))
             };
 
@@ -1365,14 +1512,45 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    localStorage.removeItem('cart');
+                    const orderId = data.order.id;
+                    if (method === 'bank') {
+                        const total = selectedItems.reduce((acc, i) => acc + (i.price * (i.quantity || 1)), 0);
+                        const addInfo = `LPS${orderId}`;
+                        document.getElementById('m-qr-code').src = `https://api.vietqr.io/image/970422-100012113979-compact2.jpg?amount=${total}&addInfo=${addInfo}&accountName=PHAN HUNG THINH`;
+                        document.getElementById('m-payment-modal').style.display = 'flex';
+                        window.currentMobileOrderId = orderId;
+                        startMobilePaymentPolling(orderId);
+                        
+                        btn.disabled = false; btn.innerText = 'Xác nhận đặt hàng';
+                        return;
+                    }
+
+                    // Success for COD
+                    localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
                     showToast('🎉 Đặt hàng thành công!');
-                    navigateTo('home');
+                    navigateTo('profile');
                 } else {
                     alert(data.message || 'Lỗi khi đặt hàng');
                 }
             } catch (e) { alert('Lỗi kết nối server'); }
             btn.disabled = false; btn.innerText = 'Xác nhận đặt hàng';
+        };
+
+        window.startMobilePaymentPolling = (orderId) => {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_URL}/orders/${orderId}`);
+                    const data = await res.json();
+                    if (data.order.status === 'paid') {
+                        clearInterval(interval);
+                        document.getElementById('m-payment-modal').style.display = 'none';
+                        localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
+                        showToast('🎉 Thanh toán thành công!');
+                        navigateTo('profile');
+                    }
+                } catch (e) { console.error('Polling error', e); }
+            }, 3000);
+            window.currentMobilePolling = interval;
         };
 
         pages.about = async () => {
@@ -1763,15 +1941,48 @@
                 const addrs = await res.json();
                 const list = document.getElementById('m-address-list');
                 if (!addrs || addrs.length === 0) {
-                    list.innerHTML = `<p style="text-align:center; color:#999;">Bạn chưa có địa chỉ nào.</p>`;
+                    list.innerHTML = `<p style="text-align:center; color:#999; padding:20px;">Bạn chưa có địa chỉ nào.</p>`;
                 } else {
                     list.innerHTML = addrs.map(a => `
-                        <div style="padding:15px; border:1px solid #eee; border-radius:12px; background:#fafafa; text-align:left; margin-bottom:10px;">
-                            <b style="text-transform:uppercase; font-size:13px;">${a.alias || 'Địa chỉ'}</b>
-                            <p style="font-size:13px; margin:5px 0;">${a.receiver_name} | ${a.receiver_phone}</p>
-                            <p style="font-size:12px; color:#666;">${a.detail_address}, ${a.ward}, ${a.district}, ${a.province}</p>
+                        <div style="padding:15px; border:1px solid #eee; border-radius:12px; background:#fafafa; text-align:left; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="flex:1;">
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
+                                    <b style="text-transform:uppercase; font-size:13px; color:#1a365d;">${a.alias || 'Địa chỉ'}</b>
+                                    ${a.is_default ? `<span style="background:#eaf2ff; color:#1a365d; font-size:10px; padding:2px 8px; border-radius:4px; font-weight:700;">MẶC ĐỊNH</span>` : ''}
+                                </div>
+                                <p style="font-size:13px; margin:5px 0;">${a.receiver_name} | ${a.receiver_phone}</p>
+                                <p style="font-size:12px; color:#666;">${a.detail_address}, ${a.ward}, ${a.district}, ${a.province}</p>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <button onclick="editAddressMobile(${JSON.stringify(a).replace(/"/g, '&quot;')})" style="border:1px solid #1a365d; background:none; color:#1a365d; padding:6px 15px; border-radius:8px; font-size:12px; font-weight:700;">Sửa</button>
+                                <button onclick="deleteAddressMobile(${a.id})" style="border:1px solid #f8d7da; background:none; color:#dc3545; padding:6px 15px; border-radius:8px; font-size:12px; font-weight:700;">Xóa</button>
+                            </div>
                         </div>
                     `).join('');
+                }
+            } catch (e) { }
+        };
+
+        window.editAddressMobile = (a) => {
+            showAddressModal();
+            document.getElementById('m-addr-id').value = a.id;
+            document.getElementById('m-addr-alias').value = a.alias || '';
+            document.getElementById('m-addr-name').value = a.receiver_name;
+            document.getElementById('m-addr-phone').value = a.receiver_phone;
+            document.getElementById('m-addr-detail').value = a.detail_address;
+            document.getElementById('m-addr-default').checked = !!a.is_default;
+            // For simple implementation, we won't auto-fetch provinces/districts dropdowns here
+            // but the basic fields are pre-filled.
+        };
+
+        window.deleteAddressMobile = async (id) => {
+            if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+            try {
+                const token = localStorage.getItem('auth_token');
+                const res = await fetch(`${API_URL}/addresses/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    showToast('✅ Đã xóa địa chỉ');
+                    loadAddressesMobile();
                 }
             } catch (e) { }
         };

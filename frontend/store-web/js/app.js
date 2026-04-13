@@ -1,4 +1,10 @@
 const API_URL = window.location.origin + '/Web_banhang/backend/public/api';
+const fixImg = (path) => {
+    if (!path) return 'img/logo.png';
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const base = window.location.origin + '/Web_banhang/backend/public/';
+    return base + path.replace(/^\//, '');
+};
 
 const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('auth_token');
@@ -85,7 +91,27 @@ const updateCartBadge = () => {
 
 const formatPrice = p => Math.round(Number(p) || 0).toLocaleString('vi-VN') + ' VND';
 
-window.addCart = (id, name, price, image, silent = false) => {
+window.pushCartToBackend = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    const cart = localStorage.getItem('cart') || '[]';
+    await apiFetch('/cart', {
+        method: 'POST',
+        body: JSON.stringify({ cart })
+    });
+};
+
+window.pullCartFromBackend = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    const data = await apiFetch('/cart');
+    if (data && data.cart) {
+        localStorage.setItem('cart', JSON.stringify(data.cart));
+        updateCartBadge();
+    }
+};
+
+window.addCart = async (id, name, price, image, silent = false) => {
     const qtyVal = document.getElementById('qty-val');
     const qty = qtyVal ? parseInt(qtyVal.value) : 1;
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -93,23 +119,41 @@ window.addCart = (id, name, price, image, silent = false) => {
     if (idx > -1) {
         cart[idx].quantity += qty;
     } else {
-        cart.push({ id, name, price, image, quantity: qty });
+        cart.push({ id, name, price, image, quantity: qty, selected: true });
     }
     localStorage.setItem('cart', JSON.stringify(cart));
-
-    if (typeof updateCartBadge === 'function') updateCartBadge();
+    updateCartBadge();
+    
+    // Sync to cloud
+    await pushCartToBackend();
 
     if (!silent) {
         alert('Đã thêm sản phẩm vào giỏ hàng!');
     }
 };
 
-window.buyNow = (id, name, price, image) => {
-    window.addCart(id, name, price, image, true);
-    window.location.href = 'cart.php';
+window.buyNow = async (id, name, price, image) => {
+    // Để "Mua ngay" chỉ hiện 1 món này, ta bỏ chọn tất cả các món đang có trong giỏ
+    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    cart.forEach(item => item.selected = false);
+    
+    const idx = cart.findIndex(item => item.id === id);
+    if (idx > -1) {
+        cart[idx].quantity += 1; // Thêm số lượng nếu đã có
+        cart[idx].selected = true;
+    } else {
+        cart.push({ id, name, price, image, quantity: 1, selected: true });
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartBadge();
+    await pushCartToBackend();
+    
+    window.location.href = 'checkout.php';
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     updateAuthUI();
     updateCartBadge();
+    await pullCartFromBackend();
 });

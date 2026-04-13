@@ -3,6 +3,45 @@ $pageTitle = "Thanh toán";
 include 'includes/header.php';
 ?>
 
+<!-- Bank Payment Modal (Reverted to Simple Version) -->
+<div id="bank-payment-modal"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+    <div
+        style="background:#fff; width:450px; border-radius:30px; padding:40px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.2); position:relative; overflow:hidden;">
+        <i class="fas fa-times" onclick="document.getElementById('bank-payment-modal').style.display='none'"
+            style="position:absolute; top:25px; right:25px; cursor:pointer; font-size:20px; color:#999;"></i>
+
+        <h2 style="font-family:'Playfair Display', serif; color:#001f3f; margin-bottom:10px;">Thanh toán đơn hàng</h2>
+        <p style="color:#666; font-size:15px; margin-bottom:25px;">Quét mã VietQR bên dưới để hoàn tất việc thanh toán.
+        </p>
+
+        <div
+            style="background:#fdfaf7; border:2px solid #f0c07d; border-radius:20px; padding:25px; margin-bottom:25px;">
+            <img id="web-qr-code" src=""
+                style="width:100%; max-width:280px; border-radius:15px; border:1px solid #eee;">
+            <div style="margin-top:20px; text-align:left; border-top:1px dashed #ccc; padding-top:20px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#888; font-size:13px;">Ngân hàng</span>
+                    <b style="color:#001f3f; font-size:14px;">MB BANK</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#888; font-size:13px;">Số tài khoản</span>
+                    <b style="color:#001f3f; font-size:16px;">100012113979</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span style="color:#888; font-size:13px;">Chủ tài khoản</span>
+                    <b style="color:#001f3f; font-size:14px; text-transform:uppercase;">PHAN HUNG THINH</b>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="confirmBankTransferWeb()" class="btn-place-order" style="margin-top:0; background:#001f3f;">TÔI
+            ĐÃ CHUYỂN TIỀN</button>
+        <p style="margin-top:15px; font-size:12px; color:#999;">Chúng tôi sẽ xử lý đơn hàng ngay khi tiền về tài khoản.
+        </p>
+    </div>
+</div>
+
 <div class="checkout-layout">
     <div class="checkout-left">
         <h1 class="page-title">Thanh toán và giao hàng</h1>
@@ -115,8 +154,8 @@ include 'includes/header.php';
                     <span>Thanh toán khi nhận hàng (COD)</span>
                 </label>
                 <label class="payment-item">
-                    <input type="radio" name="payment" value="momo">
-                    <span>Thanh toán qua ngân hàng</span>
+                    <input type="radio" name="payment" value="bank">
+                    <span>Thanh toán qua ngân hàng (VietQR)</span>
                 </label>
             </div>
         </div>
@@ -337,7 +376,9 @@ include 'includes/header.php';
         window.reRenderCheckout = () => {
             let totalVal = 0;
             const itemsContainer = document.getElementById('checkout-items');
-            itemsContainer.innerHTML = cart.map((item, index) => {
+            const selectedItems = cart.filter(i => i.selected !== false);
+
+            itemsContainer.innerHTML = selectedItems.map((item, index) => {
                 const sub = item.price * item.quantity;
                 totalVal += sub;
                 return `
@@ -383,10 +424,10 @@ include 'includes/header.php';
                 document.getElementById('name').value = defaultAddr.receiver_name || user.name;
                 document.getElementById('phone').value = defaultAddr.receiver_phone || user.phone;
                 if (defaultAddr.receiver_email) document.getElementById('email').value = defaultAddr.receiver_email;
-                
+
                 // Điền địa chỉ chi tiết
                 document.getElementById('address').value = defaultAddr.detail_address || '';
-                
+
                 // Lưu code để auto-select tỉnh/huyện/xã bên dưới
                 localStorage.setItem('user_city_code', defaultAddr.province_code);
                 localStorage.setItem('user_district_code', defaultAddr.district_code);
@@ -555,7 +596,8 @@ include 'includes/header.php';
             delivery_time: document.getElementById('deliv-time').value,
             note: document.getElementById('note').value,
             total_amount: total,
-            items: cart.map(i => ({
+            payment_method: document.querySelector('input[name="payment"]:checked').value,
+            items: cart.filter(i => i.selected !== false).map(i => ({
                 id: i.id,
                 quantity: i.quantity,
                 price: i.price,
@@ -571,9 +613,29 @@ include 'includes/header.php';
             });
 
             if (response.order && response.order.id) {
+                const orderId = response.order.id;
+                
+                if (orderData.payment_method === 'bank') {
+                    // Update QR with Order ID for SePay tracking
+                    const amount = orderData.total_amount;
+                    const addInfo = `LPS${orderId}`;
+                    const accountName = 'PHAN HUNG THINH';
+                    document.getElementById('web-qr-code').src = `https://api.vietqr.io/image/970422-100012113979-compact2.jpg?amount=${amount}&addInfo=${addInfo}&accountName=${accountName}`;
+                    document.getElementById('bank-payment-modal').style.display = 'flex';
+                    
+                    window.currentCheckoutOrderId = orderId;
+                    startPaymentPolling(orderId);
+                    
+                    btn.disabled = false;
+                    btn.innerText = 'XÁC NHẬN ĐẶT HÀNG';
+                    return;
+                }
+
+                // COD success
+                localStorage.setItem('cart', JSON.stringify(cart.filter(i => i.selected === false)));
+                if (window.pushCartToBackend) await window.pushCartToBackend();
                 alert('Đặt hàng thành công! Cảm ơn bạn đã ủng hộ tiệm bánh.');
-                localStorage.removeItem('cart');
-                window.location.href = 'profile.php';
+                window.location.href = 'profile.php?tab=orders';
             } else {
                 throw new Error('Order failed');
             }
@@ -581,6 +643,55 @@ include 'includes/header.php';
             alert('Có lỗi xảy ra khi đặt hàng, vui lòng thử lại!');
             btn.disabled = false;
             btn.innerText = 'XÁC NHẬN ĐẶT HÀNG';
+        }
+    }
+
+    let pollingInterval = null;
+    function startPaymentPolling(orderId) {
+        if (pollingInterval) clearInterval(pollingInterval);
+        
+        pollingInterval = setInterval(async () => {
+            try {
+                const res = await apiFetch(`/orders/${orderId}/payment-status`);
+                if (res && res.payment_status === 'paid') {
+                    clearInterval(pollingInterval);
+                    handlePaymentSuccess();
+                }
+            } catch (e) {
+                console.error('Polling error:', e);
+            }
+        }, 3000); // Check every 3 seconds
+    }
+
+    async function handlePaymentSuccess() {
+        // Clear cart
+        localStorage.setItem('cart', JSON.stringify(cart.filter(i => i.selected === false)));
+        if (window.pushCartToBackend) await window.pushCartToBackend();
+        
+        alert('Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.');
+        window.location.href = 'profile.php?tab=orders';
+    }
+
+    async function confirmBankTransferWeb() {
+        const orderId = window.currentCheckoutOrderId;
+        const btn = document.querySelector('#bank-payment-modal button');
+        btn.disabled = true;
+        btn.innerText = 'Đang kiểm tra...';
+
+        try {
+            const res = await apiFetch(`/orders/${orderId}/payment-status`);
+            if (res && res.payment_status === 'paid') {
+                if (pollingInterval) clearInterval(pollingInterval);
+                handlePaymentSuccess();
+            } else {
+                alert('Hệ thống chưa nhận được thanh toán. V vui lòng chờ hoặc thử lại sau vài giây!');
+                btn.disabled = false;
+                btn.innerText = 'TÔI ĐÃ CHUYỂN TIỀN';
+            }
+        } catch (err) {
+            alert('Có lỗi xảy ra, vui lòng thử lại!');
+            btn.disabled = false;
+            btn.innerText = 'TÔI ĐÃ CHUYỂN TIỀN';
         }
     }
 </script>

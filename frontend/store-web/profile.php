@@ -510,7 +510,7 @@ include 'includes/header.php';
             const content = document.getElementById('order-detail-content');
 
             let itemsHtml = o.items.map(item => {
-                const img = (item.product && item.product.image) ? item.product.image : 'https://via.placeholder.com/50';
+                const img = (item.product && item.product.image) ? fixImg(item.product.image) : 'https://via.placeholder.com/50';
                 return `
                     <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
                         <div style="display: flex; align-items: center; gap: 15px;">
@@ -588,9 +588,7 @@ include 'includes/header.php';
         });
 
         if (res) {
-            const baseUrl = window.location.origin + '/Web_banhang/backend/public/';
-            const newAvatar = res.user.image.startsWith('http') ? res.user.image : baseUrl + res.user.image;
-            document.getElementById('user-avatar').src = newAvatar;
+            document.getElementById('user-avatar').src = fixImg(res.user.image);
             alert('Cập nhật ảnh đại diện thành công!');
         }
     }
@@ -848,8 +846,7 @@ include 'includes/header.php';
         }
 
         // Sidebar Display
-        const baseUrl = window.location.origin + '/Web_banhang/backend/public/';
-        const avatarSrc = user.image ? (user.image.startsWith('http') ? user.image : baseUrl + user.image) : `https://ui-avatars.com/api/?name=${user.name}&background=ffd699&color=4a3b32`;
+        const avatarSrc = user.image ? fixImg(user.image) : `https://ui-avatars.com/api/?name=${user.name}&background=ffd699&color=4a3b32`;
 
         document.getElementById('display-name').innerText = user.name;
         document.getElementById('display-email').innerText = user.email;
@@ -884,6 +881,16 @@ include 'includes/header.php';
 
         loadOrders();
         loadAddresses();
+
+        // Xử lý tham số URL (ví dụ: ?tab=orders)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab && ['orders', 'account', 'address'].includes(tab)) {
+            switchTab(tab);
+        } else {
+            // Đảm bảo tab Đơn hàng luôn là mặc định
+            switchTab('orders');
+        }
     });
 </script>
 <?php include 'includes/footer.php'; ?>

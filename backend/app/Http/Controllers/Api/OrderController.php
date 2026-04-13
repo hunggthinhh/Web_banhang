@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirmation;
 
 class OrderController extends Controller
 {
@@ -41,6 +43,8 @@ class OrderController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'customer_address' => $request->customer_address,
                 'total_amount' => $total,
+                'payment_method' => $request->payment_method ?? 'cod',
+                'payment_status' => ($request->payment_method === 'bank') ? 'unpaid' : 'unpaid', // Both default to unpaid until confirmed
                 'status' => 'pending'
             ]);
 
@@ -54,6 +58,15 @@ class OrderController extends Controller
                 ]);
             }
             DB::commit();
+
+            // Gửi Mail xác nhận đơn hàng (Dựa theo thiết kế Grab)
+            try {
+                Mail::to($request->customer_email)->send(new OrderConfirmation($order->load('items')));
+            } catch (\Exception $e) {
+                // Chỉ Log lỗi, không làm thất bại đơn hàng
+                \Log::error("Email sending failed for order #{$order->id}: " . $e->getMessage());
+            }
+
             return response()->json(['message' => 'Đặt hàng thành công', 'order' => $order]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -75,6 +88,25 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    public function checkPaymentStatus($id)
+    {
+        $order = Order::findOrFail($id);
+        return response()->json([
+            'payment_status' => $order->payment_status,
+            'status' => $order->status
+        ]);
+    }
+
+    public function simulatePayment($id)
+    {
+        $order = Order::findOrFail($id);
+        $order->update([
+            'payment_status' => 'paid',
+            'status' => 'confirmed'
+        ]);
+        return response()->json(['message' => 'Simulated: Order confirmed and paid']);
+    }
+
     // Của Admin
     public function index(Request $request)
     {
@@ -89,8 +121,12 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $order = Order::findOrFail($id);
-        $order->update(['status' => $request->status]);
-        return response()->json(['message' => 'Cập nhật trạng thái thành công', 'order' => $order]);
+        $updateData = [];
+        if ($request->has('status')) $updateData['status'] = $request->status;
+        if ($request->has('payment_status')) $updateData['payment_status'] = $request->payment_status;
+        
+        $order->update($updateData);
+        return response()->json(['message' => 'Cập nhật thành công', 'order' => $order]);
     }
 
     public function destroy($id)

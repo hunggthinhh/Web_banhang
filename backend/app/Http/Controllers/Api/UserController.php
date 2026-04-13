@@ -62,4 +62,20 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Xóa người dùng thành công!']);
     }
+
+    public function getCart(Request $request)
+    {
+        return response()->json([
+            'cart' => $request->user()->cart ? json_decode($request->user()->cart) : []
+        ]);
+    }
+
+    public function updateCart(Request $request)
+    {
+        $user = $request->user();
+        $user->cart = is_string($request->cart) ? $request->cart : json_encode($request->cart);
+        $user->save();
+
+        return response()->json(['message' => 'Lưu giỏ hàng thành công!']);
+    }
 }

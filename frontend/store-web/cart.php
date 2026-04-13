@@ -3,7 +3,10 @@ $pageTitle = "Giỏ hàng";
 include 'includes/header.php';
 ?>
 <div class="cart-wrapper">
-    <h1 class="cart-title">Giỏ hàng</h1>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
+        <h1 class="cart-title" style="margin: 0;">Giỏ hàng</h1>
+        <div id="select-all-header"></div>
+    </div>
     <div class="cart-underline"></div>
 
     <div id="cart-content">
@@ -140,6 +143,41 @@ include 'includes/header.php';
         font-size: 16px;
         color: #1e293b;
     }
+
+    /* Custom Checkbox Styling */
+    input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        background-color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        outline: none;
+    }
+
+    input[type="checkbox"]:checked {
+        background-color: var(--price-color);
+        border-color: var(--price-color);
+    }
+
+    input[type="checkbox"]:checked::after {
+        content: '\f00c';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        color: white;
+        font-size: 12px;
+    }
+
+    input[type="checkbox"]:hover {
+        border-color: var(--price-color);
+    }
 </style>
 
 <script>
@@ -153,17 +191,55 @@ include 'includes/header.php';
                     <a href="shop.php" class="btn" style="padding: 12px 30px; border-radius: 10px; text-decoration: none; font-weight: 600;">Tiếp tục mua hàng</a>
                 </div>
             `;
+            document.getElementById('select-all-header').innerHTML = '';
             if (typeof updateCartBadge === 'function') updateCartBadge();
             return;
         }
 
+        // Initialize 'selected' property if not exists
+        let itemsModified = false;
+        cart.forEach(item => {
+            if (item.selected === undefined) {
+                item.selected = true;
+                itemsModified = true;
+            }
+        });
+        if (itemsModified) localStorage.setItem('cart', JSON.stringify(cart));
+
         let total = 0;
-        let html = `<table style="min-width: 900px;"><thead><tr><th>Sản phẩm</th><th>Giá</th><th style="width: 120px;">Số lượng</th><th>Lời chúc</th><th>Tổng cộng</th><th>Thao tác</th></tr></thead><tbody>`;
+        const allSelected = cart.every(i => i.selected);
+
+        document.getElementById('select-all-header').innerHTML = `
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #666;">
+                <input type="checkbox" ${allSelected ? 'checked' : ''} onchange="toggleAll(this.checked)"> Chọn tất cả
+            </label>
+        `;
+
+        let html = `
+            <table style="min-width: 900px;">
+                <thead>
+                    <tr>
+                        <th style="width: 40px; padding-left: 15px;"></th>
+                        <th>Sản phẩm</th>
+                        <th>Giá</th>
+                        <th style="width: 120px;">Số lượng</th>
+                        <th>Lời chúc</th>
+                        <th>Tổng cộng</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
         cart.forEach((item, index) => {
             const subtotal = item.price * (item.quantity || 1);
-            total += subtotal;
+            if (item.selected) total += subtotal;
+
             html += `
                 <tr>
+                    <td style="padding-left: 15px;">
+                        <input type="checkbox" ${item.selected ? 'checked' : ''} onclick="toggleItem(${index}, this.checked)">
+                    </td>
                     <td>
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <img src="${item.image}" width="80" height="80" style="border-radius: 12px; object-fit: cover; border: 1px solid #eee;">
@@ -193,14 +269,17 @@ include 'includes/header.php';
                 </tr>
             `;
         });
+
         html += `
-            </tbody></table>
+                </tbody>
+            </table>
             <div class="total-section">
+                <div style="margin-bottom: 10px; color: #666; font-size: 14px;">Bạn đã chọn ${cart.filter(i => i.selected).length} sản phẩm</div>
                 <div style="margin-bottom: 10px; color: #666;">Tạm tính: ${formatPrice(total)}</div>
                 <p class="total-price" style="font-size: 28px;">Tổng cộng: ${formatPrice(total)}</p>
                 <div style="display: flex; gap: 15px; justify-content: flex-end;">
                     <a href="shop.php" style="padding: 15px 30px; border: 1.5px solid #f0c07d; border-radius: 12px; text-decoration: none; color: #7a5a3a; font-weight: 600;">Tiếp tục mua bánh</a>
-                    <a href="checkout.php" class="btn" style="padding: 15px 50px; font-size: 18px; border-radius: 12px; font-weight: 700; background: var(--price-color); color: #fff; border: none; box-shadow: 0 5px 15px rgba(230, 81, 0, 0.3);">Tiến hành đặt hàng </a>
+                    <button onclick="goToCheckout()" class="btn" style="padding: 15px 50px; font-size: 18px; border-radius: 12px; font-weight: 700; background: var(--price-color); color: #fff; border: none; box-shadow: 0 5px 15px rgba(230, 81, 0, 0.3); cursor: pointer;">Tiến hành đặt hàng </button>
                 </div>
             </div>
         `;
@@ -208,17 +287,46 @@ include 'includes/header.php';
         if (typeof updateCartBadge === 'function') updateCartBadge();
     };
 
-    const updateQty = (index, change) => {
+    const toggleItem = async (index, selected) => {
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (cart[index]) {
+            cart[index].selected = selected;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+            await pushCartToBackend();
+        }
+    };
+
+    const toggleAll = async (selected) => {
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart.forEach(item => item.selected = selected);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+        await pushCartToBackend();
+    };
+
+    const goToCheckout = () => {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const hasSelected = cart.some(i => i.selected);
+        if (!hasSelected) {
+            alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán!');
+            return;
+        }
+        window.location.href = 'checkout.php';
+    };
+
+    const updateQty = async (index, change) => {
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         if (cart[index]) {
             cart[index].quantity = (cart[index].quantity || 1) + change;
             if (cart[index].quantity < 1) cart[index].quantity = 1;
             localStorage.setItem('cart', JSON.stringify(cart));
             renderCart();
+            await pushCartToBackend();
         }
     };
 
-    const setQty = (index, val) => {
+    const setQty = async (index, val) => {
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         if (cart[index]) {
             let num = parseInt(val);
@@ -226,21 +334,25 @@ include 'includes/header.php';
             cart[index].quantity = num;
             localStorage.setItem('cart', JSON.stringify(cart));
             renderCart();
+            await pushCartToBackend();
         }
     };
 
-    const updateGreeting = (index, text) => {
+    const updateGreeting = async (index, text) => {
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         if (cart[index]) {
             cart[index].greeting = text;
             localStorage.setItem('cart', JSON.stringify(cart));
+            await pushCartToBackend();
         }
     };
-    const removeItem = (index) => {
+
+    const removeItem = async (index) => {
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
         cart.splice(index, 1);
         localStorage.setItem('cart', JSON.stringify(cart));
         renderCart();
+        await pushCartToBackend();
     };
     document.addEventListener('DOMContentLoaded', renderCart);
 </script>

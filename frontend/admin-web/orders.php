@@ -38,6 +38,35 @@ include 'includes/sidebar.php';
         background: rgba(220, 53, 69, 0.1);
         color: #721c24;
     }
+
+    .pm-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .pm-bank { background: #e3f2fd; color: #0d47a1; }
+    .pm-cod { background: #f5f5f5; color: #616161; }
+
+    .ps-badge {
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .ps-paid { color: #28a745; }
+    .ps-unpaid { color: #dc3545; }
+    .ps-waiting { color: #fd7e14; }
+
+    .btn-simulate {
+        background: #6f42c1;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        cursor: pointer;
+        margin-left: 5px;
+    }
 </style>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -61,6 +90,7 @@ include 'includes/sidebar.php';
             <th>ID</th>
             <th>Khách hàng</th>
             <th>Tổng tiền</th>
+            <th>Thanh toán</th>
             <th>Trạng thái</th>
             <th>Thao tác</th>
         </tr>
@@ -78,17 +108,27 @@ include 'includes/sidebar.php';
         </div>
 
         <div class="status-update-section" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
-            <label style="display: block; font-weight: 700; margin-bottom: 10px;">Cập nhật trạng thái đơn hàng</label>
-            <div style="display: flex; gap: 10px;">
-                <select id="update-status" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                    <option value="pending">Chờ xử lý</option>
-                    <option value="processing">Đang làm bánh</option>
-                    <option value="shipped">Đang giao hàng</option>
-                    <option value="delivered">Đã giao hàng / Hoàn tất</option>
-                    <option value="cancelled">Đã hủy đơn</option>
-                </select>
-                <button class="btn btn-primary" onclick="updateOrderStatus()">Cập nhật</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-weight: 700; margin-bottom: 5px;">Cập nhật đơn hàng</label>
+                    <select id="update-status" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="processing">Đang làm bánh</option>
+                        <option value="shipped">Đang giao hàng</option>
+                        <option value="delivered">Đã giao hàng / Hoàn tất</option>
+                        <option value="cancelled">Đã hủy đơn</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-weight: 700; margin-bottom: 5px;">Thanh toán</label>
+                    <select id="update-payment-status" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <option value="unpaid">Chưa thanh toán</option>
+                        <option value="waiting_verification">Chờ xác minh (QR)</option>
+                        <option value="paid">Đã thanh toán (Paid)</option>
+                    </select>
+                </div>
             </div>
+            <button class="btn btn-primary" onclick="updateOrderInfo()" style="width: 100%;">Cập nhật thông tin đơn hàng</button>
         </div>
     </div>
 </div>
@@ -127,6 +167,13 @@ include 'includes/sidebar.php';
                     <td>#${o.id}</td>
                     <td>${o.customer_name}</td>
                     <td>${formatPrice(o.total_amount)}</td>
+                    <td>
+                        <div class="pm-badge pm-${o.payment_method || 'cod'}">${(o.payment_method === 'bank') ? 'Bán qua Ngân hàng' : 'Tiền mặt (COD)'}</div>
+                        <div class="ps-badge ps-${o.payment_status || 'unpaid'}">
+                            ${(o.payment_status === 'paid') ? '● Đã thanh toán' : (o.payment_status === 'waiting_verification' ? '◐ Đang chờ xác minh' : '○ Chưa nhận tiền')}
+                            ${(o.payment_status !== 'paid' && o.payment_method === 'bank') ? `<button class="btn-simulate" onclick="event.stopPropagation(); simulateOrderPayment(${o.id})">Giả lập nhận tiền</button>` : ''}
+                        </div>
+                    </td>
                     <td><span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span></td>
                     <td>
                         <button class="btn btn-info" onclick='loadOrderById(${o.id})'>Chi tiết</button>
@@ -146,6 +193,7 @@ include 'includes/sidebar.php';
         document.getElementById('orderModal').style.display = 'block';
         document.getElementById('modalOrderId').innerText = o.id;
         document.getElementById('update-status').value = o.status;
+        document.getElementById('update-payment-status').value = o.payment_status || 'unpaid';
 
         const statusLabels = {
             'pending': 'CHỜ XỬ LÝ',
@@ -160,7 +208,10 @@ include 'includes/sidebar.php';
         let html = `
                 <div style="margin-bottom: 20px;">
                     <p style="margin-bottom: 8px;"><strong>Ngày đặt:</strong> ${new Date(o.created_at).toLocaleString('vi-VN')}</p>
+                    <p style="margin-bottom: 8px;"><strong>Hình thức:</strong> <span class="pm-badge pm-${o.payment_method || 'cod'}">${o.payment_method === 'bank' ? 'Chuyển khoản Ngân hàng' : 'Tiền mặt (COD)'}</span></p>
+                    <p style="margin-bottom: 8px;"><strong>Thanh toán:</strong> <span class="ps-badge ps-${o.payment_status || 'unpaid'}">${o.payment_status === 'paid' ? 'Đã nhận tiền' : 'Chưa nhận tiền'}</span></p>
                     <p style="margin-bottom: 8px;"><strong>Trạng thái:</strong> <span class="status-badge status-${o.status}" style="font-size: 12px; padding: 4px 10px;">${statusLabels[o.status]}</span></p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 15px 0;">
                     <p style="margin-bottom: 8px;"><strong>Khách hàng:</strong> ${o.customer_name}</p>
                     <p style="margin-bottom: 8px;"><strong>Số điện thoại:</strong> ${o.customer_phone}</p>
                     <p style="margin-bottom: 8px;"><strong>Địa chỉ giao:</strong> ${o.customer_address}</p>
@@ -203,10 +254,15 @@ include 'includes/sidebar.php';
     }
 
     function closeModal() { document.getElementById('orderModal').style.display = 'none'; }
-    async function updateOrderStatus() {
+    async function updateOrderInfo() {
         const id = document.getElementById('modalOrderId').innerText;
         const status = document.getElementById('update-status').value;
-        const res = await adminFetch(`/admin/orders/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+        const payment_status = document.getElementById('update-payment-status').value;
+        
+        const res = await adminFetch(`/admin/orders/${id}`, { 
+            method: 'PUT', 
+            body: JSON.stringify({ status, payment_status }) 
+        });
         if (res) { closeModal(); loadOrders(); }
     }
 
@@ -214,6 +270,16 @@ include 'includes/sidebar.php';
         if (confirm('Bạn có chắc muốn xóa đơn hàng này?')) {
             const res = await adminFetch(`/admin/orders/${id}`, { method: 'DELETE' });
             if (res) loadOrders();
+        }
+    }
+
+    async function simulateOrderPayment(id) {
+        if (confirm('Bạn muốn giả lập hệ thống vừa nhận được tiền từ ngân hàng cho đơn này?')) {
+            const res = await adminFetch(`/orders/${id}/simulate-payment`, { method: 'POST' });
+            if (res) {
+                alert('Mô phỏng thành công! Đơn hàng đã được Pay check tự động.');
+                loadOrders();
+            }
         }
     }
 </script>

@@ -20,16 +20,21 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::post('/contacts', [ContactController::class, 'store']);
+Route::match(['get', 'post'], '/sepay/webhook', [\App\Http\Controllers\Api\SePayWebhookController::class, 'handle']);
 
 // Protected User/Admin routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/profile', [AuthController::class, 'updateProfile']);
+    Route::get('/cart', [UserController::class, 'getCart']);
+    Route::post('/cart', [UserController::class, 'updateCart']);
 
     // User routes
     Route::get('/orders', [OrderController::class, 'userOrders']);
-    Route::post('/orders', [OrderController::class, 'checkout']); // Chuyển vào đây để nhận diện user_id
+    Route::post('/orders', [OrderController::class, 'checkout']);
+    Route::get('/orders/{id}/payment-status', [OrderController::class, 'checkPaymentStatus']);
+    Route::post('/orders/{id}/simulate-payment', [OrderController::class, 'simulatePayment']); // MOCK for testing realtime
     
     Route::get('/addresses', [UserAddressController::class, 'index']);
     Route::post('/addresses', [UserAddressController::class, 'store']);
