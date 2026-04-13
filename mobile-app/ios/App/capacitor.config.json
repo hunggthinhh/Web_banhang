@@ -1,0 +1,27 @@
+{
+	"appId": "com.lapatisserie.bakery",
+	"appName": "La Pâtisserie",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true
+	},
+	"android": {
+		"allowMixedContent": true,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"backgroundColor": "#fff5f0",
+			"androidSplashResourceName": "splash",
+			"showSpinner": false
+		},
+		"StatusBar": {
+			"style": "LIGHT",
+			"backgroundColor": "#ffffff"
+		}
+	},
+	"packageClassList": []
+}

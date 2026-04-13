@@ -4,6 +4,9 @@ include 'includes/header.php';
 ?>
 
 <style>
+    .site-footer {
+        margin-top: 0 !important;
+    }
     .product-detail-container {
         padding: 60px 0;
         max-width: 1400px;
@@ -50,7 +53,8 @@ include 'includes/header.php';
         overflow: hidden;
         border: 2.5px solid #001f3f;
         box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
-        height: 400px; /* Adjusted for 4 thumbnails: 4*90 + 3*10 = 390px */
+        height: 400px;
+        /* Adjusted for 4 thumbnails: 4*90 + 3*10 = 390px */
     }
 
     .main-image-wrap img {
@@ -61,7 +65,11 @@ include 'includes/header.php';
     }
 
     .product-info {
-        padding-left: 20px;
+        padding: 30px;
+        background: #fff4e6;
+        border-radius: 30px;
+        border: 1px solid #fce8d5;
+        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.03);
     }
 
     .info-badges {
@@ -209,7 +217,7 @@ include 'includes/header.php';
 
 </div> <!-- Close the .container coming from header.php -->
 
-<div style="background: #fff; width: 100%;">
+<div style="background: linear-gradient(to bottom, #fff 0%, #fafafa 100%); width: 100%;">
     <div class="container">
         <div class="product-detail-container">
             <div id="product-detailed-info"></div>
@@ -217,10 +225,12 @@ include 'includes/header.php';
     </div>
 </div>
 
-<div class="container"> <!-- Re-open the .container for footer.php and next section -->
-    <div class="product-detail-container" style="padding-top: 20px;">
+<div style="background: #fff4e6; width: 100%; padding: 80px 0 0 0;">
+    <div class="container" style="padding-bottom: 80px;">
         <div id="product-related-info"></div>
     </div>
+</div>
+<div class="container" style="background: #fff4e6; max-width: none; padding: 0;"> <!-- Re-open container with cream bg to bridge the gap to footer -->
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -272,32 +282,31 @@ include 'includes/header.php';
                         ${product.description || 'Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất...'}
                     </p>
 
-                    <div style="background: #fff9f0; padding: 25px; border-radius: 20px; border: 1px solid #f0ddd1;">
+                    <div class="buy-section-wrapper" style="margin-top: 30px; padding-top: 25px;">
                         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                            <div class="qty-controls" style="flex: 0 0 auto;">
-                                <button class="qty-btn" onclick="changeQty(-1)">-</button>
-                                <input type="number" id="qty-val" value="1" min="1" oninput="if(this.value < 1) this.value = 1;">
-                                <button class="qty-btn" onclick="changeQty(1)">+</button>
+                            <div class="qty-controls" style="flex: 0 0 auto; height: 55px; border: 1.5px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                <button class="qty-btn" onclick="changeQty(-1)" style="width: 50px;">-</button>
+                                <input type="number" id="qty-val" value="1" min="1" oninput="if(this.value < 1) this.value = 1;" style="width: 50px; font-size: 20px;">
+                                <button class="qty-btn" onclick="changeQty(1)" style="width: 50px;">+</button>
                             </div>
                             
                             <button class="btn-add-cart" onclick="addCart(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
-                                    style="width: 60px; height: 50px; padding: 0; border:1.5px solid #d1d5db; border-radius: 10px; background:#f0f4f8; color:#001f3f; display:flex; align-items:center; justify-content:center; margin-top:0;">
-                                <i class="fas fa-shopping-basket"></i>
+                                    style="width: 55px; height: 55px; padding: 0; border:1.5px solid #d1d5db; border-radius: 12px; background:#fff; color:#001f3f; display:flex; align-items:center; justify-content:center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                                <i class="fas fa-shopping-basket" style="font-size: 20px;"></i>
                             </button>
                             
                             <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
-                                    style="flex: 1; height: 50px; background: #e53e3e; color: #fff; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; cursor: pointer;">
+                                    style="flex: 1; height: 55px; background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(229, 62, 62, 0.3); text-transform: uppercase; letter-spacing: 1px;">
                                 Mua ngay
                             </button>
                         </div>
-                        
                     </div>
                 </div>
             </div>
         `;
 
-        // Inject Detailed Info Section (Full width part)
-        document.getElementById('product-detailed-info').innerHTML = `
+            // Inject Detailed Info Section (Full width part)
+            document.getElementById('product-detailed-info').innerHTML = `
             <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; color: #000; margin-bottom: 40px; text-align: left; letter-spacing: -0.5px;">Thông tin sản phẩm</h2>
             <div class="content-rich-text" style="font-family: 'Roboto', sans-serif; line-height: 2; color: #000; font-size: 18px; text-align: left;">
                 ${product.content || '<p>Sản phẩm này hiện chưa có bài giới thiệu chi tiết. Vui lòng quay lại sau.</p>'}
@@ -307,7 +316,7 @@ include 'includes/header.php';
             const related = data.related || [];
             if (related.length > 0) {
                 document.getElementById('product-related-info').innerHTML = `
-                <div class="related-products" style="margin-top: 80px;">
+                <div class="related-products" style="margin-top: 20px;">
                     <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #001f3f; margin-bottom: 35px; text-align: left; letter-spacing: -0.5px;">Sản phẩm liên quan</h2>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
                         ${related.map(r => `

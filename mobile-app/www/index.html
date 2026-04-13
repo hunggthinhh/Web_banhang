@@ -426,7 +426,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://192.168.1.20/Web_banhang/backend/public/api';
+        const API_URL = 'http://192.168.1.12/Web_banhang/backend/public/api';
 
         window.togglePassMobile = (id, icon) => {
             const input = document.getElementById(id);
@@ -680,7 +680,7 @@
         const fixImg = (url) => {
             if (!url) return 'img/logo.png';
             if (url.includes('localhost') || url.includes('127.0.0.1')) {
-                return url.replace(/localhost|127\.0\.0\.1/, '192.168.1.20');
+                return url.replace(/localhost|127\.0\.0\.1/, '192.168.1.12');
             }
             return url;
         };
@@ -923,14 +923,57 @@
 
         pages.product = async (params) => {
             const res = await fetch(`${API_URL}/products/${params.id}`);
-            const p = await res.json();
+            const data = await res.json();
+            const p = data.product;
+            const related = data.related || [];
+            
+            if (!p) {
+                document.getElementById('page-content').innerHTML = `<div style="padding:60px 20px; text-align:center;"><h2>Không tìm thấy sản phẩm</h2></div>`;
+                return;
+            }
+
+            const subImages = p.sub_images || [];
+            const allImgs = [p.image, ...subImages].slice(0, 4);
+
+            const relatedHTML = related.length > 0 ? `
+                <div style="background:#fff4e6; padding:30px 16px 40px;">
+                    <h3 style="font-family:Georgia; font-size:20px; color:#001f3f; margin-bottom:20px;">Sản phẩm liên quan</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        ${related.map(r => `
+                            <div onclick="navigateTo('product', {id:${r.id}})" style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+                                <img src="${fixImg(r.image)}" style="width:100%; height:130px; object-fit:cover;" onerror="this.src='img/logo.png'">
+                                <div style="padding:12px;">
+                                    <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px;">${r.name}</h4>
+                                    <p style="color:var(--price-color); font-weight:700; font-size:14px;">${formatPrice(r.price)}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '';
+
             document.getElementById('page-content').innerHTML = `
                 <div style="padding:16px;">
-                    <img src="${fixImg(p.image)}" style="width:100%; border-radius:15px;" onerror="this.src='img/logo.png'">
-                    <h2 style="margin-top:15px; color:var(--name-color); font-family: 'Playfair Display', serif;">${p.name}</h2>
-                    <h3 style="color:var(--price-color); margin:10px 0;">${formatPrice(p.price)}</h3>
-                    <p style="color:#666; line-height:1.6; font-size:14px; margin-bottom:25px;">${p.description || 'Hương vị bánh ngọt ngào và tinh tế, được làm thủ công bằng cả trái tim.'}</p>
+                    <!-- Main Image -->
+                    <img id="main-img-m" src="${fixImg(p.image)}" style="width:100%; border-radius:15px; max-height:350px; object-fit:cover;" onerror="this.src='img/logo.png'">
                     
+                    <!-- Thumbnails -->
+                    ${allImgs.length > 1 ? `
+                    <div style="display:flex; gap:8px; margin-top:10px; overflow-x:auto;">
+                        ${allImgs.map((img, i) => `
+                            <img src="${fixImg(img)}" onclick="document.getElementById('main-img-m').src=fixImg('${img}')" 
+                                 style="width:65px; height:65px; border-radius:10px; object-fit:cover; border:${i === 0 ? '2px solid var(--primary)' : '1px solid #eee'}; cursor:pointer;"
+                                 onerror="this.src='img/logo.png'">
+                        `).join('')}
+                    </div>
+                    ` : ''}
+
+                    <h2 style="margin-top:15px; color:var(--name-color); font-family:Georgia; font-size:22px;">${p.name}</h2>
+                    <h3 style="color:var(--price-color); margin:8px 0; font-size:20px;">${formatPrice(p.price)}</h3>
+                    <p style="font-size:12px; color:var(--price-color); margin-bottom:15px;">(Giá chưa bao gồm thuế VAT)</p>
+                    <p style="color:#666; line-height:1.7; font-size:14px; margin-bottom:20px;">${p.description || 'Hương vị bánh ngọt ngào và tinh tế, được làm thủ công bằng cả trái tim.'}</p>
+                    
+                    <!-- Buy Section -->
                     <div style="background:#fffbf7; padding:20px; border-radius:15px; border:1px solid #f0ddd1;">
                         <div style="display:flex; gap:12px; align-items:center;">
                             <div style="display:flex; align-items:center; border:1px solid #ddd; border-radius:10px; overflow:hidden; background:#fff;">
@@ -939,18 +982,29 @@
                                 <button onclick="changeQtyMobile(1)" style="width:35px; height:45px; border:none; background:none; font-size:18px;">+</button>
                             </div>
                             
-                            <button onclick="addToCart({id:${p.id}, name:'${p.name}', price:${p.price}, image:'${p.image}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
+                            <button onclick="addToCart({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${p.price}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
                                     style="width:50px; height:45px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#001f3f;">
                                 <i class="fas fa-shopping-basket" style="font-size:18px;"></i>
                             </button>
                             
-                            <button onclick="buyNow({id:${p.id}, name:'${p.name}', price:${p.price}, image:'${p.image}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
-                                    style="flex:1; height:45px; background:#e53e3e; color:#fff; border:none; border-radius:10px; font-weight:700; font-size:15px;">
+                            <button onclick="buyNow({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${p.price}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
+                                    style="flex:1; height:45px; background:linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color:#fff; border:none; border-radius:10px; font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:1px;">
                                 Mua ngay
                             </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Product Content / Detailed Info -->
+                ${p.content ? `
+                <div style="padding:25px 16px; background:#f9f9f9; margin-top:10px;">
+                    <h3 style="font-family:Georgia; font-size:20px; color:#001f3f; margin-bottom:15px;">Thông tin sản phẩm</h3>
+                    <div style="line-height:1.8; color:#333; font-size:14px;">${p.content}</div>
+                </div>
+                ` : ''}
+
+                <!-- Related Products -->
+                ${relatedHTML}
                 ${getFooterHTML()}
             `;
         };
@@ -980,48 +1034,62 @@
             } else {
                 cartHTML = `
                     <div style="padding:20px;">
-                        <h2 style="font-size:24px; color:#1a365d; margin-bottom:20px; font-family:Georgia; border-bottom:1px solid #eee; padding-bottom:15px;">Giỏ hàng</h2>
+                        <h2 style="font-size:24px; color:#1a365d; margin-bottom:5px; font-family:Georgia;">Giỏ hàng</h2>
+                        <div style="border-bottom:1px solid #f0ddd1; margin-bottom:20px; padding-bottom:5px;"></div>
                         <div style="display:flex; flex-direction:column; gap:20px;">
                             ${cart.map((i, idx) => `
-                                <div style="display:flex; gap:15px; border-bottom:1px solid #fafafa; padding-bottom:15px;">
-                                    <img src="${fixImg(i.image)}" style="width:80px; height:80px; border-radius:12px; object-fit:cover;" onerror="this.src='img/logo.png'">
+                                <div style="display:flex; gap:15px; border-bottom:1px solid #f0ddd1; padding-bottom:20px;">
+                                    <img src="${fixImg(i.image)}" style="width:80px; height:80px; border-radius:12px; object-fit:cover; border:1px solid #eee;" onerror="this.src='img/logo.png'">
                                     <div style="flex:1;">
                                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                            <b style="font-size:15px; color:var(--name-color);">${i.name}</b>
-                                            <i onclick="removeItem(${idx})" class="fas fa-times" style="color:#ccc; font-size:18px;"></i>
+                                            <div>
+                                                <b style="font-size:15px; color:var(--name-color); display:block; margin-bottom:3px;">${i.name}</b>
+                                                <span style="font-size:12px; color:#8c7e73;">Giao hàng nhanh trong 2h</span>
+                                            </div>
+                                            <i onclick="removeItem(${idx})" class="fas fa-times" style="color:#ccc; font-size:18px; cursor:pointer; padding:5px;"></i>
                                         </div>
-                                        <p style="color:var(--price-color); font-weight:700; margin:5px 0 10px;">${formatPrice(i.price)}</p>
+                                        <p style="color:var(--price-color); font-weight:700; margin:8px 0 10px; font-size:15px;">${formatPrice(i.price)}</p>
                                         
-                                        <div style="margin-bottom: 15px;">
+                                        <div style="margin-bottom:12px;">
                                             <p style="font-size:12px; color:#7a5a3a; margin-bottom:5px; font-weight:600;">Lời chúc trên bánh:</p>
-                                            <textarea onchange="updateNote(${idx}, this.value)" 
+                                            <textarea onchange="updateGreeting(${idx}, this.value)" 
                                                       placeholder="Nhập lời chúc cho bánh..." 
-                                                      style="width:100%; height:60px; background:#fffaf4; border:1px solid #f0c07d; border-radius:10px; padding:10px; font-size:13px; outline:none; resize:none; color:#5a4a3a;">${i.note || ''}</textarea>
+                                                      style="width:100%; height:55px; background:#fffaf4; border:1.5px solid #f0c07d; border-radius:10px; padding:10px; font-size:13px; outline:none; resize:none; color:#5a4a3a; font-family:inherit;">${i.greeting || ''}</textarea>
                                         </div>
 
-                                        <div style="display:flex; align-items:center; gap:12px;">
-                                            <div style="display:flex; align-items:center; border:1px solid #eee; border-radius:8px; overflow:hidden;">
-                                                <button onclick="updateQty(${idx}, -1)" style="border:none; background:#f9f9f9; padding:5px 12px;">-</button>
-                                                <span style="padding:0 12px; font-size:14px;">${i.quantity || 1}</span>
-                                                <button onclick="updateQty(${idx}, 1)" style="border:none; background:#f9f9f9; padding:5px 12px;">+</button>
+                                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                                            <div style="display:flex; align-items:center; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#f8fafc;">
+                                                <button onclick="updateQty(${idx}, -1)" style="width:35px; height:35px; border:none; background:none; font-size:18px; color:#64748b; cursor:pointer;">-</button>
+                                                <span style="padding:0 12px; font-weight:700; font-size:15px; color:#1e293b;">${i.quantity || 1}</span>
+                                                <button onclick="updateQty(${idx}, 1)" style="width:35px; height:35px; border:none; background:none; font-size:18px; color:#64748b; cursor:pointer;">+</button>
                                             </div>
+                                            <b style="color:var(--price-color); font-size:15px;">${formatPrice(i.price * (i.quantity || 1))}</b>
                                         </div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
 
-                        <div style="margin-top:30px; background:#fffbf7; padding:20px; border-radius:15px; border:1px dashed #e2e8f0;">
+                        <div style="margin-top:25px; background:#fffbf7; padding:20px; border-radius:15px; border:1px solid #f0ddd1;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span style="color:#666; font-size:14px;">Tạm tính</span>
+                                <span style="color:#666; font-size:14px;">${formatPrice(total)}</span>
+                            </div>
                             <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                                <span style="color:#666;">Tổng thanh toán:</span>
+                                <span style="color:#666; font-size:14px;">Phí giao hàng</span>
+                                <span style="color:#666; font-size:14px;">Miễn phí</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; padding-top:15px; border-top:2px solid #001f3f;">
+                                <b style="font-size:18px; color:#001f3f;">Tổng cộng</b>
                                 <b style="font-size:18px; color:var(--price-color);">${formatPrice(total)}</b>
                             </div>
-                            <button onclick="navigateTo('checkout')" style="width:100%; background:var(--price-color); color:#fff; border:none; padding:15px; border-radius:12px; font-weight:700; font-size:15px; box-shadow:0 4px 15px rgba(230, 81, 0, 0.3); margin-bottom:12px;">Thanh Toán Ngay</button>
-                            
-                            <button onclick="navigateTo('shop')" style="width:100%; background:transparent; color:#7a5a3a; border:1.5px solid #f0c07d; padding:13px; border-radius:12px; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                                Tiếp tục mua bánh
-                            </button>
                         </div>
+
+                        <button onclick="navigateTo('checkout')" style="width:100%; margin-top:15px; background:var(--price-color); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; box-shadow:0 4px 15px rgba(230, 81, 0, 0.3); letter-spacing:1px;">THANH TOÁN NGAY</button>
+                        
+                        <button onclick="navigateTo('shop')" style="width:100%; margin-top:10px; background:transparent; color:#7a5a3a; border:1.5px solid #f0c07d; padding:14px; border-radius:12px; font-weight:700; font-size:14px;">
+                            Tiếp tục mua bánh
+                        </button>
                     </div>
                 `;
             }
@@ -1036,8 +1104,8 @@
                 saveCart(cart);
                 navigateTo('cart');
             };
-            window.updateNote = (idx, val) => {
-                cart[idx].note = val;
+            window.updateGreeting = (idx, val) => {
+                cart[idx].greeting = val;
                 saveCart(cart);
             };
         };

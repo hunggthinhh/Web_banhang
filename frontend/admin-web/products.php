@@ -19,8 +19,12 @@ include 'includes/sidebar.php';
         style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
         <option value="">Tất cả danh mục</option>
     </select>
-    <input type="number" id="filter-price" placeholder="Giá tối đa..." oninput="applyFilters()"
+    <select id="sort-price" onchange="applyFilters()"
         style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+        <option value="">Sắp xếp...</option>
+        <option value="low-to-high">Giá: Thấp đến Cao</option>
+        <option value="high-to-low">Giá: Cao đến Thấp</option>
+    </select>
 </div>
 
 <table id="products-table">
@@ -212,14 +216,20 @@ include 'includes/sidebar.php';
     function applyFilters() {
         const nameTerm = document.getElementById('filter-name').value.toLowerCase();
         const categorySelect = document.getElementById('filter-category').value;
-        const maxPrice = parseFloat(document.getElementById('filter-price').value) || Infinity;
+        const sortType = document.getElementById('sort-price').value;
 
-        const filtered = allProducts.filter(p => {
+        let filtered = allProducts.filter(p => {
             const matchName = p.name.toLowerCase().includes(nameTerm);
             const matchCategory = !categorySelect || (p.category && p.category.name === categorySelect);
-            const matchPrice = (p.price || 0) <= maxPrice;
-            return matchName && matchCategory && matchPrice;
+            return matchName && matchCategory;
         });
+
+        // Apply Sorting
+        if (sortType === 'low-to-high') {
+            filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        } else if (sortType === 'high-to-low') {
+            filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+        }
 
         renderTable(filtered);
     }
@@ -246,8 +256,8 @@ include 'includes/sidebar.php';
                     <td><span class="badge" style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${p.category ? p.category.name : 'N/A'}</span></td>
                     <td><span style="color: var(--price-color); font-weight: bold;">${formatPrice(p.price || 0)}</span></td>
                     <td>
-                        <button class="btn btn-warning" onclick="editProduct(${p.id})">Sửa</button>
-                        <button class="btn btn-danger" onclick="deleteProduct(${p.id})">Xóa</button>
+                        <button class="btn btn-warning" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> Xóa</button>
                     </td>
                 </tr>
             `).join('');
