@@ -21,6 +21,8 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::post('/contacts', [ContactController::class, 'store']);
 Route::match(['get', 'post'], '/sepay/webhook', [\App\Http\Controllers\Api\SePayWebhookController::class, 'handle']);
+Route::post('/orders', [OrderController::class, 'checkout']); // Cho phép đặt hàng không cần Login
+Route::get('/orders/{id}', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách
 
 // Protected User/Admin routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -32,8 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User routes
     Route::get('/orders', [OrderController::class, 'userOrders']);
-    Route::post('/orders', [OrderController::class, 'checkout']);
-    Route::get('/orders/{id}/payment-status', [OrderController::class, 'checkPaymentStatus']);
+    Route::get('/orders-status/{id}', [OrderController::class, 'checkPaymentStatus']);
     Route::post('/orders/{id}/simulate-payment', [OrderController::class, 'simulatePayment']); // MOCK for testing realtime
     
     Route::get('/addresses', [UserAddressController::class, 'index']);

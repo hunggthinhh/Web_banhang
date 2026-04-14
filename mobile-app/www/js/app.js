@@ -1,9 +1,10 @@
-const API_URL = window.location.origin + '/Web_banhang/backend/public/api';
+const API_URL = 'https://equator-skiing-symphony.ngrok-free.dev/Web_banhang/backend/public/api';
 
 const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('auth_token');
     const headers = {
         'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
         ...options.headers,
     };
     if (!(options.body instanceof FormData)) {
