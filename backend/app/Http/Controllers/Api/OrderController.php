@@ -114,7 +114,7 @@ class OrderController extends Controller
         if ($request->has('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
-        $orders = $query->oldest()->get();
+        $orders = $query->latest()->get();
         return response()->json($orders);
     }
 

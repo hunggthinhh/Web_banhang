@@ -7,7 +7,7 @@ include 'includes/header.php';
 <div class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
-            <h2 class="auth-title">Cùng La Pâtisserie tạo nên điều khác biệt</h2>
+            <h2 class="auth-title">Cùng La Pâtisserie tạo nên khác biệt</h2>
             <p class="auth-subtext">Bạn mới bắt đầu? <a href="register.php">Đăng ký ngay</a></p>
         </div>
 
@@ -28,7 +28,9 @@ include 'includes/header.php';
             </div>
 
             <button type="submit" class="auth-btn">Đăng nhập</button>
-            <a href="forgot-password.php" class="forgot-password" style="display: block; text-align: left; margin-top: 15px; color: #001f3f; text-decoration: underline; font-weight: 700; font-size: 14px;">Quên mật khẩu?</a>
+            <a href="forgot-password.php" class="forgot-password"
+                style="display: block; text-align: left; margin-top: 15px; color: #001f3f; text-decoration: underline; font-weight: 700; font-size: 14px;">Quên
+                mật khẩu?</a>
         </form>
     </div>
 </div>

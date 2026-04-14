@@ -88,6 +88,7 @@ include 'includes/sidebar.php';
     <thead>
         <tr>
             <th>ID</th>
+            <th>Ngày đặt</th>
             <th>Khách hàng</th>
             <th>Tổng tiền</th>
             <th>Thanh toán</th>
@@ -165,6 +166,7 @@ include 'includes/sidebar.php';
         tbody.innerHTML = data.map(o => `
                 <tr>
                     <td>#${o.id}</td>
+                    <td>${new Date(o.created_at).toLocaleString('vi-VN')}</td>
                     <td>${o.customer_name}</td>
                     <td>${formatPrice(o.total_amount)}</td>
                     <td>
