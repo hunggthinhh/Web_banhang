@@ -42,11 +42,13 @@ include 'includes/header.php';
         btn.innerText = 'Đang xử lý...';
 
         try {
-            const response = await fetch('http://localhost/Web_banhang/backend/public/api/forgot-password', {
+            const apiUrl = window.location.origin + '/Web_banhang/backend/public/api/forgot-password';
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ email })
             });
+
             const data = await response.json();
             if (response.ok) {
                 alert(data.message);

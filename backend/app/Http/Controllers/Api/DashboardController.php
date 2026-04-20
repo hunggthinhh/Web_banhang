@@ -72,16 +72,22 @@ class DashboardController extends Controller
             }
         }
 
+        $isExport = $request->query('export') == '1';
+        $orderQuery = Order::with('items')
+            ->whereIn('status', ['shipped', 'completed', 'delivered'])
+            ->whereBetween('created_at', [$start, $end])
+            ->orderBy('created_at', 'desc');
+
+        if (!$isExport) {
+            $orderQuery->take(10);
+        }
+
         return response()->json([
             'type' => $type,
             'date' => $date->toDateString(),
             'totalRevenue' => $totalRevenue,
             'chartData' => $data,
-            'orders' => Order::with('items')
-                ->whereBetween('created_at', [$start, $end])
-                ->orderBy('created_at', 'desc')
-                ->take(10)
-                ->get()
+            'orders' => $orderQuery->get()
         ]);
     }
 

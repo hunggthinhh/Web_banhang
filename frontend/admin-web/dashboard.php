@@ -4,8 +4,9 @@ include 'includes/header.php';
 include 'includes/sidebar.php';
 ?>
 
-<!-- Chart.js CDN -->
+<!-- Chart.js & SheetJS CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px;">
     <div>
@@ -86,6 +87,13 @@ include 'includes/sidebar.php';
                     <option value="month" selected>Theo tháng</option>
                 </select>
                 <input type="date" id="filter-date" value="<?= date('Y-m-d') ?>" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px;">
+                <button onclick="exportRevenueToExcel()" style="padding: 6px 15px; background: #27ae60; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                        <path d="M4.5 12.5a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                    Xuất Excel
+                </button>
             </div>
         </div>
         <canvas id="revenueChart" height="100"></canvas>
@@ -114,10 +122,25 @@ include 'includes/sidebar.php';
         </thead>
         <tbody><!-- Loaded via JS --></tbody>
     </table>
+    <!-- Pagination controls -->
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px; font-size: 14px; color: #555;">
+        <span>Hiển thị</span>
+        <select id="orders-page-size" onchange="changePageSize()" style="padding: 5px 10px; border-radius: 6px; border: 1px solid #ddd; outline: none;">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="999999">Tất cả</option>
+        </select>
+        <span>dòng</span>
+        <span id="orders-pagination-info" style="margin-left: 10px;">Hiển thị 0 - 0 trong tổng số 0 dòng</span>
+    </div>
 </div>
 
 <script>
     let revenueChart = null;
+    let currentOrdersData = []; // Store full data for pagination
+    let currentPageSize = 10;
 
     const statusConfig = {
         'pending': { label: 'Chờ xử lý', color: '#ffbd00', icon: '⏳', html: '<span style="background: rgba(255, 193, 7, 0.1); color: #856404; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Chờ xử lý</span>' },
@@ -184,7 +207,8 @@ include 'includes/sidebar.php';
             if (card) card.style.border = '2px solid #667eea';
         }
 
-        const report = await adminFetch(`/admin/dashboard/revenue-report?type=${filterType}&date=${filterDate}`);
+        // Use export=1 to get all data for client-side pagination
+        const report = await adminFetch(`/admin/dashboard/revenue-report?type=${filterType}&date=${filterDate}&export=1`);
         if (!report) return;
 
         // Update Title
@@ -194,21 +218,105 @@ include 'includes/sidebar.php';
         // Update Chart
         updateChart(report.chartData.map(d => d.label), report.chartData.map(d => d.amount));
 
-        // Update Details Table
+        // Save data and render table
+        currentOrdersData = report.orders || [];
+        renderOrdersTable();
+    };
+
+    const renderOrdersTable = () => {
         const tbody = document.querySelector('#recent-orders tbody');
-        if (report.orders && report.orders.length > 0) {
-            tbody.innerHTML = report.orders.map(o => `
-                <tr onclick="window.location.href='orders.php?search=${o.id}'" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='white'">
-                    <td><strong>#${o.id}</strong></td>
-                    <td>${o.customer_name}</td>
-                    <td>${o.customer_phone || '-'}</td>
-                    <td style="color: var(--primary); font-weight: 700;">${formatPrice(o.total_amount)}</td>
-                    <td>${(statusConfig[o.status] || {html: o.status}).html}</td>
-                    <td style="color: #888; font-size: 13px;">${new Date(o.created_at).toLocaleString('vi-VN')}</td>
-                </tr>
-            `).join('');
-        } else {
+        const infoSpan = document.getElementById('orders-pagination-info');
+        
+        if (!currentOrdersData || currentOrdersData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #aaa;">Không có đơn hàng nào trong thời gian này.</td></tr>';
+            infoSpan.innerText = 'Hiển thị 0 - 0 trong tổng số 0 dòng';
+            return;
+        }
+
+        const pageSize = currentPageSize === 999999 ? currentOrdersData.length : currentPageSize;
+        const displayData = currentOrdersData.slice(0, pageSize);
+        const startIdx = 1;
+        const endIdx = displayData.length;
+
+        tbody.innerHTML = displayData.map(o => `
+            <tr onclick="window.location.href='orders.php?search=${o.id}'" style="cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='white'">
+                <td><strong>#${o.id}</strong></td>
+                <td>${o.customer_name}</td>
+                <td>${o.customer_phone || '-'}</td>
+                <td style="color: var(--primary); font-weight: 700;">${formatPrice(o.total_amount)}</td>
+                <td>${(statusConfig[o.status] || {html: o.status}).html}</td>
+                <td style="color: #888; font-size: 13px;">${new Date(o.created_at).toLocaleString('vi-VN')}</td>
+            </tr>
+        `).join('');
+
+        infoSpan.innerText = `Hiển thị ${startIdx} - ${endIdx} trong tổng số ${currentOrdersData.length} dòng`;
+    };
+
+    const changePageSize = () => {
+        currentPageSize = parseInt(document.getElementById('orders-page-size').value);
+        renderOrdersTable();
+    };
+
+    const exportRevenueToExcel = async () => {
+        const filterType = document.getElementById('filter-type').value;
+        const filterDate = document.getElementById('filter-date').value;
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+
+        try {
+            btn.innerHTML = 'Đang xử lý...';
+            btn.disabled = true;
+
+            const report = await adminFetch(`/admin/dashboard/revenue-report?type=${filterType}&date=${filterDate}&export=1`);
+            if (!report || !report.orders) {
+                alert('Không có dữ liệu để xuất!');
+                return;
+            }
+
+            const dataToExport = [];
+            
+            // Header Row
+            dataToExport.push([
+                "Mã Đơn Hàng", "Thời Gian", "Khách Hàng", "Số Điện Thoại", "Địa Chỉ", "Sản Phẩm (Chi Tiết)", "Tổng Tiền", "Trạng Thái"
+            ]);
+
+            report.orders.forEach(o => {
+                const itemDetails = o.items.map(i => `${i.product_name} (x${i.quantity})`).join(", ");
+                dataToExport.push([
+                    `#${o.id}`,
+                    new Date(o.created_at).toLocaleString('vi-VN'),
+                    o.customer_name,
+                    o.customer_phone || '',
+                    o.customer_address || '',
+                    itemDetails,
+                    o.total_amount,
+                    statusConfig[o.status]?.label || o.status
+                ]);
+            });
+
+            // Footer / Total Row
+            dataToExport.push([]); // Empty row
+            dataToExport.push(["", "", "", "", "", "TỔNG CỘNG DOANH THU:", report.totalRevenue]);
+
+            // Create Worksheet
+            const ws = XLSX.utils.aoa_to_sheet(dataToExport);
+            
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 10 }, { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 35 }, { wch: 45 }, { wch: 15 }, { wch: 15 }
+            ];
+
+            const wb = XLSX.utils.book_new();
+            const fileName = `Bao_cao_doanh_thu_${filterType === 'day' ? filterDate : (filterType === 'week' ? 'Tuan' : 'Thang')}.xlsx`;
+            XLSX.utils.book_append_sheet(wb, ws, "Doanh Thu");
+            XLSX.writeFile(wb, fileName);
+
+        } catch (error) {
+            console.error('Export error:', error);
+            alert('Có lỗi xảy ra khi xuất file!');
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         }
     };
 
