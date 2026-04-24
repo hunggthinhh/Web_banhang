@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User routes
     Route::get('/orders', [OrderController::class, 'userOrders']);
+    Route::post('/orders/{id}/return', [OrderController::class, 'requestReturn']);
     Route::get('/orders-status/{id}', [OrderController::class, 'checkPaymentStatus']);
     Route::post('/orders/{id}/simulate-payment', [OrderController::class, 'simulatePayment']); // MOCK for testing realtime
     

@@ -55,6 +55,18 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Sticky Header Shadow
+            const header = document.querySelector('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+                    header.style.padding = '15px 0';
+                } else {
+                    header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
+                    header.style.padding = '20px 0';
+                }
+            });
+
             try {
                 // Fetch categories to populate dropdown
                 const response = await fetch(window.location.origin + '/Web_banhang/backend/public/api/categories');

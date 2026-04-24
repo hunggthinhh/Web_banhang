@@ -326,7 +326,7 @@ include 'includes/header.php';
     .btn-place-order {
         width: 100%;
         padding: 20px;
-        background: var(--price-color);
+        background: linear-gradient(135deg, #f03e3e 0%, #d62828 100%);
         color: #fff;
         border: none;
         border-radius: 15px;
@@ -334,14 +334,15 @@ include 'includes/header.php';
         font-weight: 700;
         cursor: pointer;
         margin-top: 25px;
-        transition: 0.3s;
+        transition: all 0.3s ease;
         letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(240, 62, 62, 0.2);
     }
 
     .btn-place-order:hover {
-        filter: brightness(1.1);
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(230, 81, 0, 0.2);
+        box-shadow: 0 10px 25px rgba(240, 62, 62, 0.35);
+        filter: brightness(1.1);
     }
 
     .page-title {
@@ -543,12 +544,7 @@ include 'includes/header.php';
     };
 
     async function placeOrder() {
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-            alert('Vui lòng đăng nhập để thanh toán!');
-            window.location.href = 'login.php';
-            return;
-        }
+        // Removed mandatory login check to enable Guest Checkout
 
         // Basic validation
         const fields = ['name', 'phone', 'email', 'city', 'district', 'ward', 'address'];

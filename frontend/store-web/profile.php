@@ -326,6 +326,21 @@ include 'includes/header.php';
         color: #721c24 !important;
     }
 
+    .status-return_requested {
+        background: rgba(255, 107, 53, 0.15) !important;
+        color: #e65100 !important;
+    }
+
+    .status-returned {
+        background: rgba(40, 167, 69, 0.25) !important;
+        color: #1b5e20 !important;
+    }
+
+    .status-return_rejected {
+        background: rgba(117, 117, 117, 0.15) !important;
+        color: #424242 !important;
+    }
+
     /* Modal Styles */
     .modal {
         display: none;
@@ -455,7 +470,10 @@ include 'includes/header.php';
                 'processing': 'Đang làm bánh',
                 'shipped': 'Đang giao hàng',
                 'delivered': 'Hoàn tất',
-                'cancelled': 'Đã hủy'
+                'cancelled': 'Đã hủy',
+                'return_requested': 'Đang yêu cầu trả hàng',
+                'returned': 'Đã hoàn trả',
+                'return_rejected': 'Bị từ chối trả hàng'
             };
 
             list.innerHTML = `
@@ -479,8 +497,9 @@ include 'includes/header.php';
                                     <td style="padding: 18px; border-bottom: 1px solid #eee;">
                                         <span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span>
                                     </td>
-                                    <td style="padding: 18px; border-bottom: 1px solid #eee;">
+                                    <td style="padding: 18px; border-bottom: 1px solid #eee; display: flex; gap: 5px;">
                                         <button class="btn-save-profile" style="padding: 8px 15px; font-size: 13px; margin: 0;" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
+                                        ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') ? `<button class="btn-save-profile" style="padding: 8px 15px; font-size: 13px; margin: 0; background: #ff6b35; color: white;" onclick="requestOrderReturn(${o.id})">Trả hàng</button>` : ''}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -504,7 +523,10 @@ include 'includes/header.php';
                 'processing': 'Đang làm bánh',
                 'shipped': 'Đang giao hàng',
                 'delivered': 'Hoàn tất',
-                'cancelled': 'Đã hủy'
+                'cancelled': 'Đã hủy',
+                'return_requested': 'Đang yêu cầu trả hàng',
+                'returned': 'Đã hoàn trả',
+                'return_rejected': 'Bị từ chối trả hàng'
             };
 
             const content = document.getElementById('order-detail-content');
@@ -539,6 +561,10 @@ include 'includes/header.php';
                     <span>TỔNG CỘNG:</span>
                     <span>${formatPrice(o.total_amount)}</span>
                 </div>
+                ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') ? `
+                <div style="margin-top: 30px; text-align: center;">
+                    <button class="btn-save-profile" style="width: 100%; background: #ff6b35; color: white;" onclick="requestOrderReturn(${o.id})">Yêu cầu trả hàng cho đơn này</button>
+                </div>` : ''}
             `;
             document.getElementById('orderDetailModal').style.display = 'flex';
         } catch (err) {
@@ -548,6 +574,25 @@ include 'includes/header.php';
 
     function closeOrderModal() {
         document.getElementById('orderDetailModal').style.display = 'none';
+    }
+
+    async function requestOrderReturn(id) {
+        const reason = prompt('Vui lòng nhập lý do trả hàng (ví dụ: Sản phẩm bị lỗi, Giao sai mẫu...):');
+        if (!reason || reason.trim() === '') return;
+
+        try {
+            const res = await apiFetch(`/orders/${id}/return`, {
+                method: 'POST',
+                body: JSON.stringify({ reason: reason })
+            });
+            if (res) {
+                alert(res.message);
+                closeOrderModal();
+                loadOrders();
+            }
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
     }
 
     function switchTab(tab) {

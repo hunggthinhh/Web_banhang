@@ -610,7 +610,8 @@
 
         window.startApp = () => { }; // Dummy startApp
 
-        // Ngrok Image Loader (Bypasses Interstitial for images)
+        // Ngrok Image Loader (Bypasses Interstitial for images via header)
+        // Uses FileReader.readAsDataURL for iOS WKWebView compatibility (createObjectURL unreliable on iOS)
         setInterval(() => {
             document.querySelectorAll('img[data-ngroksrc]:not([data-fetching])').forEach(img => {
                 img.dataset.fetching = '1';
@@ -619,10 +620,21 @@
                     img.src = src || 'img/logo.png';
                     return;
                 }
-                fetch(src, { headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'image/*' } })
-                    .then(r => r.blob())
-                    .then(b => { img.src = URL.createObjectURL(b); })
-                    .catch(() => { img.src = 'img/logo.png'; });
+                // Use Capacitor HTTP to bypass WKWebView CORS restrictions
+                const performFetch = async () => {
+                    try {
+                        const response = await Capacitor.Plugins.CapacitorHttp.get({
+                            url: src,
+                            headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'image/*' },
+                            responseType: 'blob'
+                        });
+                        img.src = `data:image/jpeg;base64,${response.data}`;
+                    } catch (e) {
+                        console.error('Image fetch error:', src, e);
+                        img.src = 'img/logo.png';
+                    }
+                };
+                performFetch();
             });
         }, 50);
 
@@ -858,22 +870,29 @@
             navigateTo('checkout');
         };
 
-        // Helper to fix image URLs from localhost/127.0.0.1 to server IP
+        // Helper to fix image URLs - dynamically uses current API base URL
         const fixImg = (url) => {
             if (!url) return 'img/logo.png';
-            const ngrokDomain = 'equator-skiing-symphony.ngrok-free.dev';
-            if (url.includes('localhost') || url.includes('127.0.0.1') || url.includes('192.168.1.12') || url.includes('ngrok-free.dev')) {
-                let fixed = url.replace(/https?:\/\/localhost|https?:\/\/127\.0\.0\.1|https?:\/\/192\.168\.1\.12/, 'https://' + ngrokDomain);
-                fixed = fixed.replace(/localhost|127\.0\.0\.1|192\.168\.1\.12/, ngrokDomain);
-                if (fixed.includes(ngrokDomain) && !fixed.startsWith('http')) {
-                    fixed = 'https://' + fixed;
-                }
-                return fixed;
+            const apiHost = new URL(API_URL).host;
+            let finalUrl;
+            if (url.startsWith('http') && url.includes(apiHost)) {
+                finalUrl = url;
+            } else if (url.startsWith('http')) {
+                finalUrl = url.replace(/https?:\/\/(localhost|127\.0\.0\.1|[\w-]+\.ngrok-free\.dev)(:\d+)?/, `https://${apiHost}`);
+            } else {
+                const cleanPath = url.startsWith('/') ? url.substring(1) : url;
+                finalUrl = `https://${apiHost}/Web_banhang/backend/public/${cleanPath}`;
             }
-            if (!url.startsWith('http') && !url.startsWith('data:')) {
-                return `https://${ngrokDomain}/Web_banhang/backend/public/${url.startsWith('/') ? url.substring(1) : url}`;
+            // URL-encode path segments to handle Vietnamese characters & spaces in filenames
+            try {
+                const u = new URL(finalUrl);
+                u.pathname = u.pathname.split('/').map(seg => {
+                    try { return encodeURIComponent(decodeURIComponent(seg)); } catch(e) { return encodeURIComponent(seg); }
+                }).join('/');
+                return u.toString();
+            } catch(e) {
+                return finalUrl;
             }
-            return url;
         };
 
         // ====== PAGES ======
@@ -888,9 +907,8 @@
             const categories = await catRes.json();
 
             document.getElementById('page-content').innerHTML = `
-                <!-- Hero Section (Clickable Banner) -->
+                <!-- Hero Section (Clean Banner) -->
                 <div onclick="navigateTo('shop')" style="background:url('img/banner.png'); background-size:cover; background-position:center; padding:120px 20px; text-align:center; position:relative; cursor:pointer;">
-                    <!-- Content removed as per request, div remains for height and click action -->
                 </div>
 
                 <!-- Featured Products -->
@@ -923,24 +941,63 @@
                     </div>
                 </div>
 
-                <!-- Detailed Categories Section (Matches Web) -->
-                <div style="margin:20px; background:#fffbf7; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.05); display:flex;">
-                    <div style="flex:1.2; padding:25px 20px;">
-                        <h3 style="font-size:18px; margin-bottom:20px; color:#1a365d;">Danh mục sản phẩm</h3>
-                        <div style="display:flex; flex-direction:column; gap:15px;">
+                <!-- Câu Chuyện Về Đam Mê (synced from web) -->
+                <div style="margin:20px; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
+                    <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" style="width:100%; height:200px; object-fit:cover;">
+                    <div style="padding:25px 20px;">
+                        <h3 style="font-family:Georgia; font-size:22px; color:#1a365d; margin-bottom:15px;">Câu Chuyện Về Đam Mê</h3>
+                        <p style="font-size:14px; color:#4a5568; line-height:1.7; margin-bottom:12px;">Tại La Pâtisserie, chúng tôi tin rằng mỗi chiếc bánh đều mang trong mình một câu chuyện. Từ khâu chọn lựa nguyên liệu hữu cơ đến quy trình nhào bột truyền thống, mỗi bước đều được thực hiện bằng cả trái tim.</p>
+                        <p style="font-size:14px; color:#4a5568; line-height:1.7; margin-bottom:20px;">Chúng tôi không chỉ bán bánh, chúng tôi mang đến niềm hạnh phúc trong từng miếng thưởng thức.</p>
+                        <span onclick="navigateTo('about')" style="color:var(--primary); font-weight:700; font-size:14px; cursor:pointer;">Tìm hiểu thêm <i class="fas fa-arrow-right" style="font-size:12px;"></i></span>
+                    </div>
+                </div>
+
+                <!-- Detailed Categories Section (Perfect Sync with Web) -->
+                <div style="margin:20px; background:#fdf8f4; border-radius:28px; overflow:hidden; box-shadow:0 15px 35px rgba(0,0,0,0.05); display:flex; align-items:center;">
+                    <div style="flex:1.2; padding:40px 30px;">
+                        <h3 style="font-family:Georgia, serif; font-size:28px; font-weight:700; margin-bottom:35px; color:#1a365d; line-height:1.2;">Danh mục sản phẩm</h3>
+                        <div style="display:flex; flex-direction:column; gap:25px;">
                             ${categories.map((cat, idx) => `
-                                <div onclick="navigateTo('shop', {catId: ${cat.id}, catName: '${cat.name}'})" style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div style="display:flex; align-items:center; gap:10px;">
-                                        <span style="color:var(--primary); font-weight:700; font-size:14px;">${(idx + 1).toString().padStart(2, '0')}.</span>
-                                        <span style="font-size:14px; color:#4a5568;">${cat.name}</span>
-                                    </div>
-                                    <i class="fas fa-arrow-right" style="font-size:12px; color:#cbd5e0;"></i>
+                                <div onclick="navigateTo('shop', {catId: ${cat.id}, catName: '${cat.name}'})" style="display:flex; align-items:center; gap:15px;">
+                                    <span style="color:#a0aec0; font-size:12px; min-width:25px; font-weight:400;">${(idx + 1).toString().padStart(2, '0')}.</span>
+                                    <span style="font-size:16px; color:#1a365d; font-weight:700; letter-spacing:0.5px;">${cat.name}</span>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
-                    <div style="flex:1;">
-                        <img src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" style="width:100%; height:100%; object-fit:cover;">
+                    <div style="flex:1; height:100%; min-height:280px;">
+                        <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" style="width:100%; height:100%; min-height:280px; object-fit:cover;">
+                    </div>
+                </div>
+
+                <!-- Khách Hàng Nói Gì (synced from web) -->
+                <div style="margin:20px; padding:30px 0;">
+                    <h3 style="font-family:Georgia; font-size:22px; color:#1a365d; text-align:center; margin-bottom:25px;">Khách Hàng Nói Gì Về Chúng Tôi</h3>
+                    <div style="display:flex; overflow-x:auto; gap:15px; padding:5px 20px 15px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;">
+                        <div style="flex:0 0 280px; scroll-snap-align:start; background:#fff; border-radius:16px; padding:25px 20px; box-shadow:0 5px 20px rgba(0,0,0,0.06); border:1px solid #f0f0f0;">
+                            <i class="fas fa-quote-left" style="font-size:24px; color:#1a365d; opacity:0.2; margin-bottom:15px; display:block;"></i>
+                            <p style="font-size:13px; color:#4a5568; line-height:1.7; margin-bottom:20px; font-style:italic;">"Bánh ở đây thực sự rất khác biệt, vị ngọt thanh và rất đậm đà hương vị tự nhiên. Gia đình tôi rất thích!"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <img src="https://i.pravatar.cc/150?u=1" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <b style="font-size:14px; color:#1a365d;">Chị Lan Anh</b>
+                            </div>
+                        </div>
+                        <div style="flex:0 0 280px; scroll-snap-align:start; background:#fff; border-radius:16px; padding:25px 20px; box-shadow:0 5px 20px rgba(0,0,0,0.06); border:1px solid #f0f0f0;">
+                            <i class="fas fa-quote-left" style="font-size:24px; color:#1a365d; opacity:0.2; margin-bottom:15px; display:block;"></i>
+                            <p style="font-size:13px; color:#4a5568; line-height:1.7; margin-bottom:20px; font-style:italic;">"Dịch vụ giao hàng rất nhanh và đóng gói cũng rất cẩn thận. Chắc chắn tôi sẽ quay lại ủng hộ tiệm bánh."</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <img src="https://i.pravatar.cc/150?u=2" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <b style="font-size:14px; color:#1a365d;">Anh Minh Tuấn</b>
+                            </div>
+                        </div>
+                        <div style="flex:0 0 280px; scroll-snap-align:start; background:#fff; border-radius:16px; padding:25px 20px; box-shadow:0 5px 20px rgba(0,0,0,0.06); border:1px solid #f0f0f0;">
+                            <i class="fas fa-quote-left" style="font-size:24px; color:#1a365d; opacity:0.2; margin-bottom:15px; display:block;"></i>
+                            <p style="font-size:13px; color:#4a5568; line-height:1.7; margin-bottom:20px; font-style:italic;">"Không gian tiệm rất đẹp và bánh thì khỏi bàn, cực kỳ chất lượng. Rất xứng đáng với giá tiền!"</p>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <img src="https://i.pravatar.cc/150?u=3" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                <b style="font-size:14px; color:#1a365d;">Chị Hồng Phượng</b>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1548,12 +1605,15 @@
                 customer_email: document.getElementById('chk-email').value,
                 customer_address: `${address}, ${ward.options[ward.selectedIndex].text}, ${district.options[district.selectedIndex].text}, ${city.options[city.selectedIndex].text}`,
                 note: document.getElementById('chk-note').value,
+                delivery_date: deliveryDate || null,
+                delivery_time: document.getElementById('chk-time').value || null,
                 payment_method: method,
                 items: selectedItems.map(i => ({
                     id: i.id,
                     name: i.name,
                     quantity: i.quantity || 1,
-                    price: i.price
+                    price: i.price,
+                    greeting: i.greeting || ''
                 }))
             };
 

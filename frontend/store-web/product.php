@@ -7,6 +7,7 @@ include 'includes/header.php';
     .site-footer {
         margin-top: 0 !important;
     }
+
     .product-detail-container {
         padding: 60px 0;
         max-width: 1400px;
@@ -230,7 +231,8 @@ include 'includes/header.php';
         <div id="product-related-info"></div>
     </div>
 </div>
-<div class="container" style="background: #fff4e6; max-width: none; padding: 0;"> <!-- Re-open container with cream bg to bridge the gap to footer -->
+<div class="container" style="background: #fff4e6; max-width: none; padding: 0;">
+    <!-- Re-open container with cream bg to bridge the gap to footer -->
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -282,21 +284,24 @@ include 'includes/header.php';
                         ${product.description || 'Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất...'}
                     </p>
 
-                    <div class="buy-section-wrapper" style="margin-top: 30px; padding-top: 25px;">
-                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                            <div class="qty-controls" style="flex: 0 0 auto; height: 55px; border: 1.5px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                                <button class="qty-btn" onclick="changeQty(-1)" style="width: 50px;">-</button>
-                                <input type="number" id="qty-val" value="1" min="1" oninput="if(this.value < 1) this.value = 1;" style="width: 50px; font-size: 20px;">
-                                <button class="qty-btn" onclick="changeQty(1)" style="width: 50px;">+</button>
+                    <div class="buy-section-wrapper" style="margin-top: 30px; padding-top: 10px;">
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: nowrap;">
+                            <!-- Quantity Controls -->
+                            <div class="qty-controls" style="flex: 0 0 auto; height: 54px; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                                <button class="qty-btn" onclick="changeQty(-1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer;">-</button>
+                                <input type="number" id="qty-val" value="1" min="1" readonly style="width: 50px; border: none; text-align: center; font-size: 18px; font-weight: 700; background: transparent;">
+                                <button class="qty-btn" onclick="changeQty(1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer;">+</button>
                             </div>
                             
+                            <!-- Add to Cart Icon Button -->
                             <button class="btn-add-cart" onclick="addCart(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
-                                    style="width: 55px; height: 55px; padding: 0; border:1.5px solid #d1d5db; border-radius: 12px; background:#fff; color:#001f3f; display:flex; align-items:center; justify-content:center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                                    style="width: 54px; height: 54px; flex-shrink: 0; padding: 0; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; color: #001f3f; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
                                 <i class="fas fa-shopping-basket" style="font-size: 20px;"></i>
                             </button>
                             
+                            <!-- Buy Now Button -->
                             <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
-                                    style="flex: 1; height: 55px; background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 18px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(229, 62, 62, 0.3); text-transform: uppercase; letter-spacing: 1px;">
+                                    style="flex: 1; height: 54px; background: linear-gradient(135deg, #f03e3e 0%, #d62828 100%); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(240, 62, 62, 0.25); text-transform: uppercase; letter-spacing: 0.5px;">
                                 Mua ngay
                             </button>
                         </div>

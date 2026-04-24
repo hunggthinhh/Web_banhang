@@ -43,8 +43,11 @@ class OrderController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'customer_address' => $request->customer_address,
                 'total_amount' => $total,
+                'delivery_date' => $request->delivery_date,
+                'delivery_time' => $request->delivery_time,
+                'note' => $request->note,
                 'payment_method' => $request->payment_method ?? 'cod',
-                'payment_status' => ($request->payment_method === 'bank') ? 'unpaid' : 'unpaid', // Both default to unpaid until confirmed
+                'payment_status' => 'unpaid', 
                 'status' => 'pending'
             ]);
 
@@ -54,7 +57,8 @@ class OrderController extends Controller
                     'product_id' => $item['id'],
                     'product_name' => $item['name'],
                     'price' => $item['price'],
-                    'quantity' => $item['quantity']
+                    'quantity' => $item['quantity'],
+                    'greeting' => $item['greeting'] ?? ''
                 ]);
             }
             DB::commit();
@@ -111,9 +115,20 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::with('items.product');
+        
         if ($request->has('status') && $request->status != 'all') {
             $query->where('status', $request->status);
         }
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('orders.id', 'like', "%{$search}%");
+            });
+        }
+
         $orders = $query->latest()->get();
         return response()->json($orders);
     }
@@ -135,5 +150,34 @@ class OrderController extends Controller
         $order->items()->delete();
         $order->delete();
         return response()->json(['message' => 'Đã xóa đơn hàng thành công']);
+    }
+
+    public function requestReturn(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500'
+        ]);
+
+        $user = auth()->user();
+        $order = Order::where('id', $id)
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere(function ($q) use ($user) {
+                        $q->whereNull('user_id')
+                          ->where('customer_phone', $user->phone);
+                    });
+            })
+            ->firstOrFail();
+
+        if ($order->status !== 'delivered' && $order->status !== 'completed') {
+            return response()->json(['message' => 'Chỉ có thể yêu cầu trả hàng cho đơn hàng đã hoàn tất'], 400);
+        }
+
+        $order->update([
+            'status' => 'return_requested',
+            'note' => $order->note ? $order->note . " | Lý do trả: " . $request->reason : "Lý do trả: " . $request->reason
+        ]);
+
+        return response()->json(['message' => 'Yêu cầu trả hàng của bạn đã được gửi thành công']);
     }
 }
