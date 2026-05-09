@@ -41,6 +41,7 @@ class OrderController extends Controller
                 'user_id' => auth()->id(), // null if guest
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
+                'customer_email' => $request->customer_email, // Lưu email để gửi mail sau (nếu là bank)
                 'customer_address' => $request->customer_address,
                 'total_amount' => $total,
                 'delivery_date' => $request->delivery_date,
@@ -63,12 +64,14 @@ class OrderController extends Controller
             }
             DB::commit();
 
-            // Gửi Mail xác nhận đơn hàng (Dựa theo thiết kế Grab)
-            try {
-                Mail::to($request->customer_email)->send(new OrderConfirmation($order->load('items')));
-            } catch (\Exception $e) {
-                // Chỉ Log lỗi, không làm thất bại đơn hàng
-                \Log::error("Email sending failed for order #{$order->id}: " . $e->getMessage());
+            // Gửi Mail xác nhận đơn hàng 
+            // Nếu là COD thì gửi luôn, nếu là Bank thì chờ thanh toán xong mới gửi
+            if ($order->payment_method === 'cod') {
+                try {
+                    Mail::to($order->customer_email)->send(new OrderConfirmation($order->load('items')));
+                } catch (\Exception $e) {
+                    \Log::error("Email sending failed for order #{$order->id}: " . $e->getMessage());
+                }
             }
 
             return response()->json(['message' => 'Đặt hàng thành công', 'order' => $order]);
@@ -108,6 +111,16 @@ class OrderController extends Controller
             'payment_status' => 'paid',
             'status' => 'confirmed'
         ]);
+
+        // Gửi Mail xác nhận đơn hàng sau khi thanh toán thành công (cho Chuyển khoản)
+        if ($order->customer_email) {
+            try {
+                Mail::to($order->customer_email)->send(new OrderConfirmation($order->load('items')));
+            } catch (\Exception $e) {
+                \Log::error("Email sending failed for order #{$order->id} (Simulate): " . $e->getMessage());
+            }
+        }
+
         return response()->json(['message' => 'Simulated: Order confirmed and paid']);
     }
 

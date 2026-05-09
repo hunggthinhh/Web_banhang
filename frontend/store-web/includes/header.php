@@ -6,7 +6,7 @@
     <title>
         <?php echo isset($pageTitle) ? $pageTitle . " - La Pâtisserie" : "La Pâtisserie - Tiệm Bánh Hạnh Phúc"; ?>
     </title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 

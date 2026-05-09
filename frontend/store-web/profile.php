@@ -28,7 +28,7 @@ include 'includes/header.php';
             <a href="javascript:void(0)" onclick="switchTab('account')" id="menu-account" class="sidebar-item"><i
                     class="fas fa-user-circle"></i> Tài khoản</a>
             <a href="javascript:void(0)" onclick="switchTab('address')" id="menu-address" class="sidebar-item"><i
-                    class="fas fa-map-marker-alt"></i> Sổ địa chỉ</a>
+                    class="fas fa-map-marker-alt"></i>Địa chỉ</a>
             <a href="javascript:void(0)" id="logout-btn-profile" class="sidebar-item" style="color: #e53e3e;"><i
                     class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         </div>

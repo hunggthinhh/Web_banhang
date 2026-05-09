@@ -46,11 +46,19 @@ class SePayWebhookController extends Controller
                 }
 
                 // 6. Update order status
-                // Optional: strictly check if $amount >= $order->total_amount
                 $order->update([
                     'payment_status' => 'paid',
-                    'status' => 'confirmed' // Or 'processing'
+                    'status' => 'confirmed'
                 ]);
+
+                // 7. Gửi Mail xác nhận đơn hàng sau khi thanh toán thành công
+                if ($order->customer_email) {
+                    try {
+                        \Illuminate\Support\Facades\Mail::to($order->customer_email)->send(new \App\Mail\OrderConfirmation($order->load('items')));
+                    } catch (\Exception $e) {
+                        Log::error("Email sending failed for order #{$orderId} via Webhook: " . $e->getMessage());
+                    }
+                }
 
                 Log::info("Order #{$orderId} marked as PAID via SePay.");
 

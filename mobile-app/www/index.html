@@ -8,6 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>La Pâtisserie – Tiệm Bánh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@300;400;500;600&family=Roboto:wght@300;400;500;700;900&display=swap&subset=vietnamese" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -701,10 +702,10 @@
                     <h2 style="color:#fff; font-family:Georgia; font-size:24px; margin-bottom:15px; border-bottom:2px solid rgba(255,165,0,0.3); display:inline-block; padding-bottom:5px;">La Pâtisserie</h2>
                     <p style="font-size:13px; color:#cbd5e0; line-height:1.7; margin-bottom:20px;">Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất, được làm từ sự tận tâm và nguyên liệu thượng hạng.</p>
                     <div style="display:flex; gap:12px; margin-bottom:30px;">
-                        <a href="#" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><i class="fab fa-instagram"></i></a>
-                        <a href="#" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><b>Z</b></a>
+                        <a href="https://www.facebook.com/phugthinh27" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/_hhungthinh/" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.tiktok.com/@thinh.p23" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><i class="fab fa-tiktok"></i></a>
+                        <a href="https://zalo.me/0965050142" style="width:35px; height:35px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; text-decoration:none;"><b>Z</b></a>
                     </div>
                 </div>
 
@@ -735,11 +736,11 @@
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <i class="fas fa-phone-alt" style="color:#ffa500;"></i>
-                            <span>090 123 4567</span>
+                            <a href="tel:0965050142" style="color:inherit; text-decoration:none;">0965050142</a>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <i class="fas fa-envelope" style="color:#ffa500;"></i>
-                            <span>contact@lapatisserie.com</span>
+                            <a href="mailto:phattuan460@gmail.com" style="color:inherit; text-decoration:none;">phattuan460@gmail.com</a>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <i class="fas fa-clock" style="color:#ffa500;"></i>
@@ -754,11 +755,6 @@
 
                 <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; display:flex; flex-direction:column; align-items:center; gap:20px;">
                     <p style="font-size:12px; color:#cbd5e0;">&copy; 2026 La Pâtisserie. All rights reserved.</p>
-                    <div style="display:flex; gap:15px; align-items:center;">
-                        <i class="fas fa-money-bill-wave" style="font-size:20px; color:#cbd5e0;"></i>
-                        <i class="fas fa-university" style="font-size:20px; color:#cbd5e0;"></i>
-                        <span style="background:#a50064; color:#fff; padding:3px 10px; border-radius:5px; font-size:11px; font-weight:bold;">Momo</span>
-                    </div>
                 </div>
                 <!-- Space for Bottom Nav -->
                 <div style="height:50px;"></div>
@@ -887,10 +883,10 @@
             try {
                 const u = new URL(finalUrl);
                 u.pathname = u.pathname.split('/').map(seg => {
-                    try { return encodeURIComponent(decodeURIComponent(seg)); } catch(e) { return encodeURIComponent(seg); }
+                    try { return encodeURIComponent(decodeURIComponent(seg)); } catch (e) { return encodeURIComponent(seg); }
                 }).join('/');
                 return u.toString();
-            } catch(e) {
+            } catch (e) {
                 return finalUrl;
             }
         };
@@ -1092,7 +1088,7 @@
                 <div style="padding:20px 20px 0;">
                     <div style="position:relative; margin-bottom:15px;">
                         <i class="fas fa-search" style="position:absolute; left:15px; top:15px; color:#999;"></i>
-                        <input type="text" oninput="searchShop(this.value)" placeholder="Tìm kiếm bánh..." style="width:100%; padding:14px 14px 14px 40px; border-radius:25px; border:1px solid #eee; outline:none; background:#f9f9f9; font-size:16px;">
+                        <input type="text" oninput="searchShop(this.value)" placeholder="Tìm kiếm bánh..." spellcheck="true" style="width:100%; padding:14px 14px 14px 40px; border-radius:25px; border:1px solid #eee; outline:none; background:#f9f9f9; font-size:16px;">
                     </div>
                     
                     <!-- Category Selection Button -->
@@ -1227,20 +1223,20 @@
                     
                     <!-- Buy Section -->
                     <div style="background:#fffbf7; padding:20px; border-radius:15px; border:1px solid #f0ddd1;">
-                        <div style="display:flex; gap:12px; align-items:center;">
-                            <div style="display:flex; align-items:center; border:1px solid #ddd; border-radius:10px; overflow:hidden; background:#fff;">
-                                <button onclick="changeQtyMobile(-1)" style="width:35px; height:45px; border:none; background:none; font-size:18px;">-</button>
-                                <input type="number" id="qty-val-m" value="1" min="1" style="width:45px; text-align:center; border:none; font-weight:700; font-size:16px;">
-                                <button onclick="changeQtyMobile(1)" style="width:35px; height:45px; border:none; background:none; font-size:18px;">+</button>
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: nowrap; height: 54px;">
+                            <div style="flex: 0 0 auto; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; border: 1px solid #ddd; border-radius: 12px; background: #fff; overflow: hidden; display: flex; align-items: center;">
+                                <button onclick="changeQtyMobile(-1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;">-</button>
+                                <input type="number" id="qty-val-m" value="1" min="1" readonly style="width: 50px; text-align: center; border: none; font-weight: 700; font-size: 18px; background: transparent; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;">
+                                <button onclick="changeQtyMobile(1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;">+</button>
                             </div>
                             
                             <button onclick="addToCart({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${p.price}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
-                                    style="width:50px; height:45px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#001f3f;">
-                                <i class="fas fa-shopping-basket" style="font-size:18px;"></i>
+                                    style="width: 54px; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; flex-shrink: 0; box-sizing: border-box !important; background: #f0f4f8; border: 1px solid #d1d5db; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #001f3f;">
+                                <i class="fas fa-shopping-basket" style="font-size: 20px; margin: 0; padding: 0;"></i>
                             </button>
                             
                             <button onclick="buyNow({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${p.price}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
-                                    style="flex:1; height:45px; background:linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color:#fff; border:none; border-radius:10px; font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:1px;">
+                                    style="flex: 1; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center;">
                                 Mua ngay
                             </button>
                         </div>
@@ -1840,25 +1836,96 @@
                 <div style="padding:20px;">
                     <h1 style="color:var(--primary); font-size:24px; margin-bottom:20px;">Liên hệ</h1>
                     <div style="background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.05); margin-bottom:25px;">
-                        <p style="margin-bottom:12px; display:flex; align-items:center; gap:10px;"><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> 116/3 Hùng Vương, Diên Khánh, Diên Khánh, Khánh Hòa</p>
-                        <p style="margin-bottom:12px; display:flex; align-items:center; gap:10px;"><i class="fas fa-phone-alt" style="color:var(--primary);"></i> 090 123 4567 / 098 765 4321</p>
-                        <p style="display:flex; align-items:center; gap:10px;"><i class="fas fa-envelope" style="color:var(--primary);"></i> hello@lapatisserie.com</p>
+                        <p style="margin-bottom:12px; display:flex; align-items:center; gap:10px;"><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> 116/3 Hùng Vương, Xã Diên Khánh, Tỉnh Khánh Hòa</p>
+                        <p style="margin-bottom:12px; display:flex; align-items:center; gap:10px;"><i class="fas fa-phone-alt" style="color:var(--primary);"></i> <a href="tel:0965050142" style="color:inherit; text-decoration:none;">0965050142</a></p>
+                        <p style="display:flex; align-items:center; gap:10px;"><i class="fas fa-envelope" style="color:var(--primary);"></i> <a href="mailto:phattuan460@gmail.com" style="color:inherit; text-decoration:none;">phattuan460@gmail.com</a></p>
                     </div>
 
                     <iframe src="https://maps.google.com/maps?q=116/3 Hùng Vương, Diên Khánh, Diên Khánh, Khánh Hòa&t=&z=14&ie=UTF8&iwloc=&output=embed" width="100%" height="220" style="border:0; border-radius:15px; box-shadow:0 10px 20px rgba(0,0,0,0.1);"></iframe>
                     
                     <div style="margin-top:35px;">
                         <h3 style="margin-bottom:15px; font-size:18px;">Gửi tin nhắn cho chúng tôi</h3>
-                        <form style="display:flex; flex-direction:column; gap:12px;">
-                            <input type="text" placeholder="Họ và tên" style="padding:14px; border-radius:10px; border:1.5px solid #eee; outline:none; font-size:14px;">
-                            <input type="email" placeholder="Email" style="padding:14px; border-radius:10px; border:1px solid #eee; outline:none; font-size:14px;">
-                            <textarea placeholder="Nội dung tin nhắn..." style="padding:14px; border-radius:10px; border:1px solid #eee; height:120px; outline:none; font-size:14px; resize:none;"></textarea>
-                            <button type="button" onclick="showToast('✅ Cám ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm.')" style="background:var(--primary); color:#fff; border:none; padding:15px; border-radius:10px; font-weight:700; font-size:15px;">Gửi ngay</button>
+                        <form id="m-contact-form" style="display:flex; flex-direction:column; gap:12px;">
+                            <input type="text" id="m-contact-name" placeholder="Họ và tên *" required spellcheck="true" style="padding:14px; border-radius:10px; border:1.5px solid #eee; outline:none; font-size:16px;">
+                            <input type="email" id="m-contact-email" placeholder="Email (@gmail.com) *" required style="padding:14px; border-radius:10px; border:1px solid #eee; outline:none; font-size:16px;">
+                            <input type="tel" id="m-contact-phone" placeholder="Số điện thoại *" required style="padding:14px; border-radius:10px; border:1px solid #eee; outline:none; font-size:16px;">
+                            <input type="text" id="m-contact-subject" placeholder="Tiêu đề" style="padding:14px; border-radius:10px; border:1px solid #eee; outline:none; font-size:16px;">
+                            <textarea id="m-contact-msg" placeholder="Nội dung tin nhắn... *" required spellcheck="true" style="padding:14px; border-radius:10px; border:1px solid #eee; height:120px; outline:none; font-size:16px; resize:none; font-family:inherit;"></textarea>
+                            <button type="button" id="m-contact-submit" onclick="submitMobileContact()" style="background:var(--primary); color:#fff; border:none; padding:15px; border-radius:10px; font-weight:700; font-size:15px;">Gửi ngay</button>
                         </form>
                     </div>
                 </div>
                 ${getFooterHTML()}
             `;
+        };
+
+        window.submitMobileContact = async () => {
+            const name = document.getElementById('m-contact-name').value.trim();
+            const email = document.getElementById('m-contact-email').value.trim();
+            const phone = document.getElementById('m-contact-phone').value.trim();
+            const subject = document.getElementById('m-contact-subject').value.trim();
+            const message = document.getElementById('m-contact-msg').value.trim();
+            const btn = document.getElementById('m-contact-submit');
+
+            if (!name || !email || !message || !phone) {
+                showToast('❌ Vui lòng nhập đủ thông tin bắt buộc!');
+                return;
+            }
+
+            if (!email.endsWith('@gmail.com')) {
+                showToast('❌ Email phải có định dạng @gmail.com');
+                return;
+            }
+
+            if (!/^0\d{9}$/.test(phone)) {
+                showToast('❌ Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)');
+                return;
+            }
+
+            const data = {
+                fullname: name,
+                email: email,
+                phone: phone,
+                subject: subject || 'Liên hệ từ Mobile App',
+                message: message
+            };
+
+            const userId = localStorage.getItem('user_id') || localStorage.getItem('auth_user_id');
+            if (userId) data.user_id = userId;
+
+            btn.disabled = true;
+            btn.innerText = 'Đang gửi...';
+
+            try {
+                const response = await fetch(`${API_URL}/contacts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('✅ Gửi liên hệ thành công!');
+                    document.getElementById('m-contact-form').reset();
+                } else {
+                    let errMsg = result.message || 'Có lỗi xảy ra!';
+                    if (result.errors) {
+                        errMsg = Object.values(result.errors).flat().join(' - ');
+                    }
+                    showToast('❌ ' + errMsg);
+                }
+            } catch (error) {
+                console.error('Contact submit error:', error);
+                showToast('❌ Không thể kết nối đến máy chủ!');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Gửi ngay';
+            }
         };
 
         window.renderProfileTab = (tab, user) => {
@@ -1916,7 +1983,7 @@
             } else if (tab === 'addresses') {
                 container.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h3 style="font-size:18px; color:#1a365d; font-family:Georgia; margin:0;">Số địa chỉ</h3>
+                        <h3 style="font-size:18px; color:#1a365d; font-family:Georgia; margin:0;">Địa chỉ</h3>
                         <button onclick="showAddressModal()" style="background:#001f3f; color:#fff; border:none; padding:8px 15px; border-radius:20px; font-size:11px; font-weight:700;">+ Thêm mới</button>
                     </div>
                     <div id="m-address-list" style="display:flex; flex-direction:column; gap:10px;">
@@ -1966,7 +2033,7 @@
                                 <i class="fas fa-user-circle"></i> Tài khoản
                             </div>
                             <div id="tab-btn-addresses" onclick="renderProfileTab('addresses', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
-                                <i class="fas fa-map-marker-alt"></i> Số địa chỉ
+                                <i class="fas fa-map-marker-alt"></i> Địa chỉ
                             </div>
                             <div onclick="localStorage.clear(); location.reload();" style="cursor:pointer; padding:12px 20px; color:#e53e3e; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-sign-out-alt"></i> Đăng xuất
@@ -2037,16 +2104,90 @@
                 if (!orders || orders.length === 0) {
                     list.innerHTML = `<p>Bạn chưa có đơn hàng nào.</p><button onclick="navigateTo('shop')" style="background:var(--primary); color:#fff; border:none; padding:10px 20px; border-radius:10px; margin-top:10px;">MUA BÁNH NGAY</button>`;
                 } else {
-                    list.innerHTML = orders.map(o => `
-                        <div style="text-align:left; padding:15px; border-bottom:1px solid #eee;">
-                            <div style="display:flex; justify-content:space-between;">
-                                <b>#${o.id}</b>
+                    const statusMap = {
+                        'pending': 'Đang chờ xử lý',
+                        'processing': 'Đang xử lý',
+                        'shipped': 'Đang giao hàng',
+                        'delivered': 'Đã giao hàng',
+                        'cancelled': 'Đã hủy',
+                        'return_requested': 'Đang yêu cầu trả hàng',
+                        'returned': 'Đã trả hàng',
+                        'return_rejected': 'Bị từ chối trả hàng'
+                    };
+
+                    const statusColors = {
+                        'pending': { bg: 'rgba(255, 193, 7, 0.15)', color: '#856404' },
+                        'processing': { bg: 'rgba(0, 123, 255, 0.15)', color: '#004085' },
+                        'shipped': { bg: 'rgba(111, 66, 193, 0.15)', color: '#4a148c' },
+                        'delivered': { bg: 'rgba(40, 167, 69, 0.15)', color: '#155724' },
+                        'cancelled': { bg: 'rgba(220, 53, 69, 0.15)', color: '#721c24' },
+                        'return_requested': { bg: 'rgba(255, 107, 53, 0.15)', color: '#e65100' },
+                        'returned': { bg: 'rgba(40, 167, 69, 0.25)', color: '#1b5e20' },
+                        'return_rejected': { bg: 'rgba(117, 117, 117, 0.15)', color: '#424242' }
+                    };
+
+                    window.toggleOrderDetailMobile = (id) => {
+                        const el = document.getElementById('m-order-detail-' + id);
+                        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                    };
+
+                    window.requestOrderReturnMobile = async (id) => {
+                        const reason = prompt('Vui lòng nhập lý do trả hàng (ví dụ: Sản phẩm bị lỗi...):');
+                        if (!reason || reason.trim() === '') return;
+                        try {
+                            const res = await fetch(`${API_URL}/orders/${id}/return`, {
+                                method: 'POST',
+                                headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ reason: reason })
+                            });
+                            const data = await res.json();
+                            if (res.ok) {
+                                alert(data.message);
+                                loadOrdersMobile();
+                            } else {
+                                alert(data.message || 'Lỗi yêu cầu trả hàng');
+                            }
+                        } catch(e) { alert('Lỗi kết nối'); }
+                    };
+
+                    list.innerHTML = orders.map(o => {
+                        const itemsHtml = o.items ? o.items.map(i => `
+                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #ddd; align-items:center;">
+                                <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(i.product ? i.product.image : '')}" style="width:45px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #eee;" onerror="this.src='img/logo.png'">
+                                    <div style="flex:1;">
+                                        <b style="color:#1a365d; display:block;">${i.product ? i.product.name : 'Sản phẩm'}</b>
+                                        <span style="color:#999; font-size:11px;">Số lượng: ${i.quantity}</span>
+                                    </div>
+                                </div>
+                                <div style="font-weight:700; color:var(--primary);">${formatPrice(i.price)}</div>
+                            </div>
+                        `).join('') : '';
+
+                        const returnBtn = (o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') 
+                            ? `<button onclick="event.stopPropagation(); requestOrderReturnMobile(${o.id})" style="margin-top:15px; background:#e53e3e; color:#fff; border:none; padding:10px 15px; border-radius:8px; font-size:13px; width:100%; font-weight:700;">Yêu cầu trả hàng</button>` 
+                            : '';
+
+                        const sColor = statusColors[o.status] || { bg: '#f0f0f0', color: '#4a5568' };
+
+                        return `
+                        <div style="text-align:left; padding:15px; border-bottom:1px solid #eee; background:#fff; border-radius:10px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.03);" onclick="toggleOrderDetailMobile(${o.id})">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <b style="color:#1a365d;">Đơn hàng #${o.id}</b>
                                 <span style="color:var(--primary); font-weight:700;">${formatPrice(o.total_amount)}</span>
                             </div>
-                            <p style="font-size:12px; color:#999; margin:5px 0;">Ngày đặt: ${new Date(o.created_at).toLocaleDateString('vi-VN')}</p>
-                            <span style="font-size:11px; padding:3px 8px; border-radius:5px; background:#f0f0f0;">${o.status}</span>
+                            <p style="font-size:12px; color:#999; margin:0 0 10px 0;">Ngày đặt: ${new Date(o.created_at).toLocaleDateString('vi-VN')} <span style="float:right;">Chi tiết <i class="fas fa-chevron-down"></i></span></p>
+                            <span style="font-size:11px; padding:4px 10px; border-radius:5px; background:${sColor.bg}; font-weight:700; color:${sColor.color}; text-transform:uppercase; letter-spacing:0.5px;">${statusMap[o.status] || o.status}</span>
+                            
+                            <div id="m-order-detail-${o.id}" style="display:none; margin-top:15px; border-top:1px dashed #ddd; padding-top:15px;">
+                                <b style="font-size:13px; color:#1a365d; margin-bottom:10px; display:block;">Sản phẩm đã mua:</b>
+                                ${itemsHtml}
+                                ${returnBtn}
+                            </div>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
+                    
                     list.style.background = 'none';
                     list.style.border = 'none';
                     list.style.padding = '0';

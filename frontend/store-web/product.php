@@ -285,23 +285,23 @@ include 'includes/header.php';
                     </p>
 
                     <div class="buy-section-wrapper" style="margin-top: 30px; padding-top: 10px;">
-                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: nowrap;">
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: nowrap; height: 54px;">
                             <!-- Quantity Controls -->
-                            <div class="qty-controls" style="flex: 0 0 auto; height: 54px; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
-                                <button class="qty-btn" onclick="changeQty(-1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer;">-</button>
-                                <input type="number" id="qty-val" value="1" min="1" readonly style="width: 50px; border: none; text-align: center; font-size: 18px; font-weight: 700; background: transparent;">
-                                <button class="qty-btn" onclick="changeQty(1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer;">+</button>
+                            <div class="qty-controls" style="flex: 0 0 auto; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; align-items: center; overflow: hidden;">
+                                <button class="qty-btn" onclick="changeQty(-1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;">-</button>
+                                <input type="number" id="qty-val" value="1" min="1" readonly style="width: 50px; border: none; text-align: center; font-size: 18px; font-weight: 700; background: transparent; height: 100%; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;">
+                                <button class="qty-btn" onclick="changeQty(1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;">+</button>
                             </div>
                             
                             <!-- Add to Cart Icon Button -->
                             <button class="btn-add-cart" onclick="addCart(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
-                                    style="width: 54px; height: 54px; flex-shrink: 0; padding: 0; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; color: #001f3f; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
-                                <i class="fas fa-shopping-basket" style="font-size: 20px;"></i>
+                                    style="width: 54px; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; flex-shrink: 0; box-sizing: border-box !important; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; color: #001f3f; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                                <i class="fas fa-shopping-basket" style="font-size: 20px; margin: 0; padding: 0;"></i>
                             </button>
                             
                             <!-- Buy Now Button -->
                             <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
-                                    style="flex: 1; height: 54px; background: linear-gradient(135deg, #f03e3e 0%, #d62828 100%); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(240, 62, 62, 0.25); text-transform: uppercase; letter-spacing: 0.5px;">
+                                    style="flex: 1; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; background: linear-gradient(135deg, #f03e3e 0%, #d62828 100%); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(240, 62, 62, 0.25); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center;">
                                 Mua ngay
                             </button>
                         </div>

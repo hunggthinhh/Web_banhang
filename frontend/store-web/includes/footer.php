@@ -12,10 +12,10 @@
                 <p>Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất, được làm từ sự tận tâm và nguyên liệu
                     thượng hạng.</p>
                 <div class="footer-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-tiktok"></i></a>
-                    <a href="#"><i class="fab fa-zalo">Z</i></a>
+                    <a href="https://www.facebook.com/phugthinh27"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/_hhungthinh/"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.tiktok.com/@thinh.p23"><i class="fab fa-tiktok"></i></a>
+                    <a href="https://zalo.me/0965050142"><i class="fab fa-zalo">Z</i></a>
                 </div>
             </div>
 
@@ -46,11 +46,11 @@
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-phone-alt"></i>
-                    <span>090 123 4567</span>
+                    <span>0965050142</span>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-envelope"></i>
-                    <span>contact@lapatisserie.com</span>
+                    <span>phattuan460@gmail.com</span>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-clock"></i>
@@ -65,13 +65,10 @@
             </div>
         </div>
 
-        <div class="footer-bottom">
-            <p>&copy; 2026 La Pâtisserie. All rights reserved.</p>
-            <div class="payment-methods">
-                <span title="Tiền mặt"><i class="fas fa-money-bill-wave"></i></span>
-                <span title="Chuyển khoản"><i class="fas fa-university"></i></span>
-                <span title="Momo" class="payment-badge">Momo</span>
-            </div>
+        <div class="footer-bottom"
+            style="text-align: center !important; display: block !important; width: 100% !important; padding-top: 30px;">
+            <p style="margin: 0 auto !important; display: inline-block !important;">&copy; 2026 La Pâtisserie. All
+                rights reserved.</p>
         </div>
     </div>
 </footer>

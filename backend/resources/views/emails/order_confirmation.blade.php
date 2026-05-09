@@ -26,12 +26,14 @@
                     <td style="width: 50%;">
                         <p style="margin: 0; color: #888; font-size: 14px;">Tổng cộng</p>
                         <p style="margin: 5px 0 0 0; color: #c68e67; font-size: 28px; font-weight: bold;">
-                            {{ number_format($order->total_amount, 0, ',', '.') }}đ</p>
+                            {{ number_format($order->total_amount, 0, ',', '.') }}đ
+                        </p>
                     </td>
                     <td style="width: 50%; text-align: right; vertical-align: top;">
                         <p style="margin: 0; color: #888; font-size: 14px;">Ngày | Giờ</p>
                         <p style="margin: 5px 0 0 0; color: #333; font-size: 14px;">
-                            {{ $order->created_at->format('d M y H:i') }} +0700</p>
+                            {{ $order->created_at->format('d M y H:i') }} +0700
+                        </p>
                     </td>
                 </tr>
             </table>
@@ -59,7 +61,13 @@
                     <h4 style="color: #c68e67; margin-top: 0; margin-bottom: 10px; font-size: 13px;">HÓA ĐƠN CỦA BẠN
                     </h4>
                     <p style="font-size: 12px; margin: 0 0 5px 0; color: #888;">Bạn trả bằng:</p>
-                    <strong style="font-size: 13px; color: #333;">Tiền mặt (COD)</strong>
+                    <strong style="font-size: 13px; color: #333;">
+                        @if($order->payment_method === 'bank')
+                            Chuyển khoản (Đã thanh toán)
+                        @else
+                            Tiền mặt (COD)
+                        @endif
+                    </strong>
 
                     <div style="border-top: 1px dashed #ccc; margin: 10px 0;"></div>
 
@@ -74,8 +82,8 @@
                     <div style="border-top: 1px dashed #ccc; margin: 10px 0;"></div>
 
                     <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;">
-                        <span style="color: #888;">Phí giao hàng</span>
-                        <span style="color: #333;">0đ</span>
+                        <span style="color: #888;">Phí giao hàng:</span>
+                        <span style="color: #333;"> 0đ</span>
                     </div>
 
                     <div

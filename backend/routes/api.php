@@ -25,6 +25,7 @@ Route::post('/contacts', [ContactController::class, 'store']);
 Route::match(['get', 'post'], '/sepay/webhook', [\App\Http\Controllers\Api\SePayWebhookController::class, 'handle']);
 Route::post('/orders', [OrderController::class, 'checkout']); // Cho phép đặt hàng không cần Login
 Route::get('/orders/{id}', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách
+Route::get('/orders/{id}/payment-status', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách (descriptive route)
 
 // Protected User/Admin routes
 Route::middleware('auth:sanctum')->group(function () {
