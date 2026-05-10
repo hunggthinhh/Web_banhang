@@ -29,6 +29,8 @@ include 'includes/header.php';
                     class="fas fa-user-circle"></i> Tài khoản</a>
             <a href="javascript:void(0)" onclick="switchTab('address')" id="menu-address" class="sidebar-item"><i
                     class="fas fa-map-marker-alt"></i>Địa chỉ</a>
+            <a href="javascript:void(0)" onclick="switchTab('reviews')" id="menu-reviews" class="sidebar-item"><i
+                    class="fas fa-star"></i> Đánh giá</a>
             <a href="javascript:void(0)" id="logout-btn-profile" class="sidebar-item" style="color: #e53e3e;"><i
                     class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         </div>
@@ -37,6 +39,17 @@ include 'includes/header.php';
         <!-- Orders Tab -->
         <div id="orders-section" class="tab-pane active">
             <h2 class="form-section-title">Lịch sử đơn hàng</h2>
+            
+            <div class="order-tabs" style="display: flex; gap: 15px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 10px;">
+                <button class="order-tab-btn active" onclick="filterOrders('all')">Tất cả</button>
+                <button class="order-tab-btn" onclick="filterOrders('pending')">Chờ xử lý</button>
+                <button class="order-tab-btn" onclick="filterOrders('processing')">Đang làm bánh</button>
+                <button class="order-tab-btn" onclick="filterOrders('shipped')">Đang giao</button>
+                <button class="order-tab-btn" onclick="filterOrders('delivered')">Hoàn tất</button>
+                <button class="order-tab-btn" onclick="filterOrders('cancelled')">Đã hủy</button>
+                <button class="order-tab-btn" onclick="filterOrders('returned')">Trả hàng</button>
+            </div>
+
             <div id="orders-list">
                 <!-- Loaded via JS -->
             </div>
@@ -107,6 +120,14 @@ include 'includes/header.php';
                 <!-- Addresses will be loaded here -->
             </div>
         </div>
+
+        <!-- Reviews Tab -->
+        <div id="reviews-section" class="tab-pane">
+            <h2 class="form-section-title">Đánh giá của tôi</h2>
+            <div id="reviews-list" style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Reviews will be loaded here -->
+            </div>
+        </div>
     </div>
 </div>
 
@@ -145,6 +166,26 @@ include 'includes/header.php';
     .tab-pane.active {
         display: block;
         animation: fadeIn 0.4s ease;
+    }
+
+    .order-tab-btn {
+        padding: 8px 20px;
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 20px;
+        cursor: pointer;
+        font-family: 'Outfit', sans-serif;
+        font-size: 14px;
+        white-space: nowrap;
+        transition: 0.3s;
+        color: #4a5568;
+        font-weight: 500;
+    }
+
+    .order-tab-btn.active, .order-tab-btn:hover {
+        background: #001f3f;
+        color: white;
+        border-color: #001f3f;
     }
 
     @keyframes fadeIn {
@@ -375,6 +416,59 @@ include 'includes/header.php';
         cursor: pointer;
         color: #666;
     }
+
+    /* Review CSS */
+    .review-form {
+        background: #f8fafc;
+        padding: 25px;
+        border-radius: 15px;
+    }
+
+    .star-rating-input i {
+        color: #ccc;
+        font-size: 28px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .star-rating-input i.active {
+        color: #ffd700;
+    }
+
+    .review-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-family: inherit;
+    }
+
+    .btn-submit-review {
+        background: #001f3f;
+        color: #fff;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        width: 100%;
+    }
+
+    #media-preview-container {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .media-preview-item {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
 </style>
 
 <div id="orderDetailModal" class="modal">
@@ -382,6 +476,36 @@ include 'includes/header.php';
         <span class="close" onclick="closeOrderModal()">&times;</span>
         <h2 class="form-section-title" style="font-size: 24px; margin-bottom: 20px;">Chi tiết đơn hàng</h2>
         <div id="order-detail-content"></div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div id="reviewModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close" onclick="closeReviewModal()">&times;</span>
+        <h2 class="form-section-title" style="font-size: 24px; margin-bottom: 20px;">Đánh giá sản phẩm</h2>
+        <div class="review-form">
+            <div style="margin-bottom: 15px;" class="star-rating-input">
+                <span style="margin-right: 10px; font-weight: bold;">Đánh giá:</span>
+                <i class="fas fa-star active" data-rating="1" onclick="setRating(1)"></i>
+                <i class="fas fa-star active" data-rating="2" onclick="setRating(2)"></i>
+                <i class="fas fa-star active" data-rating="3" onclick="setRating(3)"></i>
+                <i class="fas fa-star active" data-rating="4" onclick="setRating(4)"></i>
+                <i class="fas fa-star active" data-rating="5" onclick="setRating(5)"></i>
+            </div>
+            <textarea id="review-comment" class="review-input" rows="4"
+                placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+            <div style="margin-bottom: 15px;">
+                <label for="review-media"
+                    style="cursor: pointer; display: inline-block; padding: 8px 15px; background: #e2e8f0; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                    <i class="fas fa-camera"></i> Thêm hình ảnh / video
+                </label>
+                <input type="file" id="review-media" multiple accept="image/*,video/mp4,video/quicktime"
+                    style="display: none;" onchange="handleMediaSelect(event)">
+            </div>
+            <div id="media-preview-container"></div>
+            <button class="btn-submit-review" onclick="submitReview()">Gửi đánh giá</button>
+        </div>
     </div>
 </div>
 
@@ -450,66 +574,88 @@ include 'includes/header.php';
 </div>
 
 <script>
+    let allUserOrders = [];
+
     async function loadOrders() {
         const list = document.getElementById('orders-list');
         try {
-            const orders = await apiFetch('/orders');
-            if (!orders || orders.length === 0) {
-                list.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666; background: #fffaf5; border-radius: 20px;">
-                        <i class="fas fa-shopping-basket" style="font-size: 50px; margin-bottom: 20px; opacity: 0.3;"></i>
-                        <p style="font-size: 16px;">Bạn chưa có đơn hàng nào.</p>
-                        <a href="shop.php" class="sidebar-item active" style="display: inline-block; margin-top: 15px; width: auto; padding: 10px 25px;">MUA BÁNH NGAY</a>
-                    </div>
-                `;
-                return;
-            }
-
-            const statusLabels = {
-                'pending': 'Chờ xử lý',
-                'processing': 'Đang làm bánh',
-                'shipped': 'Đang giao hàng',
-                'delivered': 'Hoàn tất',
-                'cancelled': 'Đã hủy',
-                'return_requested': 'Đang yêu cầu trả hàng',
-                'returned': 'Đã hoàn trả',
-                'return_rejected': 'Bị từ chối trả hàng'
-            };
-
-            list.innerHTML = `
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-                        <thead>
-                            <tr style="background: #fdf5ec;">
-                                <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Mã ĐH</th>
-                                <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Ngày đặt</th>
-                                <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Tổng tiền</th>
-                                <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Trạng thái</th>
-                                <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${orders.map(o => `
-                                <tr>
-                                    <td style="padding: 18px; border-bottom: 1px solid #eee; font-weight: 600; color: #001f3f;">#${o.id}</td>
-                                    <td style="padding: 18px; border-bottom: 1px solid #eee; color: #666;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
-                                    <td style="padding: 18px; border-bottom: 1px solid #eee; font-weight: 700; color: var(--primary);">${formatPrice(o.total_amount)}</td>
-                                    <td style="padding: 18px; border-bottom: 1px solid #eee;">
-                                        <span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span>
-                                    </td>
-                                    <td style="padding: 18px; border-bottom: 1px solid #eee; display: flex; gap: 5px;">
-                                        <button class="btn-save-profile" style="padding: 8px 15px; font-size: 13px; margin: 0;" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
-                                        ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') ? `<button class="btn-save-profile" style="padding: 8px 15px; font-size: 13px; margin: 0; background: #ff6b35; color: white;" onclick="requestOrderReturn(${o.id})">Trả hàng</button>` : ''}
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            allUserOrders = await apiFetch('/orders');
+            renderOrders('all');
         } catch (err) {
             list.innerHTML = `<p style="color: red;">Không thể tải đơn hàng: ${err.message}</p>`;
         }
+    }
+
+    function filterOrders(status) {
+        document.querySelectorAll('.order-tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        renderOrders(status);
+    }
+
+    function renderOrders(status) {
+        const list = document.getElementById('orders-list');
+        
+        let filteredOrders = allUserOrders;
+        if (status !== 'all') {
+            filteredOrders = allUserOrders.filter(o => {
+                if (status === 'returned') return ['return_requested', 'returned', 'return_rejected'].includes(o.status);
+                return o.status === status;
+            });
+        }
+
+        if (!filteredOrders || filteredOrders.length === 0) {
+            list.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #666; background: #fffaf5; border-radius: 20px;">
+                    <i class="fas fa-shopping-basket" style="font-size: 50px; margin-bottom: 20px; opacity: 0.3;"></i>
+                    <p style="font-size: 16px;">Bạn chưa có đơn hàng nào${status !== 'all' ? ' trong trạng thái này' : ''}.</p>
+                    <a href="shop.php" class="sidebar-item active" style="display: inline-block; margin-top: 15px; width: auto; padding: 10px 25px;">MUA BÁNH NGAY</a>
+                </div>
+            `;
+            return;
+        }
+
+        const statusLabels = {
+            'pending': 'Chờ xử lý',
+            'processing': 'Đang làm bánh',
+            'shipped': 'Đang giao hàng',
+            'delivered': 'Hoàn tất',
+            'cancelled': 'Đã hủy',
+            'return_requested': 'Đang yêu cầu trả hàng',
+            'returned': 'Đã hoàn trả',
+            'return_rejected': 'Bị từ chối trả hàng'
+        };
+
+        list.innerHTML = `
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                        <tr style="background: #fdf5ec;">
+                            <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Mã ĐH</th>
+                            <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Ngày đặt</th>
+                            <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Tổng tiền</th>
+                            <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Trạng thái</th>
+                            <th style="padding: 18px; text-align: left; border-bottom: 2px solid #f0c07d; font-family: 'Playfair Display', serif;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredOrders.map(o => `
+                            <tr>
+                                <td style="padding: 18px; border-bottom: 1px solid #eee; font-weight: 600; color: #001f3f;">#${o.id}</td>
+                                <td style="padding: 18px; border-bottom: 1px solid #eee; color: #666;">${new Date(o.created_at).toLocaleDateString('vi-VN')}</td>
+                                <td style="padding: 18px; border-bottom: 1px solid #eee; font-weight: 700; color: var(--primary);">${formatPrice(o.total_amount)}</td>
+                                <td style="padding: 18px; border-bottom: 1px solid #eee;">
+                                    <span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span>
+                                </td>
+                                <td style="padding: 18px; border-bottom: 1px solid #eee; display: flex; gap: 5px;">
+                                    <button class="btn-save-profile" style="padding: 8px 15px; font-size: 13px; margin: 0;" onclick="viewOrderDetail(${o.id})">Chi tiết</button>
+                                    ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') ? `<button class="btn-save-profile" style="padding: 8px 15px; font-size: 13px; margin: 0; background: #ff6b35; color: white;" onclick="requestOrderReturn(${o.id})">Trả hàng</button>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
     }
 
     async function viewOrderDetail(id) {
@@ -533,6 +679,16 @@ include 'includes/header.php';
 
             let itemsHtml = o.items.map(item => {
                 const img = (item.product && item.product.image) ? fixImg(item.product.image) : 'https://via.placeholder.com/50';
+
+                let reviewBtnHtml = '';
+                if (o.status === 'delivered' || o.status === 'completed') {
+                    if (item.review) {
+                        reviewBtnHtml = `<span style="font-size: 12px; color: #4caf50; font-weight: bold;"><i class="fas fa-check-circle"></i> Đã đánh giá</span>`;
+                    } else {
+                        reviewBtnHtml = `<button class="btn-save-profile" style="padding: 5px 12px; font-size: 12px; margin: 0; background: #001f3f; color: white;" onclick="openReviewModal(${item.product_id}, ${item.id})">Đánh giá</button>`;
+                    }
+                }
+
                 return `
                     <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
                         <div style="display: flex; align-items: center; gap: 15px;">
@@ -540,6 +696,7 @@ include 'includes/header.php';
                             <div>
                                 <div style="font-weight: 700; color: #001f3f; font-size: 15px;">${item.product_name}</div>
                                 <div style="font-size: 13px; color: #888;">Số lượng: ${item.quantity} x ${formatPrice(item.price)}</div>
+                                <div style="margin-top: 5px;">${reviewBtnHtml}</div>
                             </div>
                         </div>
                         <div style="font-weight: 8c7e73; color: var(--primary); align-self: center;">${formatPrice(item.price * item.quantity)}</div>
@@ -606,6 +763,194 @@ include 'includes/header.php';
 
         if (tab === 'orders') loadOrders();
         if (tab === 'address') loadAddresses();
+        if (tab === 'reviews') loadUserReviews();
+    }
+
+    async function loadUserReviews() {
+        const list = document.getElementById('reviews-list');
+        list.innerHTML = '<div style="text-align:center;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+        try {
+            const reviews = await apiFetch('/user/reviews');
+            if (!reviews || reviews.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666; background: #fffaf5; border-radius: 20px;">
+                        <i class="fas fa-star" style="font-size: 50px; margin-bottom: 20px; opacity: 0.3;"></i>
+                        <p style="font-size: 16px;">Bạn chưa có đánh giá nào.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = `
+                <div style="margin-bottom: 20px; font-size: 16px; font-weight: 600; color: #4a5568;">
+                    Bạn đã viết <span style="color: #ff6b35; font-size: 18px;">${reviews.length}</span> đánh giá sản phẩm
+                </div>
+            ` + reviews.map(r => {
+                const img = (r.product && r.product.image) ? fixImg(r.product.image) : 'https://via.placeholder.com/50';
+                const stars = Array(5).fill(0).map((_, i) => `<i class="${i < r.rating ? 'fas' : 'far'} fa-star" style="color: #ffd700;"></i>`).join('');
+
+                let mediaHtml = '';
+                if (r.images && r.images.length > 0) {
+                    mediaHtml += r.images.map(url => `<img src="${fixImg(url)}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor:pointer;" onclick="window.open('${fixImg(url)}','_blank')">`).join(' ');
+                }
+                if (r.videos && r.videos.length > 0) {
+                    mediaHtml += r.videos.map(url => `
+                        <div style="position: relative; display: inline-block; cursor:pointer;" onclick="window.open('${fixImg(url)}','_blank')">
+                            <video src="${fixImg(url)}" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;"></video>
+                            <i class="fas fa-play-circle" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.8); font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.4);"></i>
+                        </div>
+                    `).join(' ');
+                }
+
+                return `
+                    <div style="background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                        <div style="display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #f5f5f5; padding-bottom: 15px; margin-bottom: 15px;">
+                            <img src="${img}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;">
+                            <div>
+                                <a href="product.php?slug=${r.product ? (r.product.slug || r.product.id) : '#'}" style="font-weight: 700; color: #001f3f; text-decoration: none; font-size: 16px;">${r.product ? r.product.name : 'Sản phẩm đã xóa'}</a>
+                                <div style="font-size: 13px; color: #888; margin-top: 5px;">${new Date(r.created_at).toLocaleString('vi-VN')}</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 10px;">${stars}</div>
+                        ${r.comment ? `<p style="color: #444; font-size: 15px; line-height: 1.6; margin-bottom: ${mediaHtml ? '15px' : '0'};">${r.comment}</p>` : ''}
+                        ${mediaHtml ? `<div style="display: flex; gap: 10px; flex-wrap: wrap;">${mediaHtml}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            list.innerHTML = `<p style="color: red;">Lỗi khi tải đánh giá: ${error.message}</p>`;
+        }
+    }
+
+    // --- Review Logic ---
+    let currentReviewProductId = null;
+    let currentReviewOrderItemId = null;
+    let currentRating = 5;
+    let reviewMediaFiles = [];
+
+    function openReviewModal(productId, orderItemId) {
+        currentReviewProductId = productId;
+        currentReviewOrderItemId = orderItemId;
+        currentRating = 5;
+        reviewMediaFiles = [];
+        document.getElementById('review-comment').value = '';
+        document.getElementById('media-preview-container').innerHTML = '';
+        setRating(5);
+        document.getElementById('reviewModal').style.display = 'flex';
+    }
+
+    function closeReviewModal() {
+        document.getElementById('reviewModal').style.display = 'none';
+    }
+
+    function setRating(rating) {
+        currentRating = rating;
+        const stars = document.querySelectorAll('.star-rating-input i');
+        stars.forEach(star => {
+            if (parseInt(star.dataset.rating) <= rating) {
+                star.classList.add('active');
+                star.classList.remove('far');
+                star.classList.add('fas');
+            } else {
+                star.classList.remove('active');
+                star.classList.remove('fas');
+                star.classList.add('far');
+                star.style.color = '#ccc';
+            }
+        });
+        document.querySelectorAll('.star-rating-input i.active').forEach(s => s.style.color = '#ffd700');
+    }
+
+    function handleMediaSelect(event) {
+        const files = event.target.files;
+        for (let i = 0; i < files.length; i++) {
+            reviewMediaFiles.push(files[i]);
+        }
+        renderMediaPreview();
+        event.target.value = ''; // Cho phép chọn lại file vừa xóa
+    }
+
+    function renderMediaPreview() {
+        const container = document.getElementById('media-preview-container');
+        container.innerHTML = '';
+
+        reviewMediaFiles.forEach((file, index) => {
+            const url = URL.createObjectURL(file);
+            let mediaHtml = '';
+
+            if (file.type.startsWith('image/')) {
+                mediaHtml = `<img src="${url}" class="media-preview-item" style="margin: 0;">`;
+            } else if (file.type.startsWith('video/')) {
+                mediaHtml = `<video src="${url}" class="media-preview-item" style="margin: 0;"></video>`;
+            }
+
+            if (mediaHtml) {
+                container.innerHTML += `
+                    <div style="position: relative; display: inline-block; margin-right: 12px; margin-bottom: 12px;">
+                        ${mediaHtml}
+                        <button type="button" onclick="removeMediaFile(${index})" style="position: absolute; top: -6px; right: -6px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10;" title="Xóa">&times;</button>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    function removeMediaFile(index) {
+        reviewMediaFiles.splice(index, 1);
+        renderMediaPreview();
+    }
+
+    async function submitReview() {
+        if (!currentReviewProductId || !currentReviewOrderItemId) return;
+
+        const comment = document.getElementById('review-comment').value.trim();
+        if (!comment && reviewMediaFiles.length === 0) {
+            alert('Vui lòng nhập nội dung đánh giá hoặc thêm hình ảnh/video.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('product_id', currentReviewProductId);
+        formData.append('order_item_id', currentReviewOrderItemId);
+        formData.append('rating', currentRating);
+        if (comment) formData.append('comment', comment);
+
+        reviewMediaFiles.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                formData.append('images[]', file);
+            } else if (file.type.startsWith('video/')) {
+                formData.append('videos[]', file);
+            }
+        });
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const headers = {
+                'Accept': 'application/json'
+            };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            const response = await fetch(`${API_URL}/reviews`, {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Đánh giá của bạn đã được gửi thành công!');
+                closeReviewModal();
+                closeOrderModal();
+                loadOrders(); // Reload orders to update the status of the "Đánh giá" button
+            } else {
+                alert('Lỗi: ' + (data.message || JSON.stringify(data.errors)));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Có lỗi xảy ra khi gửi đánh giá.');
+        }
     }
 
     function togglePass(id, icon) {
@@ -933,9 +1278,22 @@ include 'includes/header.php';
         if (tab && ['orders', 'account', 'address'].includes(tab)) {
             switchTab(tab);
         } else {
-            // Đảm bảo tab Đơn hàng luôn là mặc định
+        // Đảm bảo tab Đơn hàng luôn là mặc định
             switchTab('orders');
         }
+
+        // Đóng các modal bằng nút ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                const orderModal = document.getElementById('orderDetailModal');
+                const reviewModal = document.getElementById('reviewModal');
+                const addressModal = document.getElementById('addressModal');
+
+                if (orderModal && orderModal.style.display === 'flex') closeOrderModal();
+                if (reviewModal && reviewModal.style.display === 'flex') closeReviewModal();
+                if (addressModal && addressModal.style.display === 'flex') closeAddressModal();
+            }
+        });
     });
 </script>
 <?php include 'includes/footer.php'; ?>

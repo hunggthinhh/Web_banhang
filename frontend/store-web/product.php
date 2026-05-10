@@ -210,6 +210,108 @@ include 'includes/header.php';
         margin: 20px 0;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 1);
     }
+
+    .star-rating-display i {
+        color: #ffd700;
+        font-size: 16px;
+    }
+
+    .review-filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    }
+
+    .review-filter-btn {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #555;
+        transition: 0.3s;
+    }
+
+    .review-filter-btn.active {
+        background: #001f3f;
+        color: #fff;
+        border-color: #001f3f;
+    }
+
+    .review-filter-btn:hover:not(.active) {
+        background: #f9f9f9;
+    }
+
+    .review-item {
+        padding: 20px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-media img,
+    .review-media video {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 10px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        transition: 0.2s;
+    }
+
+    .review-media img:hover {
+        filter: brightness(0.9);
+    }
+
+    /* Image Lightbox Modal */
+    #imageModal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+
+    #imageModal img {
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    #imageModal .close-img {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #imageModal .close-img:hover {
+        color: #ccc;
+    }
 </style>
 
 <div class="product-detail-container">
@@ -222,6 +324,7 @@ include 'includes/header.php';
     <div class="container">
         <div class="product-detail-container">
             <div id="product-detailed-info"></div>
+            <div id="product-reviews" style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 40px;"></div>
         </div>
     </div>
 </div>
@@ -318,6 +421,8 @@ include 'includes/header.php';
             </div>
         `;
 
+            renderReviews(product);
+
             const related = data.related || [];
             if (related.length > 0) {
                 document.getElementById('product-related-info').innerHTML = `
@@ -351,6 +456,163 @@ include 'includes/header.php';
             if (val < 1) val = 1;
             input.value = val;
         }
+
+        // --- Reviews Logic ---
+        let allProductReviews = [];
+
+        function renderReviews(product) {
+            allProductReviews = product.reviews || [];
+
+            let filterHtml = `
+                <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #000; margin-bottom: 20px; text-align: left; letter-spacing: -0.5px;">Đánh giá sản phẩm</h2>
+            `;
+
+            if (allProductReviews.length > 0) {
+                const allCount = allProductReviews.length;
+                const mediaCount = allProductReviews.filter(r => (r.images && r.images.length > 0) || (r.videos && r.videos.length > 0)).length;
+                const star5Count = allProductReviews.filter(r => r.rating === 5).length;
+                const star4Count = allProductReviews.filter(r => r.rating === 4).length;
+                const star3Count = allProductReviews.filter(r => r.rating === 3).length;
+                const star2Count = allProductReviews.filter(r => r.rating === 2).length;
+                const star1Count = allProductReviews.filter(r => r.rating === 1).length;
+
+                filterHtml += `
+                <div class="review-filter-container">
+                    <button class="review-filter-btn active" id="btn-filter-all" onclick="applyReviewFilter('all', this)">Tất cả ${allCount}</button>
+                    <button class="review-filter-btn" id="btn-filter-media" onclick="applyReviewFilter('media', this)">Có Hình ảnh / Video ${mediaCount}</button>
+                    
+                    <select id="star-filter-select" class="review-filter-btn" style="outline: none; cursor: pointer; padding-right: 15px;" onchange="applyReviewFilter(parseInt(this.value), this)">
+                        <option value="" disabled selected hidden>Lọc theo sao ⭐</option>
+                        <option value="5">⭐⭐⭐⭐⭐ ${star5Count}</option>
+                        <option value="4">⭐⭐⭐⭐ ${star4Count}</option>
+                        <option value="3">⭐⭐⭐ ${star3Count}</option>
+                        <option value="2">⭐⭐ ${star2Count}</option>
+                        <option value="1">⭐ ${star1Count}</option>
+                    </select>
+                </div>
+                `;
+            }
+
+            filterHtml += `<div id="reviews-list-content"></div>`;
+            document.getElementById('product-reviews').innerHTML = filterHtml;
+
+            renderFilteredReviews(allProductReviews);
+        }
+
+        function applyReviewFilter(filterType, btnElement) {
+            // Update active button styling
+            document.querySelectorAll('.review-filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (btnElement) {
+                btnElement.classList.add('active');
+            }
+
+            // Reset select if clicking other buttons
+            if (typeof filterType !== 'number') {
+                const select = document.getElementById('star-filter-select');
+                if (select) select.value = "";
+            }
+
+            let filtered = [];
+            if (filterType === 'all') {
+                filtered = allProductReviews;
+            } else if (filterType === 'media') {
+                filtered = allProductReviews.filter(r => (r.images && r.images.length > 0) || (r.videos && r.videos.length > 0));
+            } else {
+                // Number (star rating)
+                filtered = allProductReviews.filter(r => r.rating === filterType);
+            }
+
+            renderFilteredReviews(filtered);
+        }
+
+        function renderFilteredReviews(reviewsList) {
+            const container = document.getElementById('reviews-list-content');
+            if (!container) return;
+
+            let html = '<div class="reviews-list">';
+
+            if (reviewsList.length === 0) {
+                html += `<p style="color: #666; font-style: italic;">Không có đánh giá nào phù hợp với bộ lọc này.</p>`;
+            } else {
+                reviewsList.forEach(r => {
+                    const stars = Array(5).fill(0).map((_, i) => i < r.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>').join('');
+                    const name = r.user ? r.user.name : (r.guest_name || 'Khách hàng');
+                    const date = new Date(r.created_at).toLocaleDateString('vi-VN');
+
+                    const fixUrl = (url) => url.replace(/http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, window.location.origin);
+
+                    let mediaHtml = '';
+                    if (r.images && r.images.length > 0) {
+                        r.images.forEach(img => { 
+                            mediaHtml += `<img src="${fixUrl(img)}" onclick="openMediaModal('${fixUrl(img)}', 'image')">`; 
+                        });
+                    }
+                    if (r.videos && r.videos.length > 0) {
+                        r.videos.forEach(vid => { 
+                            mediaHtml += `
+                            <div style="position: relative; display: inline-block; cursor: pointer; margin-right: 10px;" onclick="openMediaModal('${fixUrl(vid)}', 'video')">
+                                <video src="${fixUrl(vid)}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; display: block;" 
+                                       onloadedmetadata="this.nextElementSibling.querySelector('span').innerText = Math.floor(this.duration / 60) + ':' + (Math.floor(this.duration % 60) < 10 ? '0' : '') + Math.floor(this.duration % 60)"></video>
+                                <div style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.65); color: white; font-size: 11px; padding: 2px 5px; border-radius: 4px; pointer-events: none; display: flex; align-items: center; gap: 4px; font-weight: bold;">
+                                    <i class="fas fa-play" style="font-size: 9px;"></i> <span>0:00</span>
+                                </div>
+                            </div>`; 
+                        });
+                    }
+
+                    html += `
+                        <div class="review-item">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong style="font-size: 16px; color: #001f3f;">${name}</strong>
+                                <span style="color: #999; font-size: 13px;">${date}</span>
+                            </div>
+                            <div class="star-rating-display" style="margin-bottom: 10px;">${stars}</div>
+                            <p style="margin: 0 0 10px 0; color: #444; line-height: 1.6; font-size: 15px;">${r.comment || ''}</p>
+                            ${mediaHtml ? `<div class="review-media">${mediaHtml}</div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+        function openMediaModal(src, type) {
+            const img = document.getElementById('lightbox-img');
+            const vid = document.getElementById('lightbox-video');
+            
+            if (type === 'image') {
+                img.src = src;
+                img.style.display = 'block';
+                vid.style.display = 'none';
+                vid.pause();
+            } else {
+                vid.src = src;
+                vid.style.display = 'block';
+                img.style.display = 'none';
+            }
+            document.getElementById('mediaModal').style.display = 'flex';
+        }
+
+        function closeMediaModal() {
+            document.getElementById('mediaModal').style.display = 'none';
+            document.getElementById('lightbox-img').src = '';
+            document.getElementById('lightbox-video').src = '';
+            document.getElementById('lightbox-video').pause();
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && document.getElementById('mediaModal').style.display === 'flex') {
+                closeMediaModal();
+            }
+        });
     </script>
+
+    <!-- Media Modal -->
+    <div id="mediaModal" onclick="closeMediaModal()" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center;">
+        <span class="close-img" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img id="lightbox-img" src="" onclick="event.stopPropagation()" style="max-width: 90%; max-height: 90vh; border-radius: 8px; display: none;">
+        <video id="lightbox-video" src="" controls autoplay onclick="event.stopPropagation()" style="max-width: 90%; max-height: 90vh; border-radius: 8px; display: none;"></video>
+    </div>
 
     <?php include 'includes/footer.php'; ?>

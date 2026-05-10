@@ -486,6 +486,49 @@
         </div>
     </div>
 
+    <!-- Order Detail Modal -->
+    <div id="m-order-detail-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2500; display:none; align-items:flex-end;">
+        <div style="background:#fff; width:100%; border-radius:24px 24px 0 0; padding:30px 20px 40px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <h3 style="font-family:Georgia; font-size:20px; color:#1a365d;" id="m-order-detail-title">Chi tiết đơn hàng</h3>
+                <i class="fas fa-times" onclick="hideOrderDetailModalMobile()" style="font-size:20px; color:#999; padding:5px;"></i>
+            </div>
+            <div id="m-order-detail-content">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="m-review-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; display:none; align-items:flex-end;">
+        <div style="background:#fff; width:100%; border-radius:24px 24px 0 0; padding:30px 20px 40px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <h3 style="font-family:Georgia; font-size:20px; color:#1a365d;">Đánh giá sản phẩm</h3>
+                <i class="fas fa-times" onclick="hideReviewModalMobile()" style="font-size:20px; color:#999; padding:5px;"></i>
+            </div>
+            <div id="m-review-form" style="display:flex; flex-direction:column; gap:15px;">
+                <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;" id="m-star-rating">
+                    <i class="fas fa-star" data-rating="1" onclick="setRatingMobile(1)" style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="2" onclick="setRatingMobile(2)" style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="3" onclick="setRatingMobile(3)" style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="4" onclick="setRatingMobile(4)" style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="5" onclick="setRatingMobile(5)" style="font-size:30px; color:#ffd700;"></i>
+                </div>
+                <textarea id="m-review-comment" placeholder="Bạn thấy sản phẩm này thế nào?" style="width:100%; padding:15px; border-radius:12px; border:1px solid #ddd; outline:none; font-size:16px; min-height:100px; font-family:inherit;"></textarea>
+                
+                <div>
+                    <label for="m-review-media" style="display:inline-block; padding:10px 15px; background:#f0f2f5; border-radius:10px; font-size:14px; font-weight:600; color:#4a5568;">
+                        <i class="fas fa-camera"></i> Thêm ảnh/video
+                    </label>
+                    <input type="file" id="m-review-media" multiple accept="image/*,video/*" style="display:none;" onchange="handleReviewMediaMobile(event)">
+                </div>
+                <div id="m-media-preview" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px;"></div>
+
+                <button id="btn-m-review-submit" onclick="submitReviewMobile()" style="width:100%; background:var(--primary); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; margin-top:10px;">Gửi đánh giá</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast & Loader -->
     <div id="toast"></div>
     <div id="page-loader">
@@ -1945,7 +1988,19 @@
 
             if (tab === 'orders') {
                 container.innerHTML = `
-                    <h3 style="font-size:18px; color:#1a365d; margin-bottom:20px; font-family:Georgia;">Lịch sử đơn hàng</h3>
+                    <h3 style="font-size:18px; color:#1a365d; margin-bottom:15px; font-family:Georgia;">Lịch sử đơn hàng</h3>
+                    <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:15px; margin-bottom:10px;" class="m-order-tabs">
+                        <button class="m-otab-btn active" onclick="filterOrdersMobile('all', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Tất cả</button>
+                        <button class="m-otab-btn" onclick="filterOrdersMobile('pending', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Chờ xử lý</button>
+                        <button class="m-otab-btn" onclick="filterOrdersMobile('processing', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Đang làm</button>
+                        <button class="m-otab-btn" onclick="filterOrdersMobile('shipped', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Đang giao</button>
+                        <button class="m-otab-btn" onclick="filterOrdersMobile('delivered', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Hoàn tất</button>
+                        <button class="m-otab-btn" onclick="filterOrdersMobile('cancelled', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Đã hủy</button>
+                        <button class="m-otab-btn" onclick="filterOrdersMobile('returned', this)" style="padding:6px 15px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Trả hàng</button>
+                    </div>
+                    <style>
+                        .m-otab-btn.active { background:#001f3f !important; color:#fff !important; border-color:#001f3f !important; }
+                    </style>
                     <div id="orders-list-mobile" style="text-align:center; padding:40px 0; background:#fdfdfd; border-radius:15px; border:1px solid #f0f0f0;">
                         <i class="fas fa-shopping-basket" style="font-size:40px; color:#cbd5e0; margin-bottom:15px;"></i>
                         <p style="color:#718096; font-size:14px; margin-bottom:20px;">Đang tải đơn hàng...</p>
@@ -1991,6 +2046,14 @@
                     </div>
                 `;
                 loadAddressesMobile();
+            } else if (tab === 'reviews') {
+                container.innerHTML = `
+                    <h3 style="font-size:18px; color:#1a365d; margin-bottom:20px; font-family:Georgia;">Đánh giá của tôi</h3>
+                    <div id="m-reviews-list" style="display:flex; flex-direction:column; gap:15px;">
+                        <p style="text-align:center; color:#999; font-size:14px; padding:20px;">Đang tải đánh giá...</p>
+                    </div>
+                `;
+                loadUserReviewsMobile();
             }
         };
 
@@ -2034,6 +2097,9 @@
                             </div>
                             <div id="tab-btn-addresses" onclick="renderProfileTab('addresses', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-map-marker-alt"></i> Địa chỉ
+                            </div>
+                            <div id="tab-btn-reviews" onclick="renderProfileTab('reviews', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
+                                <i class="fas fa-star"></i> Đánh giá của tôi
                             </div>
                             <div onclick="localStorage.clear(); location.reload();" style="cursor:pointer; padding:12px 20px; color:#e53e3e; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-sign-out-alt"></i> Đăng xuất
@@ -2095,104 +2161,352 @@
             btn.innerText = 'Lưu thay đổi';
         };
 
+        let allUserOrdersMobile = [];
+
         window.loadOrdersMobile = async () => {
             const token = localStorage.getItem('auth_token');
             try {
-                const res = await fetch(`${API_URL}/orders`, { headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` } });
-                const orders = await res.json();
-                const list = document.getElementById('orders-list-mobile');
-                if (!orders || orders.length === 0) {
-                    list.innerHTML = `<p>Bạn chưa có đơn hàng nào.</p><button onclick="navigateTo('shop')" style="background:var(--primary); color:#fff; border:none; padding:10px 20px; border-radius:10px; margin-top:10px;">MUA BÁNH NGAY</button>`;
-                } else {
-                    const statusMap = {
-                        'pending': 'Đang chờ xử lý',
-                        'processing': 'Đang xử lý',
-                        'shipped': 'Đang giao hàng',
-                        'delivered': 'Đã giao hàng',
-                        'cancelled': 'Đã hủy',
-                        'return_requested': 'Đang yêu cầu trả hàng',
-                        'returned': 'Đã trả hàng',
-                        'return_rejected': 'Bị từ chối trả hàng'
-                    };
+                const res = await fetch(`${API_URL}/orders`, { 
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` } 
+                });
+                allUserOrdersMobile = await res.json();
+                renderOrdersMobile('all');
+            } catch (e) {
+                document.getElementById('orders-list-mobile').innerHTML = `<p style="color:red; font-size:13px; padding:20px;">Lỗi khi tải đơn hàng.</p>`;
+            }
+        };
 
-                    const statusColors = {
-                        'pending': { bg: 'rgba(255, 193, 7, 0.15)', color: '#856404' },
-                        'processing': { bg: 'rgba(0, 123, 255, 0.15)', color: '#004085' },
-                        'shipped': { bg: 'rgba(111, 66, 193, 0.15)', color: '#4a148c' },
-                        'delivered': { bg: 'rgba(40, 167, 69, 0.15)', color: '#155724' },
-                        'cancelled': { bg: 'rgba(220, 53, 69, 0.15)', color: '#721c24' },
-                        'return_requested': { bg: 'rgba(255, 107, 53, 0.15)', color: '#e65100' },
-                        'returned': { bg: 'rgba(40, 167, 69, 0.25)', color: '#1b5e20' },
-                        'return_rejected': { bg: 'rgba(117, 117, 117, 0.15)', color: '#424242' }
-                    };
+        window.filterOrdersMobile = (status, btn) => {
+            document.querySelectorAll('.m-otab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderOrdersMobile(status);
+        };
 
-                    window.toggleOrderDetailMobile = (id) => {
-                        const el = document.getElementById('m-order-detail-' + id);
-                        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-                    };
+        window.viewOrderDetailMobile = (orderId) => {
+            const o = allUserOrdersMobile.find(order => order.id === orderId);
+            if (!o) return;
 
-                    window.requestOrderReturnMobile = async (id) => {
-                        const reason = prompt('Vui lòng nhập lý do trả hàng (ví dụ: Sản phẩm bị lỗi...):');
-                        if (!reason || reason.trim() === '') return;
-                        try {
-                            const res = await fetch(`${API_URL}/orders/${id}/return`, {
-                                method: 'POST',
-                                headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ reason: reason })
-                            });
-                            const data = await res.json();
-                            if (res.ok) {
-                                alert(data.message);
-                                loadOrdersMobile();
-                            } else {
-                                alert(data.message || 'Lỗi yêu cầu trả hàng');
-                            }
-                        } catch(e) { alert('Lỗi kết nối'); }
-                    };
+            const statusMap = {
+                'pending': 'Chờ xử lý',
+                'processing': 'Đang làm bánh',
+                'shipped': 'Đang giao hàng',
+                'delivered': 'Hoàn tất',
+                'cancelled': 'Đã hủy',
+                'return_requested': 'Yêu cầu trả hàng',
+                'returned': 'Đã trả hàng',
+                'return_rejected': 'Bị từ chối'
+            };
 
-                    list.innerHTML = orders.map(o => {
-                        const itemsHtml = o.items ? o.items.map(i => `
-                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #ddd; align-items:center;">
-                                <div style="display:flex; align-items:center; gap:10px; flex:1;">
-                                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(i.product ? i.product.image : '')}" style="width:45px; height:45px; border-radius:8px; object-fit:cover; border:1px solid #eee;" onerror="this.src='img/logo.png'">
-                                    <div style="flex:1;">
-                                        <b style="color:#1a365d; display:block;">${i.product ? i.product.name : 'Sản phẩm'}</b>
-                                        <span style="color:#999; font-size:11px;">Số lượng: ${i.quantity}</span>
-                                    </div>
-                                </div>
-                                <div style="font-weight:700; color:var(--primary);">${formatPrice(i.price)}</div>
-                            </div>
-                        `).join('') : '';
+            const statusColors = {
+                'pending': { bg: 'rgba(255, 193, 7, 0.15)', color: '#856404' },
+                'processing': { bg: 'rgba(0, 123, 255, 0.15)', color: '#004085' },
+                'shipped': { bg: 'rgba(111, 66, 193, 0.15)', color: '#4a148c' },
+                'delivered': { bg: 'rgba(40, 167, 69, 0.15)', color: '#155724' },
+                'cancelled': { bg: 'rgba(220, 53, 69, 0.15)', color: '#721c24' },
+                'return_requested': { bg: 'rgba(255, 107, 53, 0.15)', color: '#e65100' },
+                'returned': { bg: 'rgba(40, 167, 69, 0.25)', color: '#1b5e20' },
+                'return_rejected': { bg: 'rgba(117, 117, 117, 0.15)', color: '#424242' }
+            };
 
-                        const returnBtn = (o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') 
-                            ? `<button onclick="event.stopPropagation(); requestOrderReturnMobile(${o.id})" style="margin-top:15px; background:#e53e3e; color:#fff; border:none; padding:10px 15px; border-radius:8px; font-size:13px; width:100%; font-weight:700;">Yêu cầu trả hàng</button>` 
-                            : '';
+            const sColor = statusColors[o.status] || { bg: '#f0f0f0', color: '#4a5568' };
+            
+            const itemsHtml = o.items ? o.items.map(i => {
+                let reviewBtn = '';
+                if ((o.status === 'delivered' || o.status === 'completed') && !i.review) {
+                    reviewBtn = `<button onclick="event.stopPropagation(); openReviewModalMobile(${i.product_id}, ${i.id})" style="background:#001f3f; color:#fff; border:none; padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700; margin-top:5px;">Đánh giá</button>`;
+                } else if (i.review) {
+                    reviewBtn = `<span style="font-size:11px; color:#48bb78; font-weight:700; margin-top:5px; display:block;"><i class="fas fa-check-circle"></i> Đã đánh giá</span>`;
+                }
 
-                        const sColor = statusColors[o.status] || { bg: '#f0f0f0', color: '#4a5568' };
-
-                        return `
-                        <div style="text-align:left; padding:15px; border-bottom:1px solid #eee; background:#fff; border-radius:10px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.03);" onclick="toggleOrderDetailMobile(${o.id})">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                                <b style="color:#1a365d;">Đơn hàng #${o.id}</b>
-                                <span style="color:var(--primary); font-weight:700;">${formatPrice(o.total_amount)}</span>
-                            </div>
-                            <p style="font-size:12px; color:#999; margin:0 0 10px 0;">Ngày đặt: ${new Date(o.created_at).toLocaleDateString('vi-VN')} <span style="float:right;">Chi tiết <i class="fas fa-chevron-down"></i></span></p>
-                            <span style="font-size:11px; padding:4px 10px; border-radius:5px; background:${sColor.bg}; font-weight:700; color:${sColor.color}; text-transform:uppercase; letter-spacing:0.5px;">${statusMap[o.status] || o.status}</span>
-                            
-                            <div id="m-order-detail-${o.id}" style="display:none; margin-top:15px; border-top:1px dashed #ddd; padding-top:15px;">
-                                <b style="font-size:13px; color:#1a365d; margin-bottom:10px; display:block;">Sản phẩm đã mua:</b>
-                                ${itemsHtml}
-                                ${returnBtn}
+                return `
+                    <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #eee; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:12px; flex:1;">
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(i.product ? i.product.image : '')}" style="width:50px; height:50px; border-radius:10px; object-fit:cover; border:1px solid #eee;" onerror="this.src='img/logo.png'">
+                            <div style="flex:1;">
+                                <b style="color:#1a365d; display:block; font-size:14px;">${i.product ? i.product.name : 'Sản phẩm'}</b>
+                                <span style="color:#999; font-size:12px;">Số lượng: ${i.quantity}</span>
+                                ${reviewBtn}
                             </div>
                         </div>
-                        `;
-                    }).join('');
-                    
-                    list.style.background = 'none';
-                    list.style.border = 'none';
-                    list.style.padding = '0';
+                        <div style="font-weight:700; color:var(--primary);">${formatPrice(i.price)}</div>
+                    </div>
+                `;
+            }).join('') : '';
+
+            document.getElementById('m-order-detail-title').innerText = `Đơn hàng #${o.id}`;
+            document.getElementById('m-order-detail-content').innerHTML = `
+                <div style="background:#f8fbff; border-radius:15px; padding:15px; margin-bottom:20px; font-size:14px; line-height:1.6; color:#4a5568;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <span>Ngày đặt:</span>
+                        <b style="color:#1a365d;">${new Date(o.created_at).toLocaleString('vi-VN')}</b>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <span>Trạng thái:</span>
+                        <span style="font-size:11px; padding:3px 8px; border-radius:5px; background:${sColor.bg}; font-weight:700; color:${sColor.color}; text-transform:uppercase;">${statusMap[o.status] || o.status}</span>
+                    </div>
+                    <div style="margin-top:10px; padding-top:10px; border-top:1px solid #e1e8f0;">
+                        <span style="display:block; margin-bottom:5px; color:#999; font-size:12px;">Địa chỉ nhận hàng:</span>
+                        <b style="color:#1a365d;">${o.customer_address}</b>
+                    </div>
+                </div>
+
+                <h4 style="font-size:15px; color:#1a365d; margin-bottom:15px; font-family:Georgia;">Sản phẩm đã mua</h4>
+                <div style="margin-bottom:25px;">
+                    ${itemsHtml}
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#fff5ee; border-radius:15px; margin-bottom:20px;">
+                    <b style="color:#1a365d; font-size:16px;">TỔNG CỘNG:</b>
+                    <b style="color:var(--primary); font-size:20px;">${formatPrice(o.total_amount)}</b>
+                </div>
+
+                ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') 
+                    ? `<button onclick="requestOrderReturnMobile(${o.id})" style="width:100%; background:#e53e3e; color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:15px;">Yêu cầu trả hàng cho đơn này</button>` 
+                    : ''}
+            `;
+            document.getElementById('m-order-detail-modal').style.display = 'flex';
+        };
+
+        window.hideOrderDetailModalMobile = () => {
+            document.getElementById('m-order-detail-modal').style.display = 'none';
+        };
+
+        window.renderOrdersMobile = (status) => {
+            const list = document.getElementById('orders-list-mobile');
+            if (!list) return;
+
+            let filtered = allUserOrdersMobile;
+            if (status !== 'all') {
+                filtered = allUserOrdersMobile.filter(o => {
+                    if (status === 'returned') return ['return_requested', 'returned', 'return_rejected'].includes(o.status);
+                    return o.status === status;
+                });
+            }
+
+            if (!filtered || filtered.length === 0) {
+                list.innerHTML = `<p style="color:#999; font-size:14px; padding:30px;">Bạn chưa có đơn hàng nào${status !== 'all' ? ' trong trạng thái này' : ''}.</p>`;
+                list.style.background = '#fdfdfd';
+                list.style.border = '1px solid #f0f0f0';
+                list.style.padding = '40px 0';
+                return;
+            }
+
+            const statusMap = {
+                'pending': 'Chờ xử lý',
+                'processing': 'Đang làm bánh',
+                'shipped': 'Đang giao hàng',
+                'delivered': 'Hoàn tất',
+                'cancelled': 'Đã hủy',
+                'return_requested': 'Yêu cầu trả hàng',
+                'returned': 'Đã trả hàng',
+                'return_rejected': 'Bị từ chối'
+            };
+
+            const statusColors = {
+                'pending': { bg: 'rgba(255, 193, 7, 0.15)', color: '#856404' },
+                'processing': { bg: 'rgba(0, 123, 255, 0.15)', color: '#004085' },
+                'shipped': { bg: 'rgba(111, 66, 193, 0.15)', color: '#4a148c' },
+                'delivered': { bg: 'rgba(40, 167, 69, 0.15)', color: '#155724' },
+                'cancelled': { bg: 'rgba(220, 53, 69, 0.15)', color: '#721c24' },
+                'return_requested': { bg: 'rgba(255, 107, 53, 0.15)', color: '#e65100' },
+                'returned': { bg: 'rgba(40, 167, 69, 0.25)', color: '#1b5e20' },
+                'return_rejected': { bg: 'rgba(117, 117, 117, 0.15)', color: '#424242' }
+            };
+
+            list.innerHTML = filtered.map(o => {
+                const sColor = statusColors[o.status] || { bg: '#f0f0f0', color: '#4a5568' };
+
+                return `
+                <div style="text-align:left; padding:18px; border-bottom:1px solid #eee; background:#fff; border-radius:15px; margin-bottom:12px; box-shadow:0 4px 12px rgba(0,0,0,0.04); position:relative;" onclick="viewOrderDetailMobile(${o.id})">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <b style="color:#1a365d; font-size:15px;">Đơn hàng #${o.id}</b>
+                        <span style="color:var(--primary); font-weight:800; font-size:16px;">${formatPrice(o.total_amount)}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; padding:4px 12px; border-radius:6px; background:${sColor.bg}; font-weight:700; color:${sColor.color}; text-transform:uppercase;">${statusMap[o.status] || o.status}</span>
+                        <span style="font-size:12px; color:#999;">${new Date(o.created_at).toLocaleDateString('vi-VN')} <i class="fas fa-chevron-right" style="margin-left:5px; font-size:10px;"></i></span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            list.style.background = 'none';
+            list.style.border = 'none';
+            list.style.padding = '0';
+        };
+
+        window.toggleOrderDetailMobile = (id) => {
+            // Deprecated - replaced by viewOrderDetailMobile modal
+            viewOrderDetailMobile(id);
+        };
+
+        window.requestOrderReturnMobile = async (id) => {
+            const token = localStorage.getItem('auth_token');
+            const reason = prompt('Vui lòng nhập lý do trả hàng (ví dụ: Sản phẩm bị lỗi...):');
+            if (!reason || reason.trim() === '') return;
+            try {
+                const res = await fetch(`${API_URL}/orders/${id}/return`, {
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: reason })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    loadOrdersMobile();
+                } else {
+                    alert(data.message || 'Lỗi yêu cầu trả hàng');
                 }
-            } catch (e) { }
+            } catch(e) { alert('Lỗi kết nối'); }
+        };
+
+        let currentMobileReviewProduct = null;
+        let currentMobileReviewOrderItem = null;
+        let mobileReviewRating = 5;
+        let mobileReviewFiles = [];
+
+        window.openReviewModalMobile = (productId, orderItemId) => {
+            currentMobileReviewProduct = productId;
+            currentMobileReviewOrderItem = orderItemId;
+            mobileReviewRating = 5;
+            mobileReviewFiles = [];
+            document.getElementById('m-review-comment').value = '';
+            document.getElementById('m-media-preview').innerHTML = '';
+            setRatingMobile(5);
+            document.getElementById('m-review-modal').style.display = 'flex';
+        };
+
+        window.hideReviewModalMobile = () => {
+            document.getElementById('m-review-modal').style.display = 'none';
+        };
+
+        window.setRatingMobile = (r) => {
+            mobileReviewRating = r;
+            const stars = document.querySelectorAll('#m-star-rating i');
+            stars.forEach((s, idx) => {
+                s.className = (idx < r) ? 'fas fa-star' : 'far fa-star';
+                s.style.color = (idx < r) ? '#ffd700' : '#ddd';
+            });
+        };
+
+        window.handleReviewMediaMobile = (event) => {
+            const files = Array.from(event.target.files);
+            mobileReviewFiles = [...mobileReviewFiles, ...files];
+            renderReviewMediaPreviewMobile();
+            event.target.value = '';
+        };
+
+        window.renderReviewMediaPreviewMobile = () => {
+            const container = document.getElementById('m-media-preview');
+            container.innerHTML = mobileReviewFiles.map((f, i) => {
+                const url = URL.createObjectURL(f);
+                return `<div style="position:relative; flex-shrink:0; margin-top:10px;">
+                    ${f.type.startsWith('image') ? `<img src="${url}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;">` : `<video src="${url}" style="width:60px; height:60px; border-radius:8px; object-fit:cover;"></video>`}
+                    <i class="fas fa-times-circle" onclick="removeReviewMediaMobile(${i})" style="position:absolute; top:-5px; right:-5px; color:#e53e3e; background:#fff; border-radius:50%; font-size:18px;"></i>
+                </div>`;
+            }).join('');
+        };
+
+        window.removeReviewMediaMobile = (i) => {
+            mobileReviewFiles.splice(i, 1);
+            renderReviewMediaPreviewMobile();
+        };
+
+        window.submitReviewMobile = async () => {
+            const btn = document.getElementById('btn-m-review-submit');
+            const comment = document.getElementById('m-review-comment').value;
+            if (!comment && mobileReviewFiles.length === 0) { alert('Vui lòng nhập nội dung!'); return; }
+
+            btn.disabled = true; btn.innerText = 'Đang gửi...';
+            const formData = new FormData();
+            formData.append('product_id', currentMobileReviewProduct);
+            formData.append('order_item_id', currentMobileReviewOrderItem);
+            formData.append('rating', mobileReviewRating);
+            formData.append('comment', comment);
+            mobileReviewFiles.forEach(f => {
+                if (f.type.startsWith('image')) formData.append('images[]', f);
+                else formData.append('videos[]', f);
+            });
+
+            try {
+                const token = localStorage.getItem('auth_token');
+                const res = await fetch(`${API_URL}/reviews`, {
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' },
+                    body: formData
+                });
+                if (res.ok) {
+                    showToast('✅ Cảm ơn bạn đã đánh giá!');
+                    hideReviewModalMobile();
+                    loadOrdersMobile();
+                } else { alert('Lỗi gửi đánh giá'); }
+            } catch (e) { alert('Lỗi kết nối'); }
+            btn.disabled = false; btn.innerText = 'Gửi đánh giá';
+        };
+
+        window.loadUserReviewsMobile = async () => {
+            const list = document.getElementById('m-reviews-list');
+            const token = localStorage.getItem('auth_token');
+            try {
+                const res = await fetch(`${API_URL}/user/reviews`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` }
+                });
+                const reviews = await res.json();
+                if (!reviews || reviews.length === 0) {
+                    list.innerHTML = `
+                        <div style="text-align:center; padding:40px 0; color:#999;">
+                            <i class="fas fa-star" style="font-size:40px; opacity:0.2; margin-bottom:15px;"></i>
+                            <p>Bạn chưa có đánh giá nào.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = `
+                    <div style="margin-bottom: 25px; padding: 20px; background: #fffcf5; border-radius: 15px; border: 1px solid #ffeeba; display: flex; align-items: center; gap: 15px;">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #ffd699; display: flex; align-items: center; justify-content: center; color: #b45309; font-size: 20px;">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #1a365d; font-size: 16px;">Đánh giá của bạn</div>
+                            <div style="color: #b45309; font-size: 13px; font-weight: 600;">Bạn đã viết ${reviews.length} đánh giá sản phẩm</div>
+                        </div>
+                    </div>
+                ` + reviews.map(r => {
+                    const stars = Array(5).fill(0).map((_, i) => `<i class="${i < r.rating ? 'fas' : 'far'} fa-star" style="color:#ffd700; font-size:12px;"></i>`).join('');
+                    const img = (r.product && r.product.image) ? fixImg(r.product.image) : 'img/logo.png';
+                    
+                    let mediaHtml = '';
+                    if (r.images && r.images.length > 0) {
+                        mediaHtml += r.images.map(url => `<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(url)}" onclick="window.open('${fixImg(url)}','_blank')" style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #eee; cursor:pointer;">`).join(' ');
+                    }
+                    if (r.videos && r.videos.length > 0) {
+                        mediaHtml += r.videos.map(url => `
+                            <div style="position:relative; display:inline-block; cursor:pointer;" onclick="window.open('${fixImg(url)}','_blank')">
+                                <video src="${fixImg(url)}" style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #eee;"></video>
+                                <i class="fas fa-play-circle" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:20px; opacity:0.9;"></i>
+                            </div>
+                        `).join(' ');
+                    }
+
+                    return `
+                        <div style="background:#fff; border:1px solid #eee; border-radius:18px; padding:20px; margin-bottom:15px; box-shadow:0 4px 15px rgba(0,0,0,0.03);">
+                            <div style="display:flex; align-items:center; gap:15px; border-bottom:1px solid #f8f9fa; padding-bottom:15px; margin-bottom:15px;">
+                                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${img}" style="width:50px; height:50px; border-radius:10px; object-fit:cover;">
+                                <div style="flex:1;">
+                                    <b style="font-size:15px; color:#1a365d; display:block;">${r.product ? r.product.name : 'Sản phẩm'}</b>
+                                    <div style="font-size:11px; color:#999; margin-top:3px;">${new Date(r.created_at).toLocaleString('vi-VN')}</div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:12px;">${stars}</div>
+                            ${r.comment ? `<p style="font-size:14px; color:#4a5568; line-height:1.6; margin-bottom:12px;">${r.comment}</p>` : ''}
+                            ${mediaHtml ? `<div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px; scrollbar-width:none;">${mediaHtml}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = `<p style="color:red; font-size:13px;">Lỗi khi tải đánh giá.</p>`;
+            }
         };
 
         window.loadAddressesMobile = async () => {
@@ -2425,6 +2739,21 @@
                 btn.disabled = false; btn.innerText = 'Đăng ký tài khoản';
             }
         };
+
+        // Đóng các modal bằng nút ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                const addrModal = document.getElementById('m-address-modal');
+                const paymentModal = document.getElementById('m-payment-modal');
+                const reviewModal = document.getElementById('m-review-modal');
+                const detailModal = document.getElementById('m-order-detail-modal');
+
+                if (addrModal && addrModal.style.display !== 'none') hideAddressModal();
+                if (paymentModal && paymentModal.style.display !== 'none') paymentModal.style.display = 'none';
+                if (reviewModal && reviewModal.style.display !== 'none') hideReviewModalMobile();
+                if (detailModal && detailModal.style.display !== 'none') hideOrderDetailModalMobile();
+            }
+        });
 
         // ====== START ======
         navigateTo('home');

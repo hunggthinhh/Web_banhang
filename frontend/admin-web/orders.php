@@ -119,6 +119,22 @@ include 'includes/sidebar.php';
         </div>
     </div>
 </div>
+
+<div style="display: flex; gap: 15px; margin-bottom: 20px;">
+    <div id="filter-box-today" onclick="filterByTime('today')" style="cursor: pointer; background: #e3f2fd; padding: 15px; border-radius: 10px; flex: 1; border: 2px solid transparent; display: flex; align-items: center; justify-content: space-between; transition: 0.2s;">
+        <span style="color: #0d47a1; font-weight: bold; font-size: 15px;">Hôm nay</span>
+        <span id="today-count" style="background: #0d47a1; color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px;">0 đơn</span>
+    </div>
+    <div id="filter-box-yesterday" onclick="filterByTime('yesterday')" style="cursor: pointer; background: #f5f5f5; padding: 15px; border-radius: 10px; flex: 1; border: 2px solid transparent; display: flex; align-items: center; justify-content: space-between; transition: 0.2s;">
+        <span style="color: #616161; font-weight: bold; font-size: 15px;">Hôm qua</span>
+        <span id="yesterday-count" style="background: #616161; color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px;">0 đơn</span>
+    </div>
+    <div id="filter-box-older" onclick="filterByTime('older')" style="cursor: pointer; background: #fff8e1; padding: 15px; border-radius: 10px; flex: 1; border: 2px solid transparent; display: flex; align-items: center; justify-content: space-between; transition: 0.2s;">
+        <span style="color: #f57f17; font-weight: bold; font-size: 15px;">Cũ hơn</span>
+        <span id="older-count" style="background: #f57f17; color: white; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px;">0 đơn</span>
+    </div>
+</div>
+
 <table id="orders-table">
     <thead>
         <tr>
@@ -191,6 +207,25 @@ include 'includes/sidebar.php';
         });
     });
 
+    let currentDayFilter = 'all';
+    let allOrdersData = [];
+
+    function filterByTime(type) {
+        // Toggle off if clicking the same filter
+        if (currentDayFilter === type) {
+            currentDayFilter = 'all';
+        } else {
+            currentDayFilter = type;
+        }
+
+        // Update UI
+        document.getElementById('filter-box-today').style.borderColor = (currentDayFilter === 'today') ? '#0d47a1' : 'transparent';
+        document.getElementById('filter-box-yesterday').style.borderColor = (currentDayFilter === 'yesterday') ? '#616161' : 'transparent';
+        document.getElementById('filter-box-older').style.borderColor = (currentDayFilter === 'older') ? '#f57f17' : 'transparent';
+
+        renderOrderRows();
+    }
+
     async function loadOrders() {
         try {
             const status = document.getElementById('filter-status').value || 'all';
@@ -198,43 +233,94 @@ include 'includes/sidebar.php';
             const search = searchInput ? searchInput.value : '';
             const data = await adminFetch(`/admin/orders?status=${status}&search=${encodeURIComponent(search)}`);
             if (!data) return;
-            const tbody = document.querySelector('#orders-table tbody');
-
-            const statusLabels = {
-                'pending': 'Chờ xử lý',
-                'processing': 'Đang làm bánh',
-                'shipped': 'Đang giao hàng',
-                'delivered': 'Hoàn tất',
-                'confirmed': 'Đã xác nhận',
-                'cancelled': 'Đã hủy',
-                'return_requested': 'Yêu cầu trả hàng',
-                'returned': 'Đã hoàn trả',
-                'return_rejected': 'Từ chối trả hàng'
-            };
-
-            tbody.innerHTML = data.map(o => `
-                <tr style="${o.status === 'return_requested' ? 'background-color: rgba(255, 107, 53, 0.05); border-left: 4px solid #e65100;' : ''}">
-                    <td>#${o.id}</td>
-                    <td>${new Date(o.created_at).toLocaleString('vi-VN')}</td>
-                    <td><strong>${o.customer_name}</strong></td>
-                    <td>${o.customer_phone}</td>
-                    <td>${formatPrice(o.total_amount)}</td>
-                    <td>
-                        <div class="pm-badge pm-${o.payment_method || 'cod'}">${(o.payment_method === 'bank') ? 'Bán qua Ngân hàng' : 'Tiền mặt (COD)'}</div>
-                        <div class="ps-badge ps-${o.payment_status || 'unpaid'}">
-                            ${(o.payment_status === 'paid') ? '● Đã thanh toán' : (o.payment_status === 'waiting_verification' ? '◐ Đang chờ xác minh' : '○ Chưa nhận tiền')}
-                        </div>
-                    </td>
-                    <td><span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span></td>
-                    <td>
-                        <button class="btn btn-info" onclick='loadOrderById(${o.id})'>Chi tiết</button>
-                        <button class="btn btn-danger" onclick="deleteOrder(${o.id})">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
+            allOrdersData = data;
+            
+            renderOrderRows();
         } catch (error) {
             console.error('Error loading orders:', error);
         }
+    }
+
+    function renderOrderRows() {
+        const tbody = document.querySelector('#orders-table tbody');
+
+        const statusLabels = {
+            'pending': 'Chờ xử lý',
+            'processing': 'Đang làm bánh',
+            'shipped': 'Đang giao hàng',
+            'delivered': 'Hoàn tất',
+            'confirmed': 'Đã xác nhận',
+            'cancelled': 'Đã hủy',
+            'return_requested': 'Yêu cầu trả hàng',
+            'returned': 'Đã hoàn trả',
+            'return_rejected': 'Từ chối trả hàng'
+        };
+
+        let todayCount = 0;
+        let yesterdayCount = 0;
+        let olderCount = 0;
+
+        const now = new Date();
+        const todayStr = now.toLocaleDateString('vi-VN');
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toLocaleDateString('vi-VN');
+
+        let rowsHtml = '';
+
+        allOrdersData.forEach(o => {
+            const orderDate = new Date(o.created_at);
+            const orderDateStr = orderDate.toLocaleDateString('vi-VN');
+            let dayBadge = '';
+            let orderType = 'older';
+
+            if (orderDateStr === todayStr) {
+                todayCount++;
+                orderType = 'today';
+                dayBadge = '<span style="background: #e53935; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; display: inline-block;">Mới - Hôm nay</span>';
+            } else if (orderDateStr === yesterdayStr) {
+                yesterdayCount++;
+                orderType = 'yesterday';
+                dayBadge = '<span style="background: #757575; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; display: inline-block;">Hôm qua</span>';
+            } else {
+                olderCount++;
+            }
+
+            // Apply filter
+            if (currentDayFilter !== 'all' && currentDayFilter !== orderType) return;
+
+            rowsHtml += `
+            <tr style="${o.status === 'return_requested' ? 'background-color: rgba(255, 107, 53, 0.05); border-left: 4px solid #e65100;' : ''}">
+                <td>#${o.id}</td>
+                <td><div style="margin-bottom: 4px;">${orderDateStr} ${dayBadge}</div><small style="color: #888;">${orderDate.toLocaleTimeString('vi-VN')}</small></td>
+                <td><strong>${o.customer_name}</strong></td>
+                <td>${o.customer_phone}</td>
+                <td>${formatPrice(o.total_amount)}</td>
+                <td>
+                    <div class="pm-badge pm-${o.payment_method || 'cod'}">${(o.payment_method === 'bank') ? 'Bán qua Ngân hàng' : 'Tiền mặt (COD)'}</div>
+                    <div class="ps-badge ps-${o.payment_status || 'unpaid'}">
+                        ${(o.payment_status === 'paid') ? '● Đã thanh toán' : (o.payment_status === 'waiting_verification' ? '◐ Đang chờ xác minh' : '○ Chưa nhận tiền')}
+                    </div>
+                </td>
+                <td><span class="status-badge status-${o.status}">${statusLabels[o.status] || o.status}</span></td>
+                <td>
+                    <button class="btn btn-info" onclick='loadOrderById(${o.id})'>Chi tiết</button>
+                    <button class="btn btn-danger" onclick="deleteOrder(${o.id})">Xóa</button>
+                </td>
+            </tr>
+            `;
+        });
+
+        tbody.innerHTML = rowsHtml || '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #888;">Không có đơn hàng nào khớp với bộ lọc.</td></tr>';
+
+        // Update stats
+        const tCount = document.getElementById('today-count');
+        const yCount = document.getElementById('yesterday-count');
+        const oCount = document.getElementById('older-count');
+        
+        if(tCount) tCount.innerText = todayCount + ' đơn';
+        if(yCount) yCount.innerText = yesterdayCount + ' đơn';
+        if(oCount) oCount.innerText = olderCount + ' đơn';
     }
 
     async function loadOrderById(id) {

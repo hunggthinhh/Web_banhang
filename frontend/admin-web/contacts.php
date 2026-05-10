@@ -11,7 +11,6 @@ include 'includes/sidebar.php';
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Khách</th>
                     <th>Họ và tên</th>
                     <th>Email</th>
                     <th>Số điện thoại</th>
@@ -56,14 +55,13 @@ include 'includes/sidebar.php';
             const tbody = document.querySelector('#contacts-table tbody');
             
             if (!allContacts || allContacts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #888;">Chưa có tin nhắn nào từ khách hàng.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #888;">Chưa có tin nhắn nào từ khách hàng.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = allContacts.map(c => `
                 <tr class="${c.is_read ? 'read-row' : ''}">
                     <td><strong>#${c.id}</strong></td>
-                    <td><span class="badge" style="background: #eef1f4; color: #666; font-size: 11px;">${c.user_id ? 'UID: ' + c.user_id : 'Khách vãng lai'}</span></td>
                     <td><strong>${c.fullname}</strong></td>
                     <td><a href="mailto:${c.email}" style="color: #3182ce; text-decoration: none;">${c.email}</a></td>
                     <td>${c.phone || '-'}</td>

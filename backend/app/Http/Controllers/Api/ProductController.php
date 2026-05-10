@@ -26,7 +26,9 @@ class ProductController extends Controller
 
     public function show($idOrSlug)
     {
-        $product = Product::with('category')
+        $product = Product::with(['category', 'reviews' => function($q) {
+                $q->latest()->with('user');
+            }])
             ->where('id', $idOrSlug)
             ->orWhere('slug', $idOrSlug)
             ->firstOrFail();

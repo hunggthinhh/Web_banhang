@@ -27,6 +27,9 @@ Route::post('/orders', [OrderController::class, 'checkout']); // Cho phép đặ
 Route::get('/orders/{id}', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách
 Route::get('/orders/{id}/payment-status', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách (descriptive route)
 
+// Chatbot
+Route::post('/chatbot', [\App\Http\Controllers\ChatbotController::class, 'handleChat']);
+
 // Protected User/Admin routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -34,8 +37,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile', [AuthController::class, 'updateProfile']);
     Route::get('/cart', [UserController::class, 'getCart']);
     Route::post('/cart', [UserController::class, 'updateCart']);
+    Route::post('/reviews', [\App\Http\Controllers\ReviewController::class, 'store']);
 
     // User routes
+    Route::get('/user/reviews', [\App\Http\Controllers\ReviewController::class, 'userReviews']);
     Route::get('/orders', [OrderController::class, 'userOrders']);
     Route::post('/orders/{id}/return', [OrderController::class, 'requestReturn']);
     Route::get('/orders-status/{id}', [OrderController::class, 'checkPaymentStatus']);
@@ -81,5 +86,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}/role', [UserController::class, 'updateRole']);
         Route::post('/users/{id}/role', [UserController::class, 'updateRole']); // Spoofing
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+        // Reviews Admin
+        Route::get('/reviews', [\App\Http\Controllers\ReviewController::class, 'index']);
+        Route::delete('/reviews/{id}', [\App\Http\Controllers\ReviewController::class, 'destroy']);
+        Route::post('/reviews/{id}', [\App\Http\Controllers\ReviewController::class, 'destroy']); // _method=DELETE spoofing
     });
 });

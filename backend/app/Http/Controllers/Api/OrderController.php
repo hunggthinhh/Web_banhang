@@ -85,7 +85,7 @@ class OrderController extends Controller
     public function userOrders()
     {
         $user = auth()->user();
-        $orders = Order::with('items.product')->where('user_id', $user->id)
+        $orders = Order::with(['items.product', 'items.review'])->where('user_id', $user->id)
             ->orWhere(function ($query) use ($user) {
                 $query->whereNull('user_id')
                     ->where('customer_phone', $user->phone);
