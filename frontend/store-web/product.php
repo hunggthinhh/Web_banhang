@@ -360,6 +360,11 @@ include 'includes/header.php';
             const subImages = product.sub_images || [];
             const allImgs = [product.image, ...subImages].slice(0, 4);
 
+            const now = new Date();
+            const endsAt = product.discount_ends_at ? new Date(product.discount_ends_at.replace(' ', 'T')) : null;
+            const hasDiscount = product.discount_percent > 0 && (!endsAt || endsAt > now);
+            const finalPrice = hasDiscount ? product.price * (1 - product.discount_percent / 100) : product.price;
+
             // Inject Hero Section (Top part)
             document.getElementById('product-hero').innerHTML = `
             <div class="gallery-layout">
@@ -380,8 +385,16 @@ include 'includes/header.php';
 
                 <div class="product-info">
                     <h1 class="product-title">${product.name}</h1>
-                    <div class="product-price-v">${formatPrice(product.price)}</div>
-                    <p class="price-notice">(Giá chưa bao gồm thuế VAT)</p>
+                    ${hasDiscount ? `
+                        <div class="product-price-v" style="display: flex; gap: 10px; align-items: baseline;">
+                            <span style="text-decoration: line-through; color: #999; font-size: 18px;">${formatPrice(product.price)}</span>
+                            <span style="color: #e53e3e;">${formatPrice(finalPrice)}</span>
+                            <span style="background: #e53e3e; color: white; padding: 2px 8px; border-radius: 4px; font-size: 14px; font-weight: bold;">-${product.discount_percent}%</span>
+                            ${endsAt ? `<span style="color: #666; font-size: 14px; margin-left: 10px;"><i class="far fa-clock"></i> Ưu đãi đến ${endsAt.toLocaleDateString('vi-VN')}</span>` : ''}
+                        </div>
+                    ` : `
+                        <div class="product-price-v">${formatPrice(product.price)}</div>
+                    `}
 
                     <p class="product-desc">
                         ${product.description || 'Nơi mang đến những hương vị bánh ngọt ngào và tinh tế nhất...'}
@@ -397,13 +410,13 @@ include 'includes/header.php';
                             </div>
                             
                             <!-- Add to Cart Icon Button -->
-                            <button class="btn-add-cart" onclick="addCart(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
+                            <button class="btn-add-cart" onclick="addCart(${product.id}, '${product.name}', ${finalPrice}, '${product.image}')" 
                                     style="width: 54px; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; flex-shrink: 0; box-sizing: border-box !important; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; color: #001f3f; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
                                 <i class="fas fa-shopping-basket" style="font-size: 20px; margin: 0; padding: 0;"></i>
                             </button>
                             
                             <!-- Buy Now Button -->
-                            <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${product.price}, '${product.image}')" 
+                            <button class="btn-buy-now" onclick="buyNow(${product.id}, '${product.name}', ${finalPrice}, '${product.image}')" 
                                     style="flex: 1; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; background: linear-gradient(135deg, #f03e3e 0%, #d62828 100%); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(240, 62, 62, 0.25); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center;">
                                 Mua ngay
                             </button>
@@ -411,8 +424,7 @@ include 'includes/header.php';
                     </div>
                 </div>
             </div>
-        `;
-
+            `;
             // Inject Detailed Info Section (Full width part)
             document.getElementById('product-detailed-info').innerHTML = `
             <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; color: #000; margin-bottom: 40px; text-align: left; letter-spacing: -0.5px;">Thông tin sản phẩm</h2>

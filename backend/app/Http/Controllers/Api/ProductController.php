@@ -57,6 +57,8 @@ class ProductController extends Controller
             'name' => 'required',
             'category_id' => 'required',
             'price' => 'required|numeric',
+            'discount_percent' => 'nullable|integer|min:0|max:100',
+            'discount_ends_at' => 'nullable|date',
         ]);
 
         $imagePath = $request->image ?? 'https://images.unsplash.com/photo-1542826438-bd32f43d626f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80';
@@ -92,7 +94,9 @@ class ProductController extends Controller
             'image' => $imagePath,
             'sub_images' => $subImages,
             'is_active' => $request->boolean('is_active', true),
-            'is_featured' => $request->boolean('is_featured', false)
+            'is_featured' => $request->boolean('is_featured', false),
+            'discount_percent' => $request->integer('discount_percent', 0),
+            'discount_ends_at' => $request->discount_ends_at
         ]);
 
         return response()->json(['message' => 'Thêm thành công', 'product' => $product]);
@@ -138,7 +142,9 @@ class ProductController extends Controller
                 'image' => $imagePath,
                 'sub_images' => $subImages,
                 'is_active' => $request->has('is_active') ? $request->boolean('is_active') : $product->is_active,
-                'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured
+                'is_featured' => $request->has('is_featured') ? $request->boolean('is_featured') : $product->is_featured,
+                'discount_percent' => $request->has('discount_percent') ? $request->integer('discount_percent') : $product->discount_percent,
+                'discount_ends_at' => $request->has('discount_ends_at') ? $request->discount_ends_at : $product->discount_ends_at
             ]);
 
             return response()->json(['message' => 'Cập nhật thành công', 'product' => $product]);

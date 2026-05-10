@@ -437,20 +437,34 @@ include 'includes/header.php';
     }
 
     function productCardHtml(p) {
+        const now = new Date();
+        const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
+        const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
+        const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
+        
         return `
             <div class="product-card" onclick="location.href='product.php?slug=${p.slug || p.id}'">
                 <div class="card-image-wrap">
                     <img src="${p.image}" alt="${p.name}">
+                    ${hasDiscount ? `<div class="discount-badge" style="position: absolute; top: 10px; right: 10px; background: #e53e3e; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 1;">-${p.discount_percent}%</div>` : ''}
+                    ${hasDiscount && endsAt ? `<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 3px 6px; border-radius: 3px; font-size: 11px; z-index: 1;"><i class="far fa-clock"></i> Đến ${endsAt.toLocaleDateString('vi-VN')}</div>` : ''}
                 </div>
                 <div class="card-body">
                     <h3>${p.name}</h3>
-                    <p class="card-price">Giá: <span>${formatPrice(p.price)}</span></p>
+                    <p class="card-price">Giá: 
+                        ${hasDiscount ? `
+                            <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">${formatPrice(p.price)}</span>
+                            <span style="color: #e53e3e; font-weight: bold;">${formatPrice(finalPrice)}</span>
+                        ` : `
+                            <span>${formatPrice(p.price)}</span>
+                        `}
+                    </p>
                     <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
-                        <button class="btn-add-cart" onclick="event.stopPropagation(); addCart(${p.id}, '${p.name}', ${p.price}, '${p.image}')" 
+                        <button class="btn-add-cart" onclick="event.stopPropagation(); addCart(${p.id}, '${p.name}', ${finalPrice}, '${p.image}')" 
                                 style="width: 45px; height: 45px; padding: 0; border-radius: 50%; flex-shrink: 0; background:#f0f4f8; color:#001f3f; border:1.5px solid #d1d5db; display:flex; align-items:center; justify-content:center;">
                             <i class="fas fa-shopping-basket" style="font-size: 18px;"></i>
                         </button>
-                        <button onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${p.price}, '${p.image}')" 
+                        <button onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${finalPrice}, '${p.image}')" 
                                 style="flex: 1; height: 45px; background: #e53e3e; color: #fff; border: none; border-radius: 25px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;">
                             Mua ngay
                         </button>

@@ -59,9 +59,19 @@ include 'includes/sidebar.php';
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Giá (VNĐ)</label>
-                <input type="number" id="pPrice" required placeholder="Ví dụ: 50000">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label>Giá (VNĐ)</label>
+                    <input type="number" id="pPrice" required placeholder="Ví dụ: 50000">
+                </div>
+                <div class="form-group">
+                    <label>Giảm giá (%)</label>
+                    <input type="number" id="pDiscountPercent" placeholder="Ví dụ: 10" min="0" max="100">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Hạn giảm giá</label>
+                <input type="datetime-local" id="pDiscountEndsAt" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
             </div>
             <div class="form-group" style="margin-top: 10px;">
                 <label
@@ -254,7 +264,10 @@ include 'includes/sidebar.php';
                     </td>
                     <td><strong style="color: var(--name-color);">${p.name}</strong></td>
                     <td><span class="badge" style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${p.category ? p.category.name : 'N/A'}</span></td>
-                    <td><span style="color: var(--price-color); font-weight: bold;">${formatPrice(p.price || 0)}</span></td>
+                    <td>
+                        <span style="color: var(--price-color); font-weight: bold;">${formatPrice(p.price || 0)}</span>
+                        ${p.discount_percent > 0 ? `<br><span style="color: #e53e3e; font-size: 12px; font-weight: bold;">-${p.discount_percent}%</span>` : ''}
+                    </td>
                     <td>
                         <button class="btn btn-warning" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i> Sửa</button>
                         <button class="btn btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i> Xóa</button>
@@ -308,6 +321,13 @@ include 'includes/sidebar.php';
         document.getElementById('pName').value = p ? p.name : '';
         document.getElementById('pCategory').value = (p && p.category) ? p.category.id : '';
         document.getElementById('pPrice').value = p ? p.price : '';
+        document.getElementById('pDiscountPercent').value = p ? (p.discount_percent || '') : '';
+        
+        let endsAt = '';
+        if (p && p.discount_ends_at) {
+            endsAt = p.discount_ends_at.replace(' ', 'T').slice(0, 16);
+        }
+        document.getElementById('pDiscountEndsAt').value = endsAt;
         document.getElementById('pDescription').value = p ? (p.description || '') : '';
         document.getElementById('pIsFeatured').checked = p ? !!p.is_featured : false;
 
@@ -341,6 +361,8 @@ include 'includes/sidebar.php';
         formData.append('name', document.getElementById('pName').value);
         formData.append('category_id', document.getElementById('pCategory').value);
         formData.append('price', document.getElementById('pPrice').value);
+        formData.append('discount_percent', document.getElementById('pDiscountPercent').value || 0);
+        formData.append('discount_ends_at', document.getElementById('pDiscountEndsAt').value);
         formData.append('description', document.getElementById('pDescription').value);
         formData.append('is_featured', document.getElementById('pIsFeatured').checked ? 1 : 0);
         formData.append('content', quill.root.innerHTML);

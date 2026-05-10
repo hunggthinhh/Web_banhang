@@ -32,16 +32,22 @@ class ChatbotController extends Controller
 
         $productListStr = "";
         $categoryNames = implode(', ', array_keys($groupedProducts));
+        $productsMap = [];
 
         foreach($groupedProducts as $cat => $prods) {
             $productListStr .= "\n[Danh mục: {$cat}]\n";
             foreach($prods as $product) {
                 $price = number_format($product->price, 0, ',', '.');
-                $img = $product->image;
-                $slug = $product->slug ?? $product->id;
                 
-                $productListStr .= "- Bánh: {$product->name} | Giá: {$price} VNĐ. \n";
-                $productListStr .= "  + GIAO DIỆN HIỂN THỊ (COPY Y NGUYÊN ĐOẠN SAU KHÔNG THÊM BỚT, KHÔNG DÙNG MARKDOWN HTML): <a href='product.php?slug={$slug}' target='_blank' style='display:flex; align-items:center; gap:10px; margin-top:8px; margin-bottom:8px; text-decoration:none; color:#333; padding:8px; border:1px solid #ddd; border-radius:8px; background:#fff;'><img src='{$img}' style='width:50px; height:50px; object-fit:cover; border-radius:4px;'><div><strong style='font-size:14px;'>{$product->name}</strong><br><span style='color:#e74c3c; font-weight:bold; font-size:13px;'>{$price}₫</span></div></a> \n";
+                $productListStr .= "- ID: {$product->id} | Bánh: {$product->name} | Giá: {$price} VNĐ. \n";
+                
+                // Store product data for frontend
+                $productsMap[$product->id] = [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $price,
+                    'image' => $product->image
+                ];
             }
         }
 
@@ -49,7 +55,8 @@ class ChatbotController extends Controller
 Nguyên tắc trả lời:
 1. Nếu khách hỏi chung chung 'muốn mua bánh', hãy liệt kê các danh mục: {$categoryNames} và hỏi khách thích loại nào.
 2. Khi khách hỏi một danh mục cụ thể (vd: Bánh kem), bạn PHẢI liệt kê đầy đủ TẤT CẢ sản phẩm trong danh mục đó.
-3. TUYỆT ĐỐI BẮT BUỘC: Mỗi khi nhắc đến một sản phẩm, bạn KHÔNG ĐƯỢC chỉ ghi tên chay, mà PHẢI dán nguyên vẹn đoạn mã HTML bắt đầu bằng <a href=...> của sản phẩm đó vào câu trả lời để khách hàng bấm xem. Đừng dùng ký tự markdown ``` bao quanh HTML.
+3. TUYỆT ĐỐI BẮT BUỘC: Mỗi khi nhắc đến một sản phẩm, bạn KHÔNG ĐƯỢC chỉ ghi tên chay. Bạn PHẢI chèn mã `[PRODUCT:id]` (thay id bằng ID của sản phẩm) ngay sau tên sản phẩm để hệ thống tự động vẽ khung sản phẩm. 
+Ví dụ: Bạn có thể thử Bánh Kem Dâu Tây [PRODUCT:1] nhé.
 
 Dữ liệu cửa hàng:
 {$productListStr}";
@@ -83,11 +90,19 @@ Dữ liệu cửa hàng:
                 $reply = str_replace(['**', '*'], '', $reply);
 
                 return response()->json([
-                    'reply' => $reply
+                    'reply' => $reply,
+                    'products' => $productsMap
                 ]);
             }
 
             Log::error('Gemini API Error: ' . $response->body());
+            
+            if ($response->status() === 429) {
+                return response()->json([
+                    'reply' => 'Bạn đang chat quá nhanh hoặc hệ thống đang hết lượt dùng thử miễn phí. Vui lòng đợi khoảng 1 phút rồi thử lại nhé!'
+                ]);
+            }
+
             return response()->json([
                 'reply' => 'Xin lỗi, hệ thống AI đang quá tải hoặc gặp lỗi kết nối. Bạn vui lòng thử lại sau nhé!'
             ]);

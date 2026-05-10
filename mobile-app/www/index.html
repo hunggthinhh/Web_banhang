@@ -8,7 +8,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>La Pâtisserie – Tiệm Bánh</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@300;400;500;600&family=Roboto:wght@300;400;500;700;900&display=swap&subset=vietnamese" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@300;400;500;600&family=Roboto:wght@300;400;500;700;900&display=swap&subset=vietnamese"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -362,7 +364,7 @@
             <div class="header-actions">
                 <a onclick="navigateTo('cart')"><i class="fas fa-shopping-bag"></i><span
                         id="cart-badge-header">0</span></a>
-                <a onclick="navigateTo('profile')"><i class="fas fa-user-circle"></i></a>
+                <a onclick="navigateTo('profile')" id="header-avatar-btn" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; overflow:hidden; background:#f0f4f8; color:#1a365d;"><i class="fas fa-user-circle" style="font-size:22px;"></i></a>
             </div>
         </div>
 
@@ -396,7 +398,7 @@
             <div class="bnav-item" onclick="navigateTo('shop')"><i class="fas fa-cookie"></i><span>Sản phẩm</span></div>
             <div class="bnav-item" onclick="navigateTo('cart')"><i class="fas fa-shopping-cart"></i><span>Giỏ
                     hàng</span></div>
-            <div class="bnav-item" onclick="navigateTo('profile')"><i class="fas fa-user"></i><span>Tài khoản</span>
+            <div class="bnav-item" onclick="navigateTo('profile')"><span id="bnav-avatar-wrap" style="display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; overflow:hidden; background:#f0f4f8;"><i class="fas fa-user" style="font-size:16px; color:#1a365d;"></i></span><span>Tài khoản</span>
             </div>
         </nav>
     </div>
@@ -413,6 +415,7 @@
             </div>
 
             <div style="display:flex; flex-direction:column; gap:15px;" id="m-addr-form">
+                <input type="hidden" id="m-addr-id" value="">
                 <input type="text" id="m-addr-alias" placeholder="Tên gợi nhớ (VD: Nhà riêng, Công ty)"
                     style="width:100%; padding:14px; border-radius:12px; border:1px solid #ddd; outline:none; font-size:16px;">
                 <input type="text" id="m-addr-name" placeholder="Họ và tên người nhận *"
@@ -439,6 +442,10 @@
 
                 <input type="text" id="m-addr-detail" placeholder="Địa chỉ chi tiết (Số nhà, tên đường) *"
                     style="width:100%; padding:14px; border-radius:12px; border:1px solid #ddd; outline:none; font-size:16px;">
+
+                <label style="display:flex; align-items:center; gap:10px; font-size:14px; color:#4a5568;">
+                    <input type="checkbox" id="m-addr-default"> Đặt làm địa chỉ mặc định
+                </label>
 
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button onclick="hideAddressModal()"
@@ -487,11 +494,15 @@
     </div>
 
     <!-- Order Detail Modal -->
-    <div id="m-order-detail-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2500; display:none; align-items:flex-end;">
-        <div style="background:#fff; width:100%; border-radius:24px 24px 0 0; padding:30px 20px 40px; max-height:90vh; overflow-y:auto;">
+    <div id="m-order-detail-modal"
+        style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2500; display:none; align-items:flex-end;">
+        <div
+            style="background:#fff; width:100%; border-radius:24px 24px 0 0; padding:30px 20px 40px; max-height:90vh; overflow-y:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <h3 style="font-family:Georgia; font-size:20px; color:#1a365d;" id="m-order-detail-title">Chi tiết đơn hàng</h3>
-                <i class="fas fa-times" onclick="hideOrderDetailModalMobile()" style="font-size:20px; color:#999; padding:5px;"></i>
+                <h3 style="font-family:Georgia; font-size:20px; color:#1a365d;" id="m-order-detail-title">Chi tiết đơn
+                    hàng</h3>
+                <i class="fas fa-times" onclick="hideOrderDetailModalMobile()"
+                    style="font-size:20px; color:#999; padding:5px;"></i>
             </div>
             <div id="m-order-detail-content">
                 <!-- Content will be injected here -->
@@ -500,31 +511,44 @@
     </div>
 
     <!-- Review Modal -->
-    <div id="m-review-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; display:none; align-items:flex-end;">
-        <div style="background:#fff; width:100%; border-radius:24px 24px 0 0; padding:30px 20px 40px; max-height:90vh; overflow-y:auto;">
+    <div id="m-review-modal"
+        style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; display:none; align-items:flex-end;">
+        <div
+            style="background:#fff; width:100%; border-radius:24px 24px 0 0; padding:30px 20px 40px; max-height:90vh; overflow-y:auto;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
                 <h3 style="font-family:Georgia; font-size:20px; color:#1a365d;">Đánh giá sản phẩm</h3>
-                <i class="fas fa-times" onclick="hideReviewModalMobile()" style="font-size:20px; color:#999; padding:5px;"></i>
+                <i class="fas fa-times" onclick="hideReviewModalMobile()"
+                    style="font-size:20px; color:#999; padding:5px;"></i>
             </div>
             <div id="m-review-form" style="display:flex; flex-direction:column; gap:15px;">
                 <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;" id="m-star-rating">
-                    <i class="fas fa-star" data-rating="1" onclick="setRatingMobile(1)" style="font-size:30px; color:#ffd700;"></i>
-                    <i class="fas fa-star" data-rating="2" onclick="setRatingMobile(2)" style="font-size:30px; color:#ffd700;"></i>
-                    <i class="fas fa-star" data-rating="3" onclick="setRatingMobile(3)" style="font-size:30px; color:#ffd700;"></i>
-                    <i class="fas fa-star" data-rating="4" onclick="setRatingMobile(4)" style="font-size:30px; color:#ffd700;"></i>
-                    <i class="fas fa-star" data-rating="5" onclick="setRatingMobile(5)" style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="1" onclick="setRatingMobile(1)"
+                        style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="2" onclick="setRatingMobile(2)"
+                        style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="3" onclick="setRatingMobile(3)"
+                        style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="4" onclick="setRatingMobile(4)"
+                        style="font-size:30px; color:#ffd700;"></i>
+                    <i class="fas fa-star" data-rating="5" onclick="setRatingMobile(5)"
+                        style="font-size:30px; color:#ffd700;"></i>
                 </div>
-                <textarea id="m-review-comment" placeholder="Bạn thấy sản phẩm này thế nào?" style="width:100%; padding:15px; border-radius:12px; border:1px solid #ddd; outline:none; font-size:16px; min-height:100px; font-family:inherit;"></textarea>
-                
+                <textarea id="m-review-comment" placeholder="Bạn thấy sản phẩm này thế nào?"
+                    style="width:100%; padding:15px; border-radius:12px; border:1px solid #ddd; outline:none; font-size:16px; min-height:100px; font-family:inherit;"></textarea>
+
                 <div>
-                    <label for="m-review-media" style="display:inline-block; padding:10px 15px; background:#f0f2f5; border-radius:10px; font-size:14px; font-weight:600; color:#4a5568;">
+                    <label for="m-review-media"
+                        style="display:inline-block; padding:10px 15px; background:#f0f2f5; border-radius:10px; font-size:14px; font-weight:600; color:#4a5568;">
                         <i class="fas fa-camera"></i> Thêm ảnh/video
                     </label>
-                    <input type="file" id="m-review-media" multiple accept="image/*,video/*" style="display:none;" onchange="handleReviewMediaMobile(event)">
+                    <input type="file" id="m-review-media" multiple accept="image/*,video/*" style="display:none;"
+                        onchange="handleReviewMediaMobile(event)">
                 </div>
                 <div id="m-media-preview" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:5px;"></div>
 
-                <button id="btn-m-review-submit" onclick="submitReviewMobile()" style="width:100%; background:var(--primary); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; margin-top:10px;">Gửi đánh giá</button>
+                <button id="btn-m-review-submit" onclick="submitReviewMobile()"
+                    style="width:100%; background:var(--primary); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; margin-top:10px;">Gửi
+                    đánh giá</button>
             </div>
         </div>
     </div>
@@ -535,8 +559,170 @@
         <div class="spinner"></div>
     </div>
 
+    <!-- AI Chatbot -->
+    <div id="ai-chatbot-container"
+        style="position: fixed; bottom: 120px; right: 20px; z-index: 1000; font-family: 'Inter', sans-serif;">
+        <!-- Chat Window -->
+        <div id="chatbot-window"
+            style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; background: white; border-radius: 16px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); overflow: hidden; flex-direction: column;">
+            <!-- Header -->
+            <div
+                style="background: #001f3f; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div
+                        style="width: 35px; height: 35px; border-radius: 50%; background: #ffd699; display: flex; align-items: center; justify-content: center; color: #001f3f; font-size: 18px;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 16px;">Trợ lý ảo La Pâtisserie</h4>
+                        <span style="font-size: 12px; color: #4CAF50;"><i class="fas fa-circle" style="font-size: 8px;"></i>
+                            Đang trực tuyến</span>
+                    </div>
+                </div>
+                <i class="fas fa-times" onclick="toggleChatbot()" style="cursor: pointer; font-size: 18px;"></i>
+            </div>
+
+            <!-- Messages -->
+            <div id="chatbot-messages"
+                style="height: 380px; padding: 15px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; gap: 12px;">
+                <div
+                    style="background: white; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 14px; color: #333; line-height: 1.5;">
+                    Xin chào! 👋<br>Tôi là trợ lý ảo của <strong>La Pâtisserie</strong>.<br>Tôi có thể giúp gì cho bạn hôm
+                    nay?
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div style="padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px;">
+                <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn của bạn..."
+                    style="flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 25px; outline: none; font-size: 14px;"
+                    onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()"
+                    style="background: #ffd699; color: #001f3f; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Icon -->
+        <div id="chatbot-icon" onclick="toggleChatbot()"
+            style="background: #001f3f; color: #ffd699; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.3s;">
+            <i class="fas fa-comment-dots"></i>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <button id="backToTopMobile" title="Lên đầu trang" 
+        style="display: none; position: fixed; bottom: 200px; right: 27px; width: 50px; height: 50px; border-radius: 50%; background: var(--name-color); color: #fff; border: none; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 999; transition: 0.3s;">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script>
         const API_URL = 'https://equator-skiing-symphony.ngrok-free.dev/Web_banhang/backend/public/api';
+
+        function toggleChatbot() {
+            const win = document.getElementById('chatbot-window');
+            const icon = document.querySelector('#chatbot-icon i');
+            const iconContainer = document.getElementById('chatbot-icon');
+
+            if (win.style.display === 'none' || win.style.display === '') {
+                win.style.display = 'flex';
+                icon.className = 'fas fa-times';
+                iconContainer.style.transform = 'rotate(90deg)';
+            } else {
+                win.style.display = 'none';
+                icon.className = 'fas fa-comment-dots';
+                iconContainer.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const messagesContainer = document.getElementById('chatbot-messages');
+
+            // Add user message
+            messagesContainer.innerHTML += `
+                <div style="background: #001f3f; color: white; padding: 12px 15px; border-radius: 15px 15px 0 15px; max-width: 85%; align-self: flex-end; font-size: 14px; line-height: 1.5; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    ${message}
+                </div>
+            `;
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Add loading
+            const loadingId = 'loading-' + Date.now();
+            messagesContainer.innerHTML += `
+                <div id="${loadingId}" style="background: white; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 14px; color: #888; font-style: italic;">
+                    <i class="fas fa-circle-notch fa-spin"></i> Trợ lý đang suy nghĩ...
+                </div>
+            `;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const baseUrl = API_URL;
+
+                const response = await fetch(`${baseUrl}/chatbot`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                const el = document.getElementById(loadingId);
+                if (el) el.remove();
+
+                // Format markdown bold
+                let replyText = data.reply || 'Xin lỗi, tôi đang gặp sự cố.';
+                replyText = replyText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                // Replace [PRODUCT:id] with actual HTML cards
+                const productsMap = data.products || {};
+                replyText = replyText.replace(/\[PRODUCT:(\d+)\]/g, (match, id) => {
+                    const product = productsMap[id];
+                    if (!product) return ''; // If product not found, remove the tag
+                    
+                    const fixedSrc = window.fixImg ? window.fixImg(product.image) : 'img/logo.png';
+                    
+                    return `<a href='#' data-product-id='${product.id}' style='display:flex; align-items:center; gap:10px; margin-top:8px; margin-bottom:8px; text-decoration:none; color:#333; padding:8px; border:1px solid #ddd; border-radius:8px; background:#fff; width:100%; box-sizing:border-box;'>
+                        <img src='${fixedSrc}' style='width:50px; height:50px; object-fit:cover; border-radius:4px;' onerror="this.src='img/logo.png'">
+                        <div>
+                            <strong style='font-size:14px;'>${product.name}</strong><br>
+                            <span style='color:#e74c3c; font-weight:bold; font-size:13px;'>${product.price}₫</span>
+                        </div>
+                    </a>`;
+                });
+
+                const msgDiv = document.createElement('div');
+                msgDiv.style.cssText = 'background: white; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;';
+                msgDiv.innerHTML = replyText;
+
+                // Intercept all product links - replace href navigation with navigateTo
+                msgDiv.querySelectorAll('a[data-product-id]').forEach(link => {
+                    const productId = link.getAttribute('data-product-id');
+                    link.style.cursor = 'pointer';
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        toggleChatbot(); // close chatbot
+                        navigateTo('product', { id: parseInt(productId) });
+                    });
+                });
+
+                messagesContainer.appendChild(msgDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (error) {
+                const el = document.getElementById(loadingId);
+                if (el) el.remove();
+                messagesContainer.innerHTML += `
+                    <div style="background: #ffebee; color: #c62828; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; font-size: 14px;">
+                        Lỗi kết nối. Vui lòng thử lại sau.
+                    </div>
+                `;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
 
         window.togglePassMobile = (id, icon) => {
             const input = document.getElementById(id);
@@ -564,6 +750,9 @@
 
         window.hideAddressModal = () => {
             document.getElementById('m-address-modal').style.display = 'none';
+            // Reset form
+            document.getElementById('m-addr-id').value = '';
+            document.getElementById('m-addr-default').checked = false;
         };
 
         window.updateDistrictsMobile = async (pCode) => {
@@ -604,11 +793,18 @@
             const city = document.getElementById('m-addr-city');
             const district = document.getElementById('m-addr-district');
             const ward = document.getElementById('m-addr-ward');
+            const editId = document.getElementById('m-addr-id').value;
+
+            const phone = document.getElementById('m-addr-phone').value;
+            if (phone && !/^0\d{9}$/.test(phone)) {
+                alert('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0');
+                return;
+            }
 
             const payload = {
                 alias: document.getElementById('m-addr-alias').value,
                 receiver_name: document.getElementById('m-addr-name').value,
-                receiver_phone: document.getElementById('m-addr-phone').value,
+                receiver_phone: phone,
                 receiver_email: document.getElementById('m-addr-email').value,
                 province: city.options[city.selectedIndex]?.dataset.name,
                 district: district.options[district.selectedIndex]?.dataset.name,
@@ -617,6 +813,7 @@
                 district_code: district.value,
                 ward_code: ward.value,
                 detail_address: document.getElementById('m-addr-detail').value,
+                is_default: document.getElementById('m-addr-default').checked ? 1 : 0,
             };
 
             if (!payload.receiver_name || !payload.receiver_phone || !payload.province || !payload.detail_address) {
@@ -629,7 +826,8 @@
 
             try {
                 const token = localStorage.getItem('auth_token');
-                const res = await fetch(`${API_URL}/addresses`, {
+                const url = editId ? `${API_URL}/addresses/${editId}?_method=PUT` : `${API_URL}/addresses`;
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'ngrok-skip-browser-warning': 'true',
@@ -640,7 +838,7 @@
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
-                    showToast('✅ Đã thêm địa chỉ!');
+                    showToast(editId ? '✅ Đã cập nhật địa chỉ!' : '✅ Đã thêm địa chỉ!');
                     hideAddressModal();
                     loadAddressesMobile();
                 } else {
@@ -731,10 +929,43 @@
         function updateAuthUI() {
             const btn = document.getElementById('drawer-auth-btn');
             const token = localStorage.getItem('auth_token');
+
+            // Update drawer login/logout button
             if (token) {
                 btn.innerHTML = `<a class="drawer-item" onclick="localStorage.clear(); location.reload();"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>`;
             } else {
                 btn.innerHTML = `<a class="drawer-item" onclick="navigateTo('login'); toggleDrawer(false)"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>`;
+            }
+
+            // Update avatar icons in header + bottom nav
+            const headerBtn = document.getElementById('header-avatar-btn');
+            const bnavWrap = document.getElementById('bnav-avatar-wrap');
+            if (!headerBtn || !bnavWrap) return;
+
+            if (token) {
+                const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+                const avatarRaw = userInfo.image || userInfo.avatar || userInfo.profile_photo_url || '';
+                const avatarUrl = avatarRaw ? fixImg(avatarRaw) : '';
+                const name = userInfo.name || '';
+                const letter = name ? name.charAt(0).toUpperCase() : '';
+
+                if (avatarUrl) {
+                    // Has real avatar photo
+                    headerBtn.innerHTML = `<img data-ngroksrc="${avatarUrl}" src="img/logo.png" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid #ffd699;">`;
+                    bnavWrap.innerHTML = `<img data-ngroksrc="${avatarUrl}" src="img/logo.png" style="width:26px; height:26px; border-radius:50%; object-fit:cover; border:2px solid #ffd699;">`;
+                } else if (letter) {
+                    // Show initial letter
+                    headerBtn.innerHTML = `<div style="width:32px; height:32px; border-radius:50%; background:#ffc272; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; color:#001f3f; border:2px solid #ffd699;">${letter}</div>`;
+                    bnavWrap.innerHTML = `<div style="width:26px; height:26px; border-radius:50%; background:#ffc272; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:#001f3f;">${letter}</div>`;
+                } else {
+                    // Default logged-in icon
+                    headerBtn.innerHTML = `<i class="fas fa-user-circle" style="font-size:22px; color:#ffc272;"></i>`;
+                    bnavWrap.innerHTML = `<i class="fas fa-user" style="font-size:16px; color:#ffc272;"></i>`;
+                }
+            } else {
+                // Not logged in - default icons
+                headerBtn.innerHTML = `<i class="fas fa-user-circle" style="font-size:22px;"></i>`;
+                bnavWrap.innerHTML = `<i class="fas fa-user" style="font-size:16px; color:#1a365d;"></i>`;
             }
         }
 
@@ -910,7 +1141,7 @@
         };
 
         // Helper to fix image URLs - dynamically uses current API base URL
-        const fixImg = (url) => {
+        window.fixImg = (url) => {
             if (!url) return 'img/logo.png';
             const apiHost = new URL(API_URL).host;
             let finalUrl;
@@ -923,10 +1154,11 @@
                 finalUrl = `https://${apiHost}/Web_banhang/backend/public/${cleanPath}`;
             }
             // URL-encode path segments to handle Vietnamese characters & spaces in filenames
+            // Also normalize to NFC to handle Mac upload inconsistencies
             try {
                 const u = new URL(finalUrl);
                 u.pathname = u.pathname.split('/').map(seg => {
-                    try { return encodeURIComponent(decodeURIComponent(seg)); } catch (e) { return encodeURIComponent(seg); }
+                    try { return encodeURIComponent(decodeURIComponent(seg).normalize('NFC')); } catch (e) { return encodeURIComponent(seg.normalize('NFC')); }
                 }).join('/');
                 return u.toString();
             } catch (e) {
@@ -957,34 +1189,48 @@
                         <span onclick="navigateTo('shop')" style="color:var(--secondary); font-size:13px; font-weight:600;">Xem tất cả</span>
                     </div>
                     <div class="featured-slider">
-                        ${products.map(p => `
-                            <div class="product-card-mobile" onclick="navigateTo('product', {id:${p.id}})">
-                                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:140px; object-fit:cover; mix-blend-mode:multiply;" onerror="this.src='img/logo.png'">
-                                <div style="padding:12px;">
-                                    <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</h4>
-                                    <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:10px;">${formatPrice(p.price)}</p>
-                                    
-                                    <div style="display:flex; gap:8px; align-items:center;">
-                                        <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name}', price:${p.price}, image:'${p.image}'})" 
-                                                style="width:36px; height:36px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
-                                            <i class="fas fa-shopping-basket" style="font-size:14px;"></i>
-                                        </button>
-                                        <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name}', price:${p.price}, image:'${p.image}'})" 
-                                                style="flex:1; height:36px; background:#e53e3e; color:#fff; border:none; border-radius:18px; font-weight:700; font-size:12px; cursor:pointer;">
-                                            Mua ngay
-                                        </button>
+                        ${products.map(p => {
+                            const now = new Date();
+                            const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
+                            const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
+                            const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
+                            
+                            return `
+                                <div class="product-card-mobile" onclick="navigateTo('product', {id:${p.id}})">
+                                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:140px; object-fit:cover; mix-blend-mode:multiply;" onerror="this.src='img/logo.png'">
+                                    <div style="padding:12px;">
+                                        <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</h4>
+                                        <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:10px;">
+                                            ${hasDiscount ? `
+                                                <span style="text-decoration: line-through; color: #999; font-size: 12px;">${formatPrice(p.price)}</span>
+                                                <span style="color: #e53e3e;">${formatPrice(finalPrice)}</span>
+                                            ` : `
+                                                ${formatPrice(p.price)}
+                                            `}
+                                        </p>
+                                        
+                                        <div style="display:flex; gap:8px; align-items:center;">
+                                            <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name}', price:${finalPrice}, image:'${p.image}'})" 
+                                                    style="width:36px; height:36px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
+                                                <i class="fas fa-shopping-basket" style="font-size:14px;"></i>
+                                            </button>
+                                            <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name}', price:${finalPrice}, image:'${p.image}'})" 
+                                                    style="flex:1; height:36px; background:#e53e3e; color:#fff; border:none; border-radius:18px; font-weight:700; font-size:12px; cursor:pointer;">
+                                                Mua ngay
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 </div>
 
-                <!-- Câu Chuyện Về Đam Mê (synced from web) -->
+                <!-- Câu Chuyện Đam Mê (synced from web) -->
                 <div style="margin:20px; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.05);">
                     <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" style="width:100%; height:200px; object-fit:cover;">
                     <div style="padding:25px 20px;">
-                        <h3 style="font-family:Georgia; font-size:22px; color:#1a365d; margin-bottom:15px;">Câu Chuyện Về Đam Mê</h3>
+                        <h3 style="font-family:Georgia; font-size:22px; color:#1a365d; margin-bottom:15px;">Câu Chuyện Đam Mê</h3>
                         <p style="font-size:14px; color:#4a5568; line-height:1.7; margin-bottom:12px;">Tại La Pâtisserie, chúng tôi tin rằng mỗi chiếc bánh đều mang trong mình một câu chuyện. Từ khâu chọn lựa nguyên liệu hữu cơ đến quy trình nhào bột truyền thống, mỗi bước đều được thực hiện bằng cả trái tim.</p>
                         <p style="font-size:14px; color:#4a5568; line-height:1.7; margin-bottom:20px;">Chúng tôi không chỉ bán bánh, chúng tôi mang đến niềm hạnh phúc trong từng miếng thưởng thức.</p>
                         <span onclick="navigateTo('about')" style="color:var(--primary); font-weight:700; font-size:14px; cursor:pointer;">Tìm hiểu thêm <i class="fas fa-arrow-right" style="font-size:12px;"></i></span>
@@ -1011,7 +1257,7 @@
 
                 <!-- Khách Hàng Nói Gì (synced from web) -->
                 <div style="margin:20px; padding:30px 0;">
-                    <h3 style="font-family:Georgia; font-size:22px; color:#1a365d; text-align:center; margin-bottom:25px;">Khách Hàng Nói Gì Về Chúng Tôi</h3>
+                    <h3 style="font-family:Georgia; font-size:22px; color:#1a365d; text-align:center; margin-bottom:25px;">Khách Hàng Nghĩ Về Chúng Tôi</h3>
                     <div style="display:flex; overflow-x:auto; gap:15px; padding:5px 20px 15px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;">
                         <div style="flex:0 0 280px; scroll-snap-align:start; background:#fff; border-radius:16px; padding:25px 20px; box-shadow:0 5px 20px rgba(0,0,0,0.06); border:1px solid #f0f0f0;">
                             <i class="fas fa-quote-left" style="font-size:24px; color:#1a365d; opacity:0.2; margin-bottom:15px; display:block;"></i>
@@ -1088,36 +1334,19 @@
         };
 
         window.filterShop = (catId, catName) => {
-            const grid = document.getElementById('shop-grid');
-            const btnText = document.querySelector('#cat-toggle-btn span');
-            btnText.textContent = catName;
+            window._shopCurrentCatId = catId;
+            window._shopCurrentSearch = '';
 
-            const filtered = catId === 'all'
-                ? window.allProducts
-                : window.allProducts.filter(p => p.category_id == catId);
+            const label = document.getElementById('cat-label-m');
+            if (label) label.textContent = catName;
 
-            grid.innerHTML = filtered.map(p => `
-                <div onclick="navigateTo('product', {id:${p.id}})" style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
-                    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:130px; object-fit:cover;" onerror="this.src='img/logo.png'">
-                    <div style="padding:12px; flex:1; display:flex; flex-direction:column;">
-                        <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; flex-grow:1;">${p.name}</h4>
-                        <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:12px;">${formatPrice(p.price)}</p>
-                        
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${p.price}, image:'${p.image}'})" 
-                                    style="width:34px; height:34px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
-                                <i class="fas fa-shopping-basket" style="font-size:13px;"></i>
-                            </button>
-                            <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${p.price}, image:'${p.image}'})" 
-                                    style="flex:1; height:34px; background:#e53e3e; color:#fff; border:none; border-radius:17px; font-weight:700; font-size:11px; cursor:pointer;">
-                                Mua ngay
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            const searchInput = document.getElementById('shop-search-input');
+            if (searchInput) searchInput.value = '';
+
+            window._shopApplyFilters();
             window.toggleCategories(); // Auto close after selection
         };
+
 
         pages.shop = async (params) => {
             const [pRes, cRes] = await Promise.all([
@@ -1131,72 +1360,78 @@
                 <div style="padding:20px 20px 0;">
                     <div style="position:relative; margin-bottom:15px;">
                         <i class="fas fa-search" style="position:absolute; left:15px; top:15px; color:#999;"></i>
-                        <input type="text" oninput="searchShop(this.value)" placeholder="Tìm kiếm bánh..." spellcheck="true" style="width:100%; padding:14px 14px 14px 40px; border-radius:25px; border:1px solid #eee; outline:none; background:#f9f9f9; font-size:16px;">
+                        <input type="text" id="shop-search-input" oninput="searchShop(this.value)" placeholder="Tìm kiếm bánh..." spellcheck="true" style="width:100%; padding:14px 14px 14px 40px; border-radius:25px; border:1px solid #eee; outline:none; background:#f9f9f9; font-size:16px;">
                     </div>
                     
-                    <!-- Category Selection Button -->
-                    <div id="cat-toggle-btn" onclick="toggleCategories()" style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:12px 18px; border-radius:12px; border:1px solid #eee; cursor:pointer; margin-bottom:10px;">
-                        <span>Tất cả các loại bánh</span>
-                        <i class="fas fa-chevron-down" style="transition:0.3s; color:var(--primary);"></i>
+                    <!-- Sort + Category Row -->
+                    <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <div id="cat-toggle-btn" onclick="toggleCategories()" style="flex:1; display:flex; justify-content:space-between; align-items:center; background:#fff; padding:12px 18px; border-radius:12px; border:1px solid #eee; cursor:pointer;">
+                            <span id="cat-label-m">Tất cả loại</span>
+                            <i class="fas fa-chevron-down" style="transition:0.3s; color:var(--primary);"></i>
+                        </div>
+                        <select id="shop-sort-select" onchange="sortShop(this.value)" style="padding:12px 10px; border-radius:12px; border:1px solid #eee; background:#fff; font-size:13px; color:#001f3f; font-weight:600; outline:none;">
+                            <option value="latest">Mới nhất</option>
+                            <option value="price_asc">Giá tăng dần</option>
+                            <option value="price_desc">Giá giảm dần</option>
+                        </select>
                     </div>
 
                     <!-- Hidden Category Grid Menu -->
                     <div id="cat-menu" style="display:none; grid-template-columns:1fr 1fr; gap:10px; background:#fdfdfd; padding:15px; border-radius:12px; border:1px solid #eee; margin-bottom:15px;">
-                        <div onclick="filterShop('all', 'Tất cả các loại bánh')" style="padding:10px; text-align:center; background:#fff; border:1px solid #eee; border-radius:8px; font-size:13px;">Tất cả</div>
+                        <div onclick="filterShop('all', 'Tất cả loại')" style="padding:10px; text-align:center; background:#fff; border:1px solid #eee; border-radius:8px; font-size:13px;">Tất cả</div>
                         ${categories.map(c => `
                             <div onclick="filterShop(${c.id}, '${c.name.replace(/'/g, "\\'")}')" style="padding:10px; text-align:center; background:#fff; border:1px solid #eee; border-radius:8px; font-size:13px;">${c.name}</div>
                         `).join('')}
                     </div>
 
                     <div id="shop-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; padding-bottom:20px;">
-                        ${window.allProducts.map(p => `
-                            <div onclick="navigateTo('product', {id:${p.id}})" style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
-                                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:130px; object-fit:cover;" onerror="this.src='img/logo.png'">
-                                <div style="padding:12px; flex:1; display:flex; flex-direction:column;">
-                                    <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; flex-grow:1;">${p.name}</h4>
-                                    <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:12px;">${formatPrice(p.price)}</p>
-                                    
-                                    <div style="display:flex; gap:8px; align-items:center;">
-                                        <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${p.price}, image:'${p.image}'})" 
-                                                style="width:34px; height:34px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
-                                            <i class="fas fa-shopping-basket" style="font-size:13px;"></i>
-                                        </button>
-                                        <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${p.price}, image:'${p.image}'})" 
-                                                style="flex:1; height:34px; background:#e53e3e; color:#fff; border:none; border-radius:17px; font-weight:700; font-size:11px; cursor:pointer;">
-                                            Mua ngay
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
+                        ${renderShopCards(window.allProducts)}
                     </div>
                 </div>
                 ${getFooterHTML()}
             `;
 
+            window._shopCurrentCatId = 'all';
+            window._shopCurrentSort = 'latest';
+
+
             window.searchShop = (val) => {
                 const grid = document.getElementById('shop-grid');
                 const filtered = window.allProducts.filter(p => p.name.toLowerCase().includes(val.toLowerCase()));
-                grid.innerHTML = filtered.map(p => `
-                    <div onclick="navigateTo('product', {id:${p.id}})" style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
-                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:130px; object-fit:cover;" onerror="this.src='img/logo.png'">
-                        <div style="padding:12px; flex:1; display:flex; flex-direction:column;">
-                            <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; flex-grow:1;">${p.name}</h4>
-                            <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:12px;">${formatPrice(p.price)}</p>
-                            
-                            <div style="display:flex; gap:8px; align-items:center;">
-                                <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${p.price}, image:'${p.image}'})" 
-                                        style="width:34px; height:34px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
-                                    <i class="fas fa-shopping-basket" style="font-size:13px;"></i>
-                                </button>
-                                <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${p.price}, image:'${p.image}'})" 
-                                        style="flex:1; height:34px; background:#e53e3e; color:#fff; border:none; border-radius:17px; font-weight:700; font-size:11px; cursor:pointer;">
-                                    Mua ngay
-                                </button>
+                grid.innerHTML = filtered.map(p => {
+                    const now = new Date();
+                    const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
+                    const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
+                    const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
+                    
+                    return `
+                        <div onclick="navigateTo('product', {id:${p.id}})" style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:130px; object-fit:cover;" onerror="this.src='img/logo.png'">
+                            <div style="padding:12px; flex:1; display:flex; flex-direction:column;">
+                                <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; flex-grow:1;">${p.name}</h4>
+                                <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:12px;">
+                                    ${hasDiscount ? `
+                                        <span style="text-decoration: line-through; color: #999; font-size: 12px;">${formatPrice(p.price)}</span>
+                                        <span style="color: #e53e3e;">${formatPrice(finalPrice)}</span>
+                                    ` : `
+                                        ${formatPrice(p.price)}
+                                    `}
+                                </p>
+                                
+                                <div style="display:flex; gap:8px; align-items:center;">
+                                    <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${finalPrice}, image:'${p.image}'})" 
+                                            style="width:34px; height:34px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
+                                        <i class="fas fa-shopping-basket" style="font-size:13px;"></i>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${finalPrice}, image:'${p.image}'})" 
+                                            style="flex:1; height:34px; background:#e53e3e; color:#fff; border:none; border-radius:17px; font-weight:700; font-size:11px; cursor:pointer;">
+                                        Mua ngay
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             };
 
             // Handle Deep Link Category
@@ -1208,6 +1443,85 @@
             }
         };
 
+        // ====== SHOP HELPERS (shared render, filter, sort, search) ======
+        window.renderShopCards = (products) => {
+            if (!products || products.length === 0) {
+                return `<div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:#999;">
+                    <i class="fas fa-search" style="font-size:36px; opacity:0.3; margin-bottom:15px;"></i>
+                    <p>Không tìm thấy sản phẩm nào.</p>
+                </div>`;
+            }
+            return products.map(p => {
+                const now = new Date();
+                const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
+                const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
+                const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
+                
+                return `
+                    <div onclick="navigateTo('product', {id:${p.id}})" style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column;">
+                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(p.image)}" style="width:100%; height:130px; object-fit:cover;" onerror="this.src='img/logo.png'">
+                        <div style="padding:12px; flex:1; display:flex; flex-direction:column;">
+                            <h4 style="font-size:13px; color:var(--name-color); margin-bottom:5px; flex-grow:1;">${p.name}</h4>
+                            <p style="color:var(--price-color); font-weight:700; font-size:14px; margin-bottom:12px;">
+                                ${hasDiscount ? `
+                                    <span style="text-decoration: line-through; color: #999; font-size: 12px;">${formatPrice(p.price)}</span>
+                                    <span style="color: #e53e3e;">${formatPrice(finalPrice)}</span>
+                                ` : `
+                                    ${formatPrice(p.price)}
+                                `}
+                            </p>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <button onclick="event.stopPropagation(); addToCart({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${finalPrice}, image:'${p.image}'})"
+                                        style="width:34px; height:34px; background:#f0f4f8; border:1px solid #d1d5db; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#001f3f; cursor:pointer;">
+                                    <i class="fas fa-shopping-basket" style="font-size:13px;"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); buyNow({id:${p.id}, name:'${p.name.replace(/'/g, "\\'")}', price:${finalPrice}, image:'${p.image}'})"
+                                        style="flex:1; height:34px; background:#e53e3e; color:#fff; border:none; border-radius:17px; font-weight:700; font-size:11px; cursor:pointer;">
+                                    Mua ngay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window._shopApplyFilters = () => {
+            let products = [...(window.allProducts || [])];
+            const catId = window._shopCurrentCatId || 'all';
+            const sort = window._shopCurrentSort || 'latest';
+            const search = window._shopCurrentSearch || '';
+
+            if (catId !== 'all') {
+                products = products.filter(p => p.category_id.toString() === catId.toString());
+            }
+            if (search) {
+                products = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+            }
+            if (sort === 'price_asc') {
+                products.sort((a, b) => a.price - b.price);
+            } else if (sort === 'price_desc') {
+                products.sort((a, b) => b.price - a.price);
+            } else {
+                products.sort((a, b) => b.id - a.id);
+            }
+
+            const grid = document.getElementById('shop-grid');
+            if (grid) grid.innerHTML = renderShopCards(products);
+        };
+
+        window.searchShop = (val) => {
+            window._shopCurrentSearch = val;
+            window._shopApplyFilters();
+        };
+
+        window.sortShop = (val) => {
+            window._shopCurrentSort = val;
+            window._shopApplyFilters();
+        };
+
+
+
         pages.product = async (params) => {
             const res = await fetch(`${API_URL}/products/${params.id}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
             const data = await res.json();
@@ -1218,6 +1532,11 @@
                 document.getElementById('page-content').innerHTML = `<div style="padding:60px 20px; text-align:center;"><h2>Không tìm thấy sản phẩm</h2></div>`;
                 return;
             }
+
+            const now = new Date();
+            const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
+            const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
+            const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
 
             const subImages = p.sub_images || [];
             const allImgs = [p.image, ...subImages].slice(0, 4);
@@ -1260,8 +1579,16 @@
                     ` : ''}
 
                     <h2 style="margin-top:15px; color:var(--name-color); font-family:Georgia; font-size:22px;">${p.name}</h2>
-                    <h3 style="color:var(--price-color); margin:8px 0; font-size:20px;">${formatPrice(p.price)}</h3>
-                    <p style="font-size:12px; color:var(--price-color); margin-bottom:15px;">(Giá chưa bao gồm thuế VAT)</p>
+                    ${hasDiscount ? `
+                        <div style="display: flex; gap: 10px; align-items: baseline; margin: 8px 0;">
+                            <span style="text-decoration: line-through; color: #999; font-size: 16px;">${formatPrice(p.price)}</span>
+                            <span style="color: var(--price-color); font-size: 20px; font-weight: bold;">${formatPrice(finalPrice)}</span>
+                            <span style="background: #e53e3e; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold;">-${p.discount_percent}%</span>
+                            ${endsAt ? `<span style="color: #666; font-size: 12px; margin-left: 10px;"><i class="far fa-clock"></i> Đến ${endsAt.toLocaleDateString('vi-VN')}</span>` : ''}
+                        </div>
+                    ` : `
+                        <h3 style="color:var(--price-color); margin:8px 0; font-size:20px;">${formatPrice(p.price)}</h3>
+                    `}
                     <p style="color:#666; line-height:1.7; font-size:14px; margin-bottom:20px;">${p.description || 'Hương vị bánh ngọt ngào và tinh tế, được làm thủ công bằng cả trái tim.'}</p>
                     
                     <!-- Buy Section -->
@@ -1273,12 +1600,12 @@
                                 <button onclick="changeQtyMobile(1)" style="width: 48px; height: 100%; border: none; background: transparent; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0;">+</button>
                             </div>
                             
-                            <button onclick="addToCart({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${p.price}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
+                            <button onclick="addToCart({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${finalPrice}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
                                     style="width: 54px; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; flex-shrink: 0; box-sizing: border-box !important; background: #f0f4f8; border: 1px solid #d1d5db; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #001f3f;">
                                 <i class="fas fa-shopping-basket" style="font-size: 20px; margin: 0; padding: 0;"></i>
                             </button>
                             
-                            <button onclick="buyNow({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${p.price}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
+                            <button onclick="buyNow({id:${p.id}, name:'${(p.name || '').replace(/'/g, "\\'")}', price:${finalPrice}, image:'${fixImg(p.image)}', quantity: parseInt(document.getElementById('qty-val-m').value)})" 
                                     style="flex: 1; height: 54px !important; min-height: 54px !important; max-height: 54px !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center;">
                                 Mua ngay
                             </button>
@@ -1294,10 +1621,131 @@
                 </div>
                 ` : ''}
 
+                <!-- Product Reviews Section (synced from web) -->
+                <div style="padding:25px 16px; margin-top:10px;">
+                    <h3 style="font-family:Georgia; font-size:20px; color:#001f3f; margin-bottom:15px;">Đánh giá sản phẩm</h3>
+                    <div id="m-product-reviews-content"></div>
+                </div>
+
                 <!-- Related Products -->
                 ${relatedHTML}
                 ${getFooterHTML()}
             `;
+
+            // Render product reviews
+            renderMobileProductReviews(p);
+        };
+
+        window.renderMobileProductReviews = async (product) => {
+            const container = document.getElementById('m-product-reviews-content');
+            if (!container) return;
+
+            container.innerHTML = '<p style="text-align:center; color:#999; font-size:14px;">Đang tải đánh giá...</p>';
+
+            try {
+                const res = await fetch(`${API_URL}/products/${product.slug || product.id}/reviews`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' }
+                });
+                const reviews = await res.json();
+                window._mobileProductReviews = reviews;
+
+                if (!reviews || reviews.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:30px 0; color:#999;">
+                            <i class="far fa-star" style="font-size:36px; margin-bottom:10px; opacity:0.3;"></i>
+                            <p style="font-size:14px;">Chưa có đánh giá nào cho sản phẩm này.</p>
+                        </div>`;
+                    return;
+                }
+
+                // Calculate stats
+                const avgRating = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+                const counts = [0, 0, 0, 0, 0];
+                reviews.forEach(r => counts[r.rating - 1]++);
+
+                // Render filter + reviews
+                container.innerHTML = `
+                    <div style="background:#fffaf5; border-radius:15px; padding:20px; margin-bottom:20px; text-align:center;">
+                        <div style="font-size:36px; font-weight:800; color:#001f3f;">${avgRating}</div>
+                        <div style="margin:5px 0;">
+                            ${Array(5).fill(0).map((_, i) => `<i class="${i < Math.round(avgRating) ? 'fas' : 'far'} fa-star" style="color:#ffd700; font-size:16px;"></i>`).join('')}
+                        </div>
+                        <p style="color:#999; font-size:13px;">${reviews.length} đánh giá</p>
+                    </div>
+                    <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:12px; margin-bottom:15px; scrollbar-width:none;">
+                        <button class="m-rv-filter active" onclick="filterMobileProductReviews('all', this)" style="padding:6px 14px; border-radius:20px; border:1px solid #ddd; background:#001f3f; color:#fff; font-size:12px; white-space:nowrap; font-weight:700;">Tất cả (${reviews.length})</button>
+                        <button class="m-rv-filter" onclick="filterMobileProductReviews('media', this)" style="padding:6px 14px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">Có hình ảnh</button>
+                        ${[5, 4, 3, 2, 1].map(s => counts[s - 1] > 0 ? `<button class="m-rv-filter" onclick="filterMobileProductReviews(${s}, this)" style="padding:6px 14px; border-radius:20px; border:1px solid #ddd; background:#fff; font-size:12px; white-space:nowrap;">${s} <i class="fas fa-star" style="color:#ffd700; font-size:10px;"></i> (${counts[s - 1]})</button>` : '').join('')}
+                    </div>
+                    <div id="m-product-reviews-list"></div>
+                `;
+                filterMobileProductReviews('all', null);
+            } catch (e) {
+                container.innerHTML = '<p style="color:#999; font-size:13px; text-align:center;">Không thể tải đánh giá.</p>';
+            }
+        };
+
+        window.filterMobileProductReviews = (filter, btn) => {
+            if (btn) {
+                document.querySelectorAll('.m-rv-filter').forEach(b => {
+                    b.style.background = '#fff';
+                    b.style.color = '#333';
+                });
+                btn.style.background = '#001f3f';
+                btn.style.color = '#fff';
+            }
+
+            let reviews = window._mobileProductReviews || [];
+            if (filter === 'media') {
+                reviews = reviews.filter(r => (r.images && r.images.length > 0) || (r.videos && r.videos.length > 0));
+            } else if (typeof filter === 'number') {
+                reviews = reviews.filter(r => r.rating === filter);
+            }
+
+            const list = document.getElementById('m-product-reviews-list');
+            if (!list) return;
+
+            if (reviews.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#999; font-size:13px; padding:20px;">Không có đánh giá phù hợp.</p>';
+                return;
+            }
+
+            list.innerHTML = reviews.map(r => {
+                const stars = Array(5).fill(0).map((_, i) => `<i class="${i < r.rating ? 'fas' : 'far'} fa-star" style="color:#ffd700; font-size:12px;"></i>`).join('');
+                const userName = r.user ? r.user.name : 'Ẩn danh';
+                const avatar = userName.charAt(0).toUpperCase();
+
+                let mediaHtml = '';
+                if (r.images && r.images.length > 0) {
+                    mediaHtml += r.images.map(url => `<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(url)}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;">`).join('');
+                }
+                if (r.videos && r.videos.length > 0) {
+                    mediaHtml += r.videos.map(url => `
+                        <div style="position:relative; display:inline-block;">
+                            <video src="${fixImg(url)}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;"></video>
+                            <i class="fas fa-play-circle" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#fff; font-size:18px; opacity:0.9;"></i>
+                        </div>
+                    `).join('');
+                }
+
+                return `
+                    <div style="border-bottom:1px solid #f0f0f0; padding:15px 0;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div style="width:35px; height:35px; border-radius:50%; background:#ffe8d6; display:flex; align-items:center; justify-content:center; font-weight:700; color:#c68e67; font-size:14px;">${avatar}</div>
+                            <div>
+                                <b style="font-size:14px; color:#1a365d;">${userName}</b>
+                                <div style="font-size:11px; color:#999;">${new Date(r.created_at).toLocaleDateString('vi-VN')}</div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:6px;">${stars}</div>
+                        ${r.comment ? `<p style="font-size:14px; color:#4a5568; line-height:1.6; margin-bottom:8px;">${r.comment}</p>` : ''}
+                        ${mediaHtml ? `<div style="display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;">${mediaHtml}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Fix images via CapacitorHttp
+            // Images with data-ngroksrc are auto-loaded by the global setInterval
         };
 
         window.changeQtyMobile = (amt) => {
@@ -1629,6 +2077,15 @@
                 alert('Vui lòng điền đầy đủ các trường bắt buộc (*)'); return;
             }
 
+            const email = document.getElementById('chk-email').value;
+            if (email && !email.endsWith('@gmail.com')) {
+                alert('Email phải có định dạng @gmail.com'); return;
+            }
+
+            if (!/^0\d{9}$/.test(phone)) {
+                alert('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0'); return;
+            }
+
             btn.disabled = true; btn.innerText = 'Đang đặt hàng...';
 
             const day = document.getElementById('chk-day').value;
@@ -1949,9 +2406,9 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     showToast('✅ Gửi liên hệ thành công!');
                     document.getElementById('m-contact-form').reset();
@@ -2075,30 +2532,38 @@
                 }
             } catch (e) { console.error('Fetch profile error:', e); }
 
+            // Store user globally to avoid JSON injection in onclick attributes
+            window._currentProfileUser = user;
+
             document.getElementById('page-content').innerHTML = `
                 <div style="background:#fffcf7; min-height:100vh; padding:20px;">
                     <h2 style="font-family:Georgia; color:#1a365d; margin-bottom:20px; font-size:22px;">Tài khoản khách hàng</h2>
                     
                     <div style="background:#fff; border-radius:20px; padding:30px 20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.05); margin-bottom:20px;">
                         <div style="position:relative; width:90px; height:90px; margin:0 auto 15px;">
-                            <div style="width:100%; height:100%; border-radius:50%; background:#ffe8d6; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:#c68e67; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-                                ${user.name.charAt(0)}
-                            </div>
+                            ${user.image
+                                ? `<img data-ngroksrc="${fixImg(user.image)}" src="img/logo.png" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1);">`
+                                : `<div style="width:100%; height:100%; border-radius:50%; background:#ffe8d6; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:#c68e67; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.1);">${user.name.charAt(0)}</div>`
+                            }
+                            <label for="m-avatar-upload" style="position:absolute; bottom:0; right:0; width:28px; height:28px; background:#ffc272; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+                                <i class="fas fa-camera" style="font-size:11px; color:#001f3f;"></i>
+                            </label>
+                            <input type="file" id="m-avatar-upload" accept="image/*" style="display:none;" onchange="uploadAvatarMobile(event)">
                         </div>
                         <h3 style="font-size:17px; color:#1a365d; margin-bottom:3px;">${user.name}</h3>
                         <p style="color:#999; font-size:12px; margin-bottom:20px;">${user.email}</p>
                         
                         <div style="text-align:left; display:flex; flex-direction:column; gap:5px;">
-                            <div id="tab-btn-orders" onclick="renderProfileTab('orders', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; background:#fff5ee; color:#1a365d; padding:12px 20px; border-radius:10px; font-weight:700; display:flex; align-items:center; gap:12px;">
+                            <div id="tab-btn-orders" onclick="renderProfileTab('orders', window._currentProfileUser)" class="prof-menu-item" style="cursor:pointer; background:#fff5ee; color:#1a365d; padding:12px 20px; border-radius:10px; font-weight:700; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-box-open"></i> Đơn hàng
                             </div>
-                            <div id="tab-btn-account" onclick="renderProfileTab('account', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
+                            <div id="tab-btn-account" onclick="renderProfileTab('account', window._currentProfileUser)" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-user-circle"></i> Tài khoản
                             </div>
-                            <div id="tab-btn-addresses" onclick="renderProfileTab('addresses', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
+                            <div id="tab-btn-addresses" onclick="renderProfileTab('addresses', window._currentProfileUser)" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-map-marker-alt"></i> Địa chỉ
                             </div>
-                            <div id="tab-btn-reviews" onclick="renderProfileTab('reviews', ${JSON.stringify(user).replace(/"/g, '&quot;')})" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
+                            <div id="tab-btn-reviews" onclick="renderProfileTab('reviews', window._currentProfileUser)" class="prof-menu-item" style="cursor:pointer; padding:12px 20px; color:#4a5568; display:flex; align-items:center; gap:12px;">
                                 <i class="fas fa-star"></i> Đánh giá của tôi
                             </div>
                             <div onclick="localStorage.clear(); location.reload();" style="cursor:pointer; padding:12px 20px; color:#e53e3e; display:flex; align-items:center; gap:12px;">
@@ -2122,10 +2587,25 @@
             btn.disabled = true;
             btn.innerText = 'Đang lưu...';
 
+            const email = document.getElementById('m-user-email').value;
+            const phone = document.getElementById('m-user-phone').value;
+
+            if (!email.endsWith('@gmail.com')) {
+                alert('Email phải có định dạng @gmail.com');
+                btn.disabled = false; btn.innerText = 'Lưu thay đổi';
+                return;
+            }
+
+            if (phone && !/^0\d{9}$/.test(phone)) {
+                alert('Số điện thoại phải bao gồm đúng 10 chữ số và bắt đầu bằng số 0');
+                btn.disabled = false; btn.innerText = 'Lưu thay đổi';
+                return;
+            }
+
             const payload = {
                 name: document.getElementById('m-full-name').value,
-                email: document.getElementById('m-user-email').value,
-                phone: document.getElementById('m-user-phone').value,
+                email: email,
+                phone: phone,
             };
 
             const newPass = document.getElementById('m-new-pass').value;
@@ -2161,13 +2641,54 @@
             btn.innerText = 'Lưu thay đổi';
         };
 
+        window.uploadAvatarMobile = async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('⏳ Đang tải ảnh lên...');
+
+            const token = localStorage.getItem('auth_token');
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('_method', 'PUT');
+
+            // Also keep existing name/email so backend validation passes
+            const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+            formData.append('name', userInfo.name || '');
+            formData.append('email', userInfo.email || '');
+
+            try {
+                const res = await fetch(`${API_URL}/profile`, {
+                    method: 'POST',
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true',
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                        // Note: Do NOT set Content-Type for multipart/form-data — browser sets it with boundary
+                    },
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.user) {
+                    localStorage.setItem('user_info', JSON.stringify(data.user));
+                    showToast('✅ Cập nhật ảnh đại diện thành công!');
+                    // Refresh the profile page to show new avatar + sync header/bnav icons
+                    navigateTo('profile');
+                } else {
+                    alert(data.message || 'Lỗi khi tải ảnh lên');
+                }
+            } catch (e) {
+                alert('Lỗi kết nối server');
+            }
+        };
+
         let allUserOrdersMobile = [];
 
         window.loadOrdersMobile = async () => {
             const token = localStorage.getItem('auth_token');
             try {
-                const res = await fetch(`${API_URL}/orders`, { 
-                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` } 
+                const res = await fetch(`${API_URL}/orders`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` }
                 });
                 allUserOrdersMobile = await res.json();
                 renderOrdersMobile('all');
@@ -2209,7 +2730,7 @@
             };
 
             const sColor = statusColors[o.status] || { bg: '#f0f0f0', color: '#4a5568' };
-            
+
             const itemsHtml = o.items ? o.items.map(i => {
                 let reviewBtn = '';
                 if ((o.status === 'delivered' || o.status === 'completed') && !i.review) {
@@ -2260,8 +2781,8 @@
                     <b style="color:var(--primary); font-size:20px;">${formatPrice(o.total_amount)}</b>
                 </div>
 
-                ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected') 
-                    ? `<button onclick="requestOrderReturnMobile(${o.id})" style="width:100%; background:#e53e3e; color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:15px;">Yêu cầu trả hàng cho đơn này</button>` 
+                ${(o.status !== 'cancelled' && o.status !== 'return_requested' && o.status !== 'returned' && o.status !== 'return_rejected')
+                    ? `<button onclick="requestOrderReturnMobile(${o.id})" style="width:100%; background:#e53e3e; color:#fff; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:15px;">Yêu cầu trả hàng cho đơn này</button>`
                     : ''}
             `;
             document.getElementById('m-order-detail-modal').style.display = 'flex';
@@ -2329,7 +2850,7 @@
                 </div>
                 `;
             }).join('');
-            
+
             list.style.background = 'none';
             list.style.border = 'none';
             list.style.padding = '0';
@@ -2357,7 +2878,7 @@
                 } else {
                     alert(data.message || 'Lỗi yêu cầu trả hàng');
                 }
-            } catch(e) { alert('Lỗi kết nối'); }
+            } catch (e) { alert('Lỗi kết nối'); }
         };
 
         let currentMobileReviewProduct = null;
@@ -2475,7 +2996,7 @@
                 ` + reviews.map(r => {
                     const stars = Array(5).fill(0).map((_, i) => `<i class="${i < r.rating ? 'fas' : 'far'} fa-star" style="color:#ffd700; font-size:12px;"></i>`).join('');
                     const img = (r.product && r.product.image) ? fixImg(r.product.image) : 'img/logo.png';
-                    
+
                     let mediaHtml = '';
                     if (r.images && r.images.length > 0) {
                         mediaHtml += r.images.map(url => `<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(url)}" onclick="window.open('${fixImg(url)}','_blank')" style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #eee; cursor:pointer;">`).join(' ');
@@ -2531,6 +3052,7 @@
                             <div style="display:flex; flex-direction:column; gap:8px;">
                                 <button onclick="editAddressMobile(${JSON.stringify(a).replace(/"/g, '&quot;')})" style="border:1px solid #1a365d; background:none; color:#1a365d; padding:6px 15px; border-radius:8px; font-size:12px; font-weight:700;">Sửa</button>
                                 <button onclick="deleteAddressMobile(${a.id})" style="border:1px solid #f8d7da; background:none; color:#dc3545; padding:6px 15px; border-radius:8px; font-size:12px; font-weight:700;">Xóa</button>
+                                ${!a.is_default ? `<button onclick="setDefaultAddressMobile(${a.id})" style="background:#ffd699; color:#001f3f; border:none; padding:6px 15px; border-radius:8px; font-size:11px; font-weight:800;">Đặt mặc định</button>` : ''}
                             </div>
                         </div>
                     `).join('');
@@ -2560,6 +3082,20 @@
                     loadAddressesMobile();
                 }
             } catch (e) { }
+        };
+
+        window.setDefaultAddressMobile = async (id) => {
+            try {
+                const token = localStorage.getItem('auth_token');
+                const res = await fetch(`${API_URL}/addresses/${id}/default`, {
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+                });
+                if (res.ok) {
+                    showToast('✅ Đã đặt làm địa chỉ mặc định');
+                    loadAddressesMobile();
+                }
+            } catch (e) { alert('Lỗi kết nối'); }
         };
 
         pages.login = async () => {
@@ -2741,7 +3277,7 @@
         };
 
         // Đóng các modal bằng nút ESC
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function (event) {
             if (event.key === "Escape") {
                 const addrModal = document.getElementById('m-address-modal');
                 const paymentModal = document.getElementById('m-payment-modal');
@@ -2758,6 +3294,24 @@
         // ====== START ======
         navigateTo('home');
         updateCartBadge();
+
+        // Back to Top for Mobile
+        const backToTopBtn = document.getElementById('backToTopMobile');
+        const pageContent = document.getElementById('page-content');
+        
+        if (pageContent && backToTopBtn) {
+            pageContent.addEventListener('scroll', function () {
+                if (pageContent.scrollTop > 300) {
+                    backToTopBtn.style.display = "flex";
+                } else {
+                    backToTopBtn.style.display = "none";
+                }
+            });
+            
+            backToTopBtn.onclick = function () {
+                pageContent.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+        }
     </script>
 </body>
 
