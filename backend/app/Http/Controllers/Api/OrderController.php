@@ -38,7 +38,7 @@ class OrderController extends Controller
             }
 
             $order = Order::create([
-                'user_id' => auth()->id(), // null if guest
+                'user_id' => auth('sanctum')->id(), // Dùng sanctum guard để lấy user từ Bearer token (route nằm ngoài auth:sanctum middleware)
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
                 'customer_email' => $request->customer_email, // Lưu email để gửi mail sau (nếu là bank)
@@ -85,10 +85,20 @@ class OrderController extends Controller
     public function userOrders()
     {
         $user = auth()->user();
-        $orders = Order::with(['items.product', 'items.review'])->where('user_id', $user->id)
-            ->orWhere(function ($query) use ($user) {
-                $query->whereNull('user_id')
-                    ->where('customer_phone', $user->phone);
+        $orders = Order::with(['items.product', 'items.review'])
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere(function ($q) use ($user) {
+                        $q->whereNull('user_id');
+                        $q->where(function ($sub) use ($user) {
+                            if ($user->phone) {
+                                $sub->where('customer_phone', $user->phone);
+                            }
+                            if ($user->email) {
+                                $sub->orWhere('customer_email', $user->email);
+                            }
+                        });
+                    });
             })
             ->latest()
             ->get();

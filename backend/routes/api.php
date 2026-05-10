@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PayOSController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,6 +28,17 @@ Route::match(['get', 'post'], '/sepay/webhook', [\App\Http\Controllers\Api\SePay
 Route::post('/orders', [OrderController::class, 'checkout']); // Cho phép đặt hàng không cần Login
 Route::get('/orders/{id}', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách
 Route::get('/orders/{id}/payment-status', [OrderController::class, 'checkPaymentStatus']); // Poling status cho khách (descriptive route)
+
+// Payment Gateways (MoMo, ZaloPay)
+Route::post('/payments/momo/{orderId}', [PaymentController::class, 'initiateMoMo']);
+Route::post('/payments/zalopay/{orderId}', [PaymentController::class, 'initiateZaloPay']);
+Route::post('/payments/momo/callback', [PaymentController::class, 'handleMoMoIPN']);
+Route::post('/payments/zalopay/callback', [PaymentController::class, 'handleZaloPayIPN']);
+
+// PayOS Payment Gateway
+Route::post('/payments/payos/{orderId}', [PayOSController::class, 'createPaymentLink']);
+Route::post('/payments/payos/webhook', [PayOSController::class, 'handleWebhook']);
+Route::get('/payments/payos/status/{orderId}', [PayOSController::class, 'checkPaymentStatus']);
 
 // Chatbot
 Route::post('/chatbot', [\App\Http\Controllers\ChatbotController::class, 'handleChat']);

@@ -574,36 +574,48 @@ include 'includes/header.php';
 </div>
 
 <script>
-    let allUserOrders = [];
+    window.allUserOrders = [];
 
-    async function loadOrders() {
+    window.loadOrders = async function() {
         const list = document.getElementById('orders-list');
+        if (!list) return;
+        
         try {
-            allUserOrders = await apiFetch('/orders');
-            renderOrders('all');
+            const data = await apiFetch('/orders');
+            window.allUserOrders = Array.isArray(data) ? data : [];
+            window.renderOrders('all');
         } catch (err) {
-            list.innerHTML = `<p style="color: red;">Không thể tải đơn hàng: ${err.message}</p>`;
+            console.error('loadOrders error:', err);
+            window.allUserOrders = [];
+            list.innerHTML = `<p style="color: red; text-align: center; padding: 20px;">Không thể tải đơn hàng. Vui lòng thử lại sau.</p>`;
         }
     }
 
     function filterOrders(status) {
         document.querySelectorAll('.order-tab-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
-        renderOrders(status);
+        window.renderOrders(status);
     }
 
-    function renderOrders(status) {
+    window.renderOrders = function(status) {
         const list = document.getElementById('orders-list');
+        if (!list) return;
+
+        // Nếu chưa có dữ liệu, hiện loading
+        if (!window.allUserOrders) {
+            list.innerHTML = `<div style="text-align:center; padding:50px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Đang tải đơn hàng...</p></div>`;
+            return;
+        }
         
-        let filteredOrders = allUserOrders;
+        let filteredOrders = Array.isArray(window.allUserOrders) ? [...window.allUserOrders].sort((a, b) => b.id - a.id) : [];
         if (status !== 'all') {
-            filteredOrders = allUserOrders.filter(o => {
+            filteredOrders = filteredOrders.filter(o => {
                 if (status === 'returned') return ['return_requested', 'returned', 'return_rejected'].includes(o.status);
                 return o.status === status;
             });
         }
 
-        if (!filteredOrders || filteredOrders.length === 0) {
+        if (filteredOrders.length === 0) {
             list.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #666; background: #fffaf5; border-radius: 20px;">
                     <i class="fas fa-shopping-basket" style="font-size: 50px; margin-bottom: 20px; opacity: 0.3;"></i>
@@ -658,10 +670,14 @@ include 'includes/header.php';
         `;
     }
 
-    async function viewOrderDetail(id) {
+    window.viewOrderDetail = async function(id, silent = false) {
         try {
-            const orders = await apiFetch('/orders');
-            const o = orders.find(x => x.id == id);
+            // Dùng dữ liệu đã có nếu có thể để tăng tốc, hoặc fetch mới nếu chưa có
+            if (!window.allUserOrders || window.allUserOrders.length === 0) {
+                window.allUserOrders = await apiFetch('/orders');
+            }
+            
+            const o = window.allUserOrders.find(x => x.id == id);
             if (!o) return;
 
             const statusLabels = {
@@ -676,6 +692,10 @@ include 'includes/header.php';
             };
 
             const content = document.getElementById('order-detail-content');
+            
+            // Cập nhật tiêu đề để app.js có thể lấy ID đơn hàng
+            const modalTitle = document.querySelector('#orderDetailModal .form-section-title');
+            if (modalTitle) modalTitle.innerText = `Chi tiết đơn hàng #${o.id}`;
 
             let itemsHtml = o.items.map(item => {
                 const img = (item.product && item.product.image) ? fixImg(item.product.image) : 'https://via.placeholder.com/50';
@@ -723,9 +743,12 @@ include 'includes/header.php';
                     <button class="btn-save-profile" style="width: 100%; background: #ff6b35; color: white;" onclick="requestOrderReturn(${o.id})">Yêu cầu trả hàng cho đơn này</button>
                 </div>` : ''}
             `;
-            document.getElementById('orderDetailModal').style.display = 'flex';
+            
+            if (!silent) {
+                document.getElementById('orderDetailModal').style.display = 'flex';
+            }
         } catch (err) {
-            alert('Lỗi khi tải chi tiết: ' + err.message);
+            if (!silent) alert('Lỗi khi tải chi tiết: ' + err.message);
         }
     }
 
@@ -745,7 +768,7 @@ include 'includes/header.php';
             if (res) {
                 alert(res.message);
                 closeOrderModal();
-                loadOrders();
+                window.loadOrders();
             }
         } catch (err) {
             alert('Lỗi: ' + err.message);
@@ -761,7 +784,7 @@ include 'includes/header.php';
         document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
         document.getElementById('menu-' + (tab === 'address' ? 'address' : tab)).classList.add('active');
 
-        if (tab === 'orders') loadOrders();
+        if (tab === 'orders') window.loadOrders();
         if (tab === 'address') loadAddresses();
         if (tab === 'reviews') loadUserReviews();
     }
@@ -1269,7 +1292,7 @@ include 'includes/header.php';
         citySelect.addEventListener('change', (e) => updateDistricts(e.target.value));
         districtSelect.addEventListener('change', (e) => updateWards(e.target.value));
 
-        loadOrders();
+        window.loadOrders();
         loadAddresses();
 
         // Xử lý tham số URL (ví dụ: ?tab=orders)

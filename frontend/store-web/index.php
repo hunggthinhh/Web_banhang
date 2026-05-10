@@ -135,51 +135,84 @@ include 'includes/header.php';
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const products = await apiFetch('/products?featured=1') || [];
         const grid = document.getElementById('featured-products');
+        
+        // Hiện skeleton cho sản phẩm nổi bật
+        grid.innerHTML = Array(5).fill(0).map(() => `
+            <div class="product-card skeleton" style="min-width: 220px; height: 320px; background: #f0f0f0; border-radius: 20px; flex-shrink: 0;"></div>
+        `).join('');
 
-        if (products.length === 0) {
-            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; margin: 40px 0;">Hiện chưa có sản phẩm nổi bật.</p>';
-            return;
-        }
-
-        grid.innerHTML = products.map(p => {
-            const now = new Date();
-            const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
-            const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
-            const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
+        try {
+            // Tải song song cả sản phẩm và danh mục
+            const [prodData, catData] = await Promise.all([
+                apiFetch('/products?featured=1'),
+                apiFetch('/categories')
+            ]);
             
-            return `
-                <div class="product-card" onclick="location.href='product.php?slug=${p.slug || p.id}'">
-                    <div class="card-image-wrap">
-                        <img src="${p.image}" alt="${p.name}">
-                        ${hasDiscount ? `<div class="discount-badge" style="position: absolute; top: 10px; right: 10px; background: #e53e3e; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 1;">-${p.discount_percent}%</div>` : ''}
-                        ${hasDiscount && endsAt ? `<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 3px 6px; border-radius: 3px; font-size: 11px; z-index: 1;"><i class="far fa-clock"></i> Đến ${endsAt.toLocaleDateString('vi-VN')}</div>` : ''}
-                    </div>
-                    <div class="card-body">
-                        <h3>${p.name}</h3>
-                        <p class="card-price">Giá từ: 
-                            ${hasDiscount ? `
-                                <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">${formatPrice(p.price)}</span>
-                                <span style="color: #e53e3e; font-weight: bold;">${formatPrice(finalPrice)}</span>
-                            ` : `
-                                <span>${formatPrice(p.price)}</span>
-                            `}
-                        </p>
-                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
-                            <button class="btn-add-cart" onclick="event.stopPropagation(); addCart(${p.id}, '${p.name}', ${finalPrice}, '${p.image}')" 
-                                    style="width: 45px; height: 45px; padding: 0; border-radius: 50%; flex-shrink: 0; background:#f0f4f8; color:#001f3f; border:1.5px solid #d1d5db; display:flex; align-items:center; justify-content:center;">
-                                <i class="fas fa-shopping-basket" style="font-size: 18px;"></i>
-                            </button>
-                            <button onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${finalPrice}, '${p.image}')" 
-                                    style="flex: 1; height: 45px; background: #e53e3e; color: #fff; border: none; border-radius: 25px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;">
-                                Mua ngay
-                            </button>
+            const products = prodData || [];
+            const categories = catData || [];
+
+            if (products.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; margin: 40px 0;">Hiện chưa có sản phẩm nổi bật.</p>';
+            } else {
+                grid.innerHTML = products.map(p => {
+                    const now = new Date();
+                    const endsAt = p.discount_ends_at ? new Date(p.discount_ends_at.replace(' ', 'T')) : null;
+                    const hasDiscount = p.discount_percent > 0 && (!endsAt || endsAt > now);
+                    const finalPrice = hasDiscount ? p.price * (1 - p.discount_percent / 100) : p.price;
+                    
+                    return `
+                        <div class="product-card" onclick="location.href='product.php?slug=${p.slug || p.id}'">
+                            <div class="card-image-wrap">
+                                <img src="${p.image}" alt="${p.name}">
+                                ${hasDiscount ? `<div class="discount-badge" style="position: absolute; top: 10px; right: 10px; background: #e53e3e; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 1;">-${p.discount_percent}%</div>` : ''}
+                                ${hasDiscount && endsAt ? `<div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 3px 6px; border-radius: 3px; font-size: 11px; z-index: 1;"><i class="far fa-clock"></i> Đến ${endsAt.toLocaleDateString('vi-VN')}</div>` : ''}
+                            </div>
+                            <div class="card-body">
+                                <h3>${p.name}</h3>
+                                <p class="card-price">Giá từ: 
+                                    ${hasDiscount ? `
+                                        <span style="text-decoration: line-through; color: #999; font-size: 14px; margin-right: 5px;">${formatPrice(p.price)}</span>
+                                        <span style="color: #e53e3e; font-weight: bold;">${formatPrice(finalPrice)}</span>
+                                    ` : `
+                                        <span>${formatPrice(p.price)}</span>
+                                    `}
+                                </p>
+                                <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+                                    <button class="btn-add-cart" onclick="event.stopPropagation(); addCart(${p.id}, '${p.name}', ${finalPrice}, '${p.image}')" 
+                                            style="width: 45px; height: 45px; padding: 0; border-radius: 50%; flex-shrink: 0; background:#f0f4f8; color:#001f3f; border:1.5px solid #d1d5db; display:flex; align-items:center; justify-content:center;">
+                                        <i class="fas fa-shopping-basket" style="font-size: 18px;"></i>
+                                    </button>
+                                    <button onclick="event.stopPropagation(); buyNow(${p.id}, '${p.name}', ${finalPrice}, '${p.image}')" 
+                                            style="flex: 1; height: 45px; background: #e53e3e; color: #fff; border: none; border-radius: 25px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s ease;">
+                                        Mua ngay
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+                    `;
+                }).join('');
+            }
+
+            // Load Categories for Home Section
+            const homeCatList = document.getElementById('home-category-list');
+            if (homeCatList && categories.length > 0) {
+                homeCatList.innerHTML = categories.map((cat, index) => `
+                    <a href="shop.php#section-${cat.id}" class="home-category-item reveal reveal-up" style="transition-delay: ${index * 0.1}s;">
+                        <div class="cat-info">
+                            <span class="cat-num">${(index + 1).toString().padStart(2, '0')}.</span>
+                            <span class="cat-name">${cat.name}</span>
+                        </div>
+                        <div class="cat-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </a>
+                `).join('');
+            }
+        } catch (e) {
+            console.error('Lỗi tải trang chủ:', e);
+            grid.innerHTML = '<p style="text-align:center; padding:40px;">Không thể tải sản phẩm. Vui lòng thử lại.</p>';
+        }
 
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
         const count = document.getElementById('cart-count');
@@ -237,41 +270,29 @@ include 'includes/header.php';
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
 
-        nextBtn.addEventListener('click', () => {
-            const cardWidth = grid.querySelector('.product-card').offsetWidth + 20; // width + gap
-            grid.scrollLeft += cardWidth * 2; // Scroll 2 items
-        });
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                const cardWidth = grid.querySelector('.product-card')?.offsetWidth + 20 || 300;
+                grid.scrollLeft += cardWidth * 2;
+            });
+        }
 
-        prevBtn.addEventListener('click', () => {
-            const cardWidth = grid.querySelector('.product-card').offsetWidth + 20;
-            grid.scrollLeft -= cardWidth * 2;
-        });
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                const cardWidth = grid.querySelector('.product-card')?.offsetWidth + 20 || 300;
+                grid.scrollLeft -= cardWidth * 2;
+            });
+        }
 
         // Hide buttons if not scrollable
         const toggleBtns = () => {
-            prevBtn.style.display = grid.scrollLeft <= 0 ? 'none' : 'flex';
-            nextBtn.style.display = grid.scrollLeft + grid.offsetWidth >= grid.scrollWidth ? 'none' : 'flex';
+            if (prevBtn) prevBtn.style.display = grid.scrollLeft <= 0 ? 'none' : 'flex';
+            if (nextBtn) nextBtn.style.display = grid.scrollLeft + grid.offsetWidth >= grid.scrollWidth ? 'none' : 'flex';
         };
 
         grid.addEventListener('scroll', toggleBtns);
         window.addEventListener('resize', toggleBtns);
         setTimeout(toggleBtns, 500); // Initial check
-
-        // Load Categories for Home Section
-        const homeCatList = document.getElementById('home-category-list');
-        const categories = await apiFetch('/categories') || [];
-
-        homeCatList.innerHTML = categories.map((cat, index) => `
-            <a href="shop.php#section-${cat.id}" class="home-category-item reveal reveal-up" style="transition-delay: ${index * 0.1}s;">
-                <div class="cat-info">
-                    <span class="cat-num">${(index + 1).toString().padStart(2, '0')}.</span>
-                    <span class="cat-name">${cat.name}</span>
-                </div>
-                <div class="cat-arrow">
-                    <i class="fas fa-arrow-right"></i>
-                </div>
-            </a>
-        `).join('');
 
         // Initialize Scroll Reveal
         const observerOptions = {

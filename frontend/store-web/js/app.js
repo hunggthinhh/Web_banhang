@@ -10,6 +10,7 @@ const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('auth_token');
     const headers = {
         'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
         ...options.headers,
     };
     if (!(options.body instanceof FormData)) {
@@ -37,7 +38,7 @@ const apiFetch = async (endpoint, options = {}) => {
         return data;
     } catch (error) {
         console.error('Fetch error:', error);
-        alert('Lỗi kết nối: ' + error.message);
+        // Removed alert to prevent annoying popups during background polling
         return null;
     }
 };
@@ -101,13 +102,113 @@ window.pushCartToBackend = async () => {
     });
 };
 
+window.pullOrdersFromBackend = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+        const data = await apiFetch('/orders');
+        if (data && Array.isArray(data)) {
+            // Chuẩn hóa và Sắp xếp để so sánh chính xác
+            const serverOrders = data.map(o => ({
+                id: Number(o.id),
+                status: o.status,
+                total_amount: Number(o.total_amount),
+                created_at: o.created_at
+            })).sort((a, b) => b.id - a.id);
+            
+            const localOrders = (window.allUserOrders || []).map(o => ({
+                id: Number(o.id),
+                status: o.status,
+                total_amount: Number(o.total_amount),
+                created_at: o.created_at
+            })).sort((a, b) => b.id - a.id);
+
+            const newStr = JSON.stringify(serverOrders);
+            const oldStr = JSON.stringify(localOrders);
+
+            if (newStr !== oldStr) {
+                console.log('🔄 Web Realtime: Cập nhật trạng thái đơn hàng.');
+                window.allUserOrders = data;
+                
+                // Update UI if we are on profile.php and in orders section
+                const ordersList = document.getElementById('orders-list');
+                if (ordersList) {
+                    const activeTabBtn = document.querySelector('.order-tab-btn.active');
+                    let status = 'all';
+                    if (activeTabBtn) {
+                        const txt = activeTabBtn.innerText;
+                        if (txt.includes('Chờ')) status = 'pending';
+                        else if (txt.includes('Đang làm')) status = 'processing';
+                        else if (txt.includes('Đang giao')) status = 'shipped';
+                        else if (txt.includes('Hoàn tất')) status = 'delivered';
+                        else if (txt.includes('Đã hủy')) status = 'cancelled';
+                        else if (txt.includes('Trả hàng')) status = 'returned';
+                    }
+                    if (typeof window.renderOrders === 'function') {
+                        window.renderOrders(status);
+                    }
+                }
+
+                // Update detail modal if open
+                const modal = document.getElementById('orderDetailModal');
+                if (modal && modal.style.display === 'flex') {
+                    const titleEl = document.querySelector('#orderDetailModal h2');
+                    if (titleEl && typeof window.viewOrderDetail === 'function') {
+                        const orderId = parseInt(titleEl.innerText.replace(/[^0-9]/g, ''));
+                        if (orderId) window.viewOrderDetail(orderId, true); // true = silent update
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Lỗi sync đơn hàng:', err);
+    }
+};
+
 window.pullCartFromBackend = async () => {
     const token = localStorage.getItem('auth_token');
     if (!token) return;
-    const data = await apiFetch('/cart');
-    if (data && data.cart) {
-        localStorage.setItem('cart', JSON.stringify(data.cart));
-        updateCartBadge();
+    
+    try {
+        const data = await apiFetch('/cart');
+        if (data && data.cart && Array.isArray(data.cart)) {
+            // Chuẩn hóa và Sắp xếp để so sánh chính xác (tránh lỗi thứ tự item khác nhau)
+            const serverCart = data.cart.map(item => ({
+                id: Number(item.id),
+                name: item.name,
+                price: Number(item.price),
+                image: item.image,
+                quantity: Number(item.quantity || 1),
+                selected: item.selected !== false, // default true
+                greeting: item.greeting || ''
+            })).sort((a, b) => a.id - b.id);
+            
+            const localCartRaw = JSON.parse(localStorage.getItem('cart') || '[]');
+            const localCart = localCartRaw.map(item => ({
+                id: Number(item.id),
+                name: item.name,
+                price: Number(item.price),
+                image: item.image,
+                quantity: Number(item.quantity || 1),
+                selected: item.selected !== false,
+                greeting: item.greeting || ''
+            })).sort((a, b) => a.id - b.id);
+
+            const newCartStr = JSON.stringify(serverCart);
+            const oldCartStr = JSON.stringify(localCart);
+            
+            if (newCartStr !== oldCartStr) {
+                console.log('🔄 Web Realtime: Đồng bộ giỏ hàng thành công.');
+                localStorage.setItem('cart', JSON.stringify(serverCart));
+                updateCartBadge();
+                if (typeof window.renderCart === 'function') {
+                    window.renderCart();
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Lỗi sync ngầm:', err);
     }
 };
 
@@ -152,8 +253,29 @@ window.buyNow = async (id, name, price, image) => {
     window.location.href = 'checkout.php';
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    updateAuthUI();
-    updateCartBadge();
-    await pullCartFromBackend();
+// app.js được load cuối <body> → DOM đã sẵn sàng, không cần DOMContentLoaded
+// Khởi động ngay lập tức
+updateAuthUI();
+updateCartBadge();
+
+// Pull cart & orders ngay khi trang load
+if (localStorage.getItem('auth_token')) {
+    pullCartFromBackend();
+    pullOrdersFromBackend();
+}
+
+// Polling 2 giây/lần – realtime sync
+let _cartPollTimer = setInterval(() => {
+    if (localStorage.getItem('auth_token')) {
+        pullCartFromBackend();
+        pullOrdersFromBackend();
+    }
+}, 2000);
+
+// Khi user quay lại tab → kéo data ngay (không đợi 2s)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && localStorage.getItem('auth_token')) {
+        pullCartFromBackend();
+        pullOrdersFromBackend();
+    }
 });

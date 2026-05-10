@@ -64,7 +64,7 @@ Dữ liệu cửa hàng:
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->withoutVerifying()->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . $apiKey, [
+            ])->withoutVerifying()->post('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $apiKey, [
                         'contents' => [
                             [
                                 'role' => 'user',

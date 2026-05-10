@@ -619,6 +619,8 @@
 
     <script>
         const API_URL = 'https://equator-skiing-symphony.ngrok-free.dev/Web_banhang/backend/public/api';
+        var allUserOrdersMobile = []; // Di chuyển lên đầu để tất cả các hàm đều thấy
+
 
         function toggleChatbot() {
             const win = document.getElementById('chatbot-window');
@@ -678,29 +680,35 @@
                 let replyText = data.reply || 'Xin lỗi, tôi đang gặp sự cố.';
                 replyText = replyText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-                // Replace [PRODUCT:id] with actual HTML cards
+                // Replace [PRODUCT:id] with actual HTML cards - Improved regex
                 const productsMap = data.products || {};
-                replyText = replyText.replace(/\[PRODUCT:(\d+)\]/g, (match, id) => {
+                replyText = replyText.replace(/\[PRODUCT\s*:\s*(\d+)\]/gi, (match, id) => {
                     const product = productsMap[id];
-                    if (!product) return ''; // If product not found, remove the tag
+                    if (!product) return match; 
                     
-                    const fixedSrc = window.fixImg ? window.fixImg(product.image) : 'img/logo.png';
+                    // Construct proper image URL - fix path to uploads/
+                    const imagePath = product.image.startsWith('uploads/') ? product.image : ('uploads/' + product.image);
+                    const fixedSrc = window.fixImg ? window.fixImg(imagePath) : 'img/logo.png';
                     
-                    return `<a href='#' data-product-id='${product.id}' style='display:flex; align-items:center; gap:10px; margin-top:8px; margin-bottom:8px; text-decoration:none; color:#333; padding:8px; border:1px solid #ddd; border-radius:8px; background:#fff; width:100%; box-sizing:border-box;'>
-                        <img src='${fixedSrc}' style='width:50px; height:50px; object-fit:cover; border-radius:4px;' onerror="this.src='img/logo.png'">
-                        <div>
-                            <strong style='font-size:14px;'>${product.name}</strong><br>
-                            <span style='color:#e74c3c; font-weight:bold; font-size:13px;'>${product.price}₫</span>
+                    return `
+                    <div data-product-id="${product.id}" style="display:flex; align-items:center; gap:12px; margin:12px 0; padding:12px; border:1px solid #f0f0f0; border-radius:12px; background:#fff; width:100%; box-sizing:border-box; box-shadow:0 4px 10px rgba(0,0,0,0.04); cursor:pointer;">
+                        <img src="${fixedSrc}" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:1px solid #eee;" onerror="this.src='img/logo.png'">
+                        <div style="flex:1;">
+                            <strong style="font-size:14px; color:#333; display:block; margin-bottom:2px;">${product.name}</strong>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="color:#e74c3c; font-weight:700; font-size:14px;">${product.price}₫</span>
+                                <span style="font-size:11px; color:var(--primary); font-weight:600;">Xem chi tiết →</span>
+                            </div>
                         </div>
-                    </a>`;
+                    </div>`;
                 });
 
                 const msgDiv = document.createElement('div');
                 msgDiv.style.cssText = 'background: white; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;';
                 msgDiv.innerHTML = replyText;
 
-                // Intercept all product links - replace href navigation with navigateTo
-                msgDiv.querySelectorAll('a[data-product-id]').forEach(link => {
+                // Intercept all product links - replace navigation with navigateTo
+                msgDiv.querySelectorAll('div[data-product-id]').forEach(link => {
                     const productId = link.getAttribute('data-product-id');
                     link.style.cursor = 'pointer';
                     link.addEventListener('click', (e) => {
@@ -881,6 +889,7 @@
         }, 50);
 
         async function navigateTo(page, params = null) {
+            window.currentPage = page;
             if (!pages[page]) return;
             document.getElementById('page-loader').style.display = 'flex';
             try {
@@ -1037,10 +1046,164 @@
 
         const formatPrice = p => Math.round(Number(p) || 0).toLocaleString('vi-VN') + ' VND';
         function getCart() { return JSON.parse(localStorage.getItem('cart') || '[]'); }
-        function saveCart(c) { localStorage.setItem('cart', JSON.stringify(c)); updateCartBadge(); }
+        function saveCart(c) { localStorage.setItem('cart', JSON.stringify(c)); updateCartBadge(); pushCartToBackend(); }
+
+        // ====== CART CLOUD SYNC ======
+        let _cartSyncTimer = null;
+        async function pushCartToBackend() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) return;
+            // Debounce: wait 500ms after last change before pushing
+            clearTimeout(_cartSyncTimer);
+            _cartSyncTimer = setTimeout(async () => {
+                try {
+                    const cart = localStorage.getItem('cart') || '[]';
+                    await fetch(`${API_URL}/cart`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                            'ngrok-skip-browser-warning': 'true'
+                        },
+                        body: JSON.stringify({ cart })
+                    });
+                } catch (e) { console.error('Push cart error:', e); }
+            }, 500);
+        }
+
+        async function pullCartFromBackend() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) return;
+            try {
+                const res = await fetch(`${API_URL}/cart`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.cart && Array.isArray(data.cart)) {
+                        // Normalize & Sort
+                        const serverCart = data.cart.map(item => ({
+                            id: Number(item.id),
+                            name: item.name,
+                            price: Number(item.price),
+                            image: item.image,
+                            quantity: Number(item.quantity || 1),
+                            selected: item.selected !== false,
+                            greeting: item.greeting || ''
+                        })).sort((a, b) => a.id - b.id);
+                        
+                        const localCartRaw = JSON.parse(localStorage.getItem('cart') || '[]');
+                        const localCart = localCartRaw.map(item => ({
+                            id: Number(item.id),
+                            name: item.name,
+                            price: Number(item.price),
+                            image: item.image,
+                            quantity: Number(item.quantity || 1),
+                            selected: item.selected !== false,
+                            greeting: item.greeting || ''
+                        })).sort((a, b) => a.id - b.id);
+
+                        const newCartStr = JSON.stringify(serverCart);
+                        const oldCartStr = JSON.stringify(localCart);
+                        
+                        if (newCartStr !== oldCartStr) {
+                            localStorage.setItem('cart', JSON.stringify(serverCart));
+                            updateCartBadge();
+                            if (window.currentPage === 'cart') {
+                                navigateTo('cart');
+                            }
+                        }
+                    }
+                }
+            } catch (e) { console.error('Pull cart error:', e); }
+        }
+
+        async function pullOrdersFromBackend() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) return;
+            try {
+                // Add timestamp to prevent browser cache
+                const res = await fetch(`${API_URL}/orders?t=${new Date().getTime()}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Normalize and sort to ensure strict comparison
+                    const serverOrders = data.map(o => ({
+                        id: Number(o.id),
+                        status: o.status,
+                        total_amount: Number(o.total_amount),
+                        created_at: o.created_at
+                    })).sort((a, b) => b.id - a.id);
+                    
+                    const localOrders = (allUserOrdersMobile || []).map(o => ({
+                        id: Number(o.id),
+                        status: o.status,
+                        total_amount: Number(o.total_amount),
+                        created_at: o.created_at
+                    })).sort((a, b) => b.id - a.id);
+
+                    const newStr = JSON.stringify(serverOrders);
+                    const oldStr = JSON.stringify(localOrders);
+                    
+                    if (newStr !== oldStr) {
+                        console.log('🔄 Mobile Realtime: Cập nhật đơn hàng mới từ Admin.');
+                        allUserOrdersMobile = data;
+                        
+                        // Update UI if orders list is visible
+                        const ordersList = document.getElementById('orders-list-mobile');
+                        if (ordersList) {
+                            const activeBtn = document.querySelector('.m-otab-btn.active');
+                            let status = 'all';
+                            if (activeBtn) {
+                                const txt = activeBtn.innerText;
+                                if (txt.includes('Chờ')) status = 'pending';
+                                else if (txt.includes('Đang làm')) status = 'processing';
+                                else if (txt.includes('Đang giao')) status = 'shipped';
+                                else if (txt.includes('Hoàn tất')) status = 'delivered';
+                                else if (txt.includes('Đã hủy')) status = 'cancelled';
+                                else if (txt.includes('Trả hàng')) status = 'returned';
+                            }
+                            renderOrdersMobile(status);
+                        }
+                        // Update detail modal if open
+                        const modal = document.getElementById('m-order-detail-modal');
+                        if (modal && modal.style.display === 'flex') {
+                            const title = document.getElementById('m-order-detail-title').innerText;
+                            const orderId = parseInt(title.replace(/[^0-9]/g, ''));
+                            if (orderId) viewOrderDetailMobile(orderId);
+                        }
+                    }
+                }
+            } catch (e) { console.error('Pull orders error:', e); }
+        }
+
         window.toggleItemMobile = (idx, selected) => {
             let c = getCart();
             if (c[idx]) { c[idx].selected = selected; saveCart(c); navigateTo('cart'); }
+        };
+
+        window.changeMainImgMobile = (imgUrl, el) => {
+            // Update main image
+            const main = document.getElementById('main-img-m');
+            if (main) {
+                main.removeAttribute('data-fetching');
+                main.setAttribute('data-ngroksrc', imgUrl);
+                // Force immediate update if not on ngrok
+                if (main.src.startsWith('data:')) {
+                    main.src = imgUrl;
+                }
+            }
+            // Update thumbnail borders
+            const thumbs = document.querySelectorAll('#thumb-container-m img');
+            thumbs.forEach(t => t.style.border = '1px solid #eee');
+            el.style.border = '2px solid var(--primary)';
         };
         window.toggleAllMobile = (selected) => {
             let c = getCart();
@@ -1565,14 +1728,10 @@
                     
                     <!-- Thumbnails -->
                     ${allImgs.length > 1 ? `
-                    <div style="display:flex; gap:8px; margin-top:10px; overflow-x:auto;">
+                    <div style="display:flex; gap:8px; margin-top:10px; overflow-x:auto;" id="thumb-container-m">
                         ${allImgs.map((img, i) => `
-                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(img)}" onclick="
-                                const main = document.getElementById('main-img-m');
-                                main.removeAttribute('data-fetching');
-                                main.setAttribute('data-ngroksrc', fixImg('${img}'));
-                            " 
-                                 style="width:65px; height:65px; border-radius:10px; object-fit:cover; border:${i === 0 ? '2px solid var(--primary)' : '1px solid #eee'}; cursor:pointer;"
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-ngroksrc="${fixImg(img)}" onclick="changeMainImgMobile('${fixImg(img)}', this)" 
+                                 style="width:65px; height:65px; border-radius:10px; object-fit:cover; border:${i === 0 ? '2px solid var(--primary)' : '1px solid #eee'}; cursor:pointer; transition:0.3s;"
                                  onerror="this.src='img/logo.png'">
                         `).join('')}
                     </div>
@@ -1970,8 +2129,20 @@
                             <label style="display:flex; align-items:center; gap:10px; border:1px solid #eee; padding:15px; border-radius:10px;">
                                 <input type="radio" name="pay-method" value="bank" style="accent-color:var(--primary); width:18px; height:18px;">
                                 <div style="flex:1;">
-                                    <b style="font-size:14px; color:#333;">Chuyển khoản ngân hàng</b>
+                                    <b style="font-size:14px; color:#333;">Chuyển khoản ngân hàng (VietQR)</b>
                                     <p style="font-size:11px; color:#999; margin:0;">Quét mã QR để thanh toán an toàn</p>
+                                </div>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:10px; border:1px solid #eee; padding:15px; border-radius:10px;">
+                                <input type="radio" name="pay-method" value="payos" style="accent-color:var(--primary); width:18px; height:18px;">
+                                <div style="flex:1; display:flex; align-items:center; gap:10px;">
+                                    <div style="width:40px; height:28px; background:linear-gradient(135deg,#0066FF,#00C6FF); border-radius:6px; display:flex; align-items:center; justify-content:center;">
+                                        <span style="color:#fff; font-size:9px; font-weight:900; letter-spacing:-0.5px;">PAY</span>
+                                    </div>
+                                    <div>
+                                        <b style="font-size:14px; color:#333;">PayOS</b>
+                                        <p style="font-size:11px; color:#999; margin:0;">Thanh toán qua QR / MoMo / ZaloPay / Thẻ</p>
+                                    </div>
                                 </div>
                             </label>
                         </div>
@@ -2139,6 +2310,53 @@
                         return;
                     }
 
+                    if (method === 'payos') {
+                        try {
+                            const pRes = await fetch(`${API_URL}/payments/payos/${orderId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'ngrok-skip-browser-warning': 'true',
+                                    'Authorization': token ? `Bearer ${token}` : ''
+                                },
+                                body: JSON.stringify({
+                                    return_url: `${API_URL.replace('/api','')}/payment-success?order_id=${orderId}`,
+                                    cancel_url: `${API_URL.replace('/api','')}/payment-cancel?order_id=${orderId}`
+                                })
+                            });
+                            const pData = await pRes.json();
+                            if (pData.success && pData.checkoutUrl) {
+                                // Clear selected cart items
+                                localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
+                                // Open PayOS checkout in system browser
+                                window.open(pData.checkoutUrl, '_system');
+                                // Show waiting screen
+                                document.getElementById('page-content').innerHTML = `
+                                    <div style="padding:60px 20px; text-align:center;">
+                                        <div style="width:70px; height:70px; background:linear-gradient(135deg,#0066FF,#00C6FF); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                            <i class="fas fa-credit-card" style="color:#fff; font-size:28px;"></i>
+                                        </div>
+                                        <h3 style="font-family:Georgia; color:#1a365d; margin-bottom:10px;">Đang chờ thanh toán...</h3>
+                                        <p style="color:#666; font-size:14px; margin-bottom:5px;">Vui lòng hoàn tất thanh toán trên trang PayOS vừa mở.</p>
+                                        <p style="color:#999; font-size:12px; margin-bottom:25px;">Bạn có thể chọn: Ngân hàng, MoMo, ZaloPay, Thẻ...</p>
+                                        <div style="background:#f8faff; border-radius:12px; padding:15px; margin-bottom:20px;">
+                                            <p style="color:#0066FF; font-size:13px; font-weight:600; margin:0;">Đơn hàng #${orderId}</p>
+                                        </div>
+                                        <button onclick="navigateTo('profile')" style="background:#c68e67; color:#fff; border:none; padding:12px 25px; border-radius:8px; margin-top:10px; font-size:14px;">Kiểm tra đơn hàng</button>
+                                    </div>
+                                `;
+                                startMobilePaymentPolling(orderId);
+                                return;
+                            } else {
+                                alert('Không thể tạo link thanh toán: ' + (pData.message || 'Lỗi không xác định'));
+                            }
+                        } catch (e) {
+                            alert('Lỗi kết nối PayOS: ' + e.message);
+                        }
+                        btn.disabled = false; btn.innerText = 'Xác nhận đặt hàng';
+                        return;
+                    }
+
                     // Success for COD
                     localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
                     showToast('🎉 Đặt hàng thành công!');
@@ -2156,12 +2374,13 @@
                 try {
                     const res = await fetch(`${API_URL}/orders/${orderId}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
                     const data = await res.json();
-                    if (data.order.status === 'paid') {
+                    if (data.payment_status === 'paid') {
                         clearInterval(interval);
                         document.getElementById('m-payment-modal').style.display = 'none';
                         localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
                         showToast('🎉 Thanh toán thành công!');
-                        navigateTo('profile');
+                        if (localStorage.getItem('auth_token')) navigateTo('profile');
+                        else navigateTo('home');
                     }
                 } catch (e) { console.error('Polling error', e); }
             }, 3000);
@@ -2682,19 +2901,11 @@
             }
         };
 
-        let allUserOrdersMobile = [];
 
         window.loadOrdersMobile = async () => {
-            const token = localStorage.getItem('auth_token');
-            try {
-                const res = await fetch(`${API_URL}/orders`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token}` }
-                });
-                allUserOrdersMobile = await res.json();
-                renderOrdersMobile('all');
-            } catch (e) {
-                document.getElementById('orders-list-mobile').innerHTML = `<p style="color:red; font-size:13px; padding:20px;">Lỗi khi tải đơn hàng.</p>`;
-            }
+            await pullOrdersFromBackend();
+            // In case it's the first load and we want to force show 'all'
+            if (allUserOrdersMobile.length > 0) renderOrdersMobile('all');
         };
 
         window.filterOrdersMobile = (status, btn) => {
@@ -3139,6 +3350,7 @@
                     localStorage.setItem('auth_token', data.access_token);
                     if (data.user) localStorage.setItem('user_info', JSON.stringify(data.user));
                     showToast('Đăng nhập thành công!');
+                    await pullCartFromBackend();
                     navigateTo('home');
                 } else showToast('Lỗi đăng nhập!');
             }
@@ -3294,6 +3506,17 @@
         // ====== START ======
         navigateTo('home');
         updateCartBadge();
+        pullCartFromBackend();
+        
+        // Polling for Realtime Sync (Every 3s)
+        setInterval(async () => {
+            try {
+                if (localStorage.getItem('auth_token')) {
+                    await pullCartFromBackend();
+                    await pullOrdersFromBackend();
+                }
+            } catch (e) { console.error('Mobile polling error:', e); }
+        }, 3000);
 
         // Back to Top for Mobile
         const backToTopBtn = document.getElementById('backToTopMobile');

@@ -264,39 +264,67 @@ include 'includes/header.php';
 
     document.addEventListener('DOMContentLoaded', async () => {
         const categoriesContainer = document.getElementById('category-list');
-
-        // Fetch Categories and Products
-        allCategories = await apiFetch('/categories') || [];
-        allProducts = await apiFetch('/products') || [];
-
-        const categoriesHtml = [
-            `<div class="category-item active" id="cat-item-all" onclick="handleAllClick(this)">
-                <img src="https://cdn-icons-png.flaticon.com/512/992/992751.png" alt="icon">
-                Tất cả sản phẩm
-            </div>`,
-            ...allCategories.map(cat => `
-                <div class="category-item" id="cat-item-${cat.id}" onclick="handleCategoryClick('${cat.id}', this)">
-                    <img src="https://cdn-icons-png.flaticon.com/512/992/992751.png" alt="icon">
-                    ${cat.name}
+        const productsContainer = document.getElementById('products-list');
+        
+        // Hiện skeleton cho sản phẩm
+        productsContainer.innerHTML = Array(6).fill(0).map(() => `
+            <div class="product-card skeleton" style="height: 350px; background: #f0f0f0; border-radius: 20px; overflow: hidden; position: relative;">
+                <div style="height: 200px; background: #e0e0e0;" class="skeleton-pulse"></div>
+                <div style="padding: 20px;">
+                    <div style="height: 20px; width: 70%; background: #e0e0e0; margin-bottom: 10px;" class="skeleton-pulse"></div>
+                    <div style="height: 15px; width: 40%; background: #e0e0e0;" class="skeleton-pulse"></div>
                 </div>
-            `)
-        ].join('');
+            </div>
+        `).join('');
 
-        categoriesContainer.innerHTML = categoriesHtml;
+        try {
+            // Tải song song danh mục và sản phẩm
+            const [catData, prodData] = await Promise.all([
+                apiFetch('/categories'),
+                apiFetch('/products')
+            ]);
+            
+            allCategories = catData || [];
+            allProducts = prodData || [];
 
-        // Initial render
-        renderProducts();
+            const categoriesHtml = [
+                `<div class="category-item active" id="cat-item-all" onclick="handleAllClick(this)">
+                    <img src="https://cdn-icons-png.flaticon.com/512/992/992751.png" alt="icon">
+                    Tất cả sản phẩm
+                </div>`,
+                ...allCategories.map(cat => `
+                    <div class="category-item" id="cat-item-${cat.id}" onclick="handleCategoryClick('${cat.id}', this)">
+                        <img src="https://cdn-icons-png.flaticon.com/512/992/992751.png" alt="icon">
+                        ${cat.name}
+                    </div>
+                `)
+            ].join('');
 
-        // Check for hash in URL
-        if (window.location.hash) {
-            const hash = window.location.hash;
-            const catId = hash.replace('#section-', '');
-            const targetElement = document.getElementById(`cat-item-${catId}`);
-            if (targetElement) {
-                setTimeout(() => handleCategoryClick(catId, targetElement), 500);
+            categoriesContainer.innerHTML = categoriesHtml;
+            renderProducts();
+
+            // Check for hash in URL
+            if (window.location.hash) {
+                const hash = window.location.hash;
+                const catId = hash.replace('#section-', '');
+                const targetElement = document.getElementById(`cat-item-${catId}`);
+                if (targetElement) {
+                    setTimeout(() => handleCategoryClick(catId, targetElement), 300);
+                }
             }
+        } catch (e) {
+            console.error('Lỗi tải dữ liệu shop:', e);
+            productsContainer.innerHTML = '<p style="text-align:center; padding:50px;">Có lỗi xảy ra khi tải sản phẩm. Vui lòng thử lại.</p>';
         }
     });
+
+    // Thêm CSS cho hiệu ứng pulse
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        .skeleton-pulse { animation: pulse 1.5s infinite ease-in-out; }
+    `;
+    document.head.appendChild(style);
 
     function handleAllClick(element) {
         currentCategoryId = 'all';

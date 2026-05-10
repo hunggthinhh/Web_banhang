@@ -189,12 +189,37 @@
             let replyText = data.reply || 'Xin lỗi, tôi đang gặp sự cố.';
             replyText = replyText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
+            // Replace [PRODUCT:id] with actual HTML cards - Improved regex
+            const productsMap = data.products || {};
+            replyText = replyText.replace(/\[PRODUCT\s*:\s*(\d+)\]/gi, (match, id) => {
+                const product = productsMap[id];
+                if (!product) return match; // Keep the tag if product not found to avoid weird text
+                
+                // Construct proper image URL - fix path to /uploads/
+                const imgSrc = product.image.startsWith('http') ? product.image : (window.location.origin + '/Web_banhang/backend/public/uploads/' + product.image);
+                
+                return `
+                    <div style="display:flex; align-items:center; gap:12px; margin:12px 0; padding:12px; border:1px solid #f0f0f0; border-radius:12px; background:#fff; width:100%; box-sizing:border-box; box-shadow:0 4px 12px rgba(0,0,0,0.05); transition:transform 0.2s; cursor:pointer;" onclick="location.href='product.php?slug=${product.id}'">
+                        <img src="${imgSrc}" style="width:60px; height:60px; object-fit:cover; border-radius:8px; border:1px solid #eee;" onerror="this.src='img/logo.png'">
+                        <div style="flex:1;">
+                            <strong style="font-size:14px; color:#1a365d; display:block; margin-bottom:4px;">${product.name}</strong>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="color:#e74c3c; font-weight:700; font-size:14px;">${product.price}₫</span>
+                                <span style="font-size:11px; color:#c68e67; font-weight:600;">Xem chi tiết →</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
             // Fix localhost URL if running on ngrok
             replyText = replyText.replace(/http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/g, window.location.origin);
 
-            messagesContainer.innerHTML += `
-                <div style="background: white; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;">${replyText}</div>
-            `;
+            const msgDiv = document.createElement('div');
+            msgDiv.style.cssText = 'background: white; padding: 12px 15px; border-radius: 0 15px 15px 15px; max-width: 85%; align-self: flex-start; box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;';
+            msgDiv.innerHTML = replyText;
+
+            messagesContainer.appendChild(msgDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             const el = document.getElementById(loadingId);
@@ -224,7 +249,7 @@
     };
 </script>
 
-<script src="js/app.js"></script>
+<script src="js/app.js?v=<?= time() ?>"></script>
 </body>
 
 </html>

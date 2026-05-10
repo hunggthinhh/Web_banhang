@@ -181,7 +181,7 @@ include 'includes/header.php';
 </style>
 
 <script>
-    const renderCart = () => {
+    window.renderCart = () => {
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
         const container = document.getElementById('cart-content');
         if (cart.length === 0) {
