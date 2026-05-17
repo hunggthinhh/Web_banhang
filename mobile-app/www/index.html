@@ -686,13 +686,14 @@
                     const product = productsMap[id];
                     if (!product) return match; 
                     
-                    // Construct proper image URL - fix path to uploads/
-                    const imagePath = product.image.startsWith('uploads/') ? product.image : ('uploads/' + product.image);
-                    const fixedSrc = window.fixImg ? window.fixImg(imagePath) : 'img/logo.png';
+                    // Construct proper image URL
+                    // Bỏ logic cộng thêm chữ 'uploads/' vì product.image từ API đã là URL đầy đủ,
+                    // và hàm fixImg đã tự xử lý chuẩn mọi định dạng.
+                    const fixedSrc = window.fixImg ? window.fixImg(product.image) : 'img/logo.png';
                     
                     return `
                     <div data-product-id="${product.id}" style="display:flex; align-items:center; gap:12px; margin:12px 0; padding:12px; border:1px solid #f0f0f0; border-radius:12px; background:#fff; width:100%; box-sizing:border-box; box-shadow:0 4px 10px rgba(0,0,0,0.04); cursor:pointer;">
-                        <img src="${fixedSrc}" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:1px solid #eee;" onerror="this.src='img/logo.png'">
+                        <img data-ngroksrc="${fixedSrc}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:60px; height:60px; object-fit:cover; border-radius:10px; border:1px solid #eee;" onerror="this.src='img/logo.png'">
                         <div style="flex:1;">
                             <strong style="font-size:14px; color:#333; display:block; margin-bottom:2px;">${product.name}</strong>
                             <div style="display:flex; justify-content:space-between; align-items:center;">
