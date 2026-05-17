@@ -860,31 +860,42 @@
 
         window.startApp = () => { }; // Dummy startApp
 
-        // Ngrok Image Loader (Bypasses Interstitial for images via header)
-        // Uses FileReader.readAsDataURL for iOS WKWebView compatibility (createObjectURL unreliable on iOS)
+        // Image Loader - supports both Capacitor (native app) and regular browser (ngrok link)
+        const isCapacitorAvailable = () => {
+            try { return !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorHttp); }
+            catch(e) { return false; }
+        };
+
         setInterval(() => {
             document.querySelectorAll('img[data-ngroksrc]:not([data-fetching])').forEach(img => {
                 img.dataset.fetching = '1';
                 const src = img.getAttribute('data-ngroksrc');
-                if (!src || !src.startsWith('http')) {
-                    img.src = src || 'img/logo.png';
+                if (!src) { img.src = 'img/logo.png'; return; }
+
+                if (!src.startsWith('http')) {
+                    // Relative path or local — set directly
+                    img.src = src;
                     return;
                 }
-                // Use Capacitor HTTP to bypass WKWebView CORS restrictions
-                const performFetch = async () => {
-                    try {
-                        const response = await Capacitor.Plugins.CapacitorHttp.get({
-                            url: src,
-                            headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'image/*' },
-                            responseType: 'blob'
-                        });
+
+                if (isCapacitorAvailable()) {
+                    // ===== NATIVE APP (Xcode / Android Studio) =====
+                    // Dùng CapacitorHttp để bypass WKWebView CORS restriction
+                    Capacitor.Plugins.CapacitorHttp.get({
+                        url: src,
+                        headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'image/*' },
+                        responseType: 'blob'
+                    }).then(response => {
                         img.src = `data:image/jpeg;base64,${response.data}`;
-                    } catch (e) {
-                        console.error('Image fetch error:', src, e);
-                        img.src = 'img/logo.png';
-                    }
-                };
-                performFetch();
+                    }).catch(() => {
+                        img.src = src; // fallback
+                    });
+                } else {
+                    // ===== BROWSER (truy cập qua link ngrok trên điện thoại/máy tính) =====
+                    // Dùng img-proxy.php (cùng origin với app) để tải ảnh từ backend.
+                    // Proxy đọc file từ disk và trả về trực tiếp — không bị ngrok chặn.
+                    img.src = window.imgToProxyUrl ? window.imgToProxyUrl(src) : src;
+                }
             });
         }, 50);
 
@@ -1327,6 +1338,22 @@
             } catch (e) {
                 return finalUrl;
             }
+        };
+
+        // Chuyển đổi URL ảnh ngrok thành đường dẫn tương đối để dùng với img-proxy.php
+        // VD: https://xxx.ngrok-free.dev/Web_banhang/backend/public/uploads/img.jpg
+        //  => uploads/img.jpg
+        window.imgToProxyUrl = (ngroUrl) => {
+            try {
+                const u = new URL(ngroUrl);
+                // Lấy phần path sau /Web_banhang/backend/public/
+                const match = u.pathname.match(/\/Web_banhang\/backend\/public\/(.+)/);
+                if (match) {
+                    // Thêm cache-buster (v=...) để tránh điện thoại lưu cache ảnh lỗi cũ
+                    return `img-proxy.php?path=${encodeURIComponent(match[1])}&v=${new Date().getTime()}`;
+                }
+            } catch(e) {}
+            return ngroUrl; // fallback: trả lại URL gốc
         };
 
         // ====== PAGES ======
@@ -1802,7 +1829,8 @@
             container.innerHTML = '<p style="text-align:center; color:#999; font-size:14px;">Đang tải đánh giá...</p>';
 
             try {
-                const res = await fetch(`${API_URL}/products/${product.slug || product.id}/reviews`, {
+                // Thêm timestamp để ép điện thoại tải mới data từ server thay vì dùng cache cũ bị lỗi
+                const res = await fetch(`${API_URL}/products/${product.slug || product.id}/reviews?t=${new Date().getTime()}`, {
                     headers: { 'ngrok-skip-browser-warning': 'true', 'Accept': 'application/json' }
                 });
                 const reviews = await res.json();
@@ -2133,18 +2161,7 @@
                                     <p style="font-size:11px; color:#999; margin:0;">Quét mã QR để thanh toán an toàn</p>
                                 </div>
                             </label>
-                            <label style="display:flex; align-items:center; gap:10px; border:1px solid #eee; padding:15px; border-radius:10px;">
-                                <input type="radio" name="pay-method" value="payos" style="accent-color:var(--primary); width:18px; height:18px;">
-                                <div style="flex:1; display:flex; align-items:center; gap:10px;">
-                                    <div style="width:40px; height:28px; background:linear-gradient(135deg,#0066FF,#00C6FF); border-radius:6px; display:flex; align-items:center; justify-content:center;">
-                                        <span style="color:#fff; font-size:9px; font-weight:900; letter-spacing:-0.5px;">PAY</span>
-                                    </div>
-                                    <div>
-                                        <b style="font-size:14px; color:#333;">PayOS</b>
-                                        <p style="font-size:11px; color:#999; margin:0;">Thanh toán qua QR / MoMo / ZaloPay / Thẻ</p>
-                                    </div>
-                                </div>
-                            </label>
+
                         </div>
                     </div>
 
@@ -2310,52 +2327,6 @@
                         return;
                     }
 
-                    if (method === 'payos') {
-                        try {
-                            const pRes = await fetch(`${API_URL}/payments/payos/${orderId}`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'ngrok-skip-browser-warning': 'true',
-                                    'Authorization': token ? `Bearer ${token}` : ''
-                                },
-                                body: JSON.stringify({
-                                    return_url: `${API_URL.replace('/api','')}/payment-success?order_id=${orderId}`,
-                                    cancel_url: `${API_URL.replace('/api','')}/payment-cancel?order_id=${orderId}`
-                                })
-                            });
-                            const pData = await pRes.json();
-                            if (pData.success && pData.checkoutUrl) {
-                                // Clear selected cart items
-                                localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
-                                // Open PayOS checkout in system browser
-                                window.open(pData.checkoutUrl, '_system');
-                                // Show waiting screen
-                                document.getElementById('page-content').innerHTML = `
-                                    <div style="padding:60px 20px; text-align:center;">
-                                        <div style="width:70px; height:70px; background:linear-gradient(135deg,#0066FF,#00C6FF); border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                                            <i class="fas fa-credit-card" style="color:#fff; font-size:28px;"></i>
-                                        </div>
-                                        <h3 style="font-family:Georgia; color:#1a365d; margin-bottom:10px;">Đang chờ thanh toán...</h3>
-                                        <p style="color:#666; font-size:14px; margin-bottom:5px;">Vui lòng hoàn tất thanh toán trên trang PayOS vừa mở.</p>
-                                        <p style="color:#999; font-size:12px; margin-bottom:25px;">Bạn có thể chọn: Ngân hàng, MoMo, ZaloPay, Thẻ...</p>
-                                        <div style="background:#f8faff; border-radius:12px; padding:15px; margin-bottom:20px;">
-                                            <p style="color:#0066FF; font-size:13px; font-weight:600; margin:0;">Đơn hàng #${orderId}</p>
-                                        </div>
-                                        <button onclick="navigateTo('profile')" style="background:#c68e67; color:#fff; border:none; padding:12px 25px; border-radius:8px; margin-top:10px; font-size:14px;">Kiểm tra đơn hàng</button>
-                                    </div>
-                                `;
-                                startMobilePaymentPolling(orderId);
-                                return;
-                            } else {
-                                alert('Không thể tạo link thanh toán: ' + (pData.message || 'Lỗi không xác định'));
-                            }
-                        } catch (e) {
-                            alert('Lỗi kết nối PayOS: ' + e.message);
-                        }
-                        btn.disabled = false; btn.innerText = 'Xác nhận đặt hàng';
-                        return;
-                    }
 
                     // Success for COD
                     localStorage.setItem('cart', JSON.stringify(getCart().filter(item => !item.selected)));
@@ -3170,7 +3141,25 @@
                 if (res.ok) {
                     showToast('✅ Cảm ơn bạn đã đánh giá!');
                     hideReviewModalMobile();
-                    loadOrdersMobile();
+
+                    // Force reload toàn bộ orders (bao gồm items.review mới)
+                    // để cập nhật ngay nút "Đánh giá" → "Đã đánh giá" mà không cần đợi polling
+                    try {
+                        const token2 = localStorage.getItem('auth_token');
+                        const ordersRes = await fetch(`${API_URL}/orders?t=${new Date().getTime()}`, {
+                            headers: { 'ngrok-skip-browser-warning': 'true', 'Authorization': `Bearer ${token2}` }
+                        });
+                        if (ordersRes.ok) {
+                            allUserOrdersMobile = await ordersRes.json();
+                            // Refresh modal chi tiết đang mở (nếu có)
+                            const modal = document.getElementById('m-order-detail-modal');
+                            if (modal && modal.style.display === 'flex') {
+                                const title = document.getElementById('m-order-detail-title').innerText;
+                                const orderId = parseInt(title.replace(/[^0-9]/g, ''));
+                                if (orderId) viewOrderDetailMobile(orderId);
+                            }
+                        }
+                    } catch (e2) { console.error('Reload orders after review error:', e2); }
                 } else { alert('Lỗi gửi đánh giá'); }
             } catch (e) { alert('Lỗi kết nối'); }
             btn.disabled = false; btn.innerText = 'Gửi đánh giá';

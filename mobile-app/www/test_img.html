@@ -1,7 +1,15 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Image Test</title>
+</head>
 <body>
-<h1>Image Test</h1>
-<img src="https://equator-skiing-symphony.ngrok-free.dev/Web_banhang/backend/public/uploads/1776065204_CTBuoiHong-4.jpg">
+    <h2>Test 1: Direct URL (bị Ngrok chặn)</h2>
+    <img width="200" src="https://equator-skiing-symphony.ngrok-free.dev/Web_banhang/backend/public/uploads/1776065204_CTBuoiHong-4.jpg">
+
+    <h2>Test 2: Proxy URL (Sẽ thành công)</h2>
+    <img width="200" src="img-proxy.php?path=uploads/1776065204_CTBuoiHong-4.jpg">
 </body>
 </html>

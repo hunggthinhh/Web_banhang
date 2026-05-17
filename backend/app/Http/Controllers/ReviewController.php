@@ -16,6 +16,35 @@ class ReviewController extends Controller
         return response()->json($reviews);
     }
 
+    // Public: lấy đánh giá theo sản phẩm (dùng cho trang chi tiết SP trên web & mobile)
+    public function getByProduct($slugOrId)
+    {
+        // Tìm sản phẩm theo slug trước, nếu không có thì tìm theo id
+        $product = Product::where('slug', $slugOrId)->orWhere('id', $slugOrId)->first();
+        if (!$product) {
+            return response()->json([]);
+        }
+
+        $reviews = Review::with(['user'])
+            ->where('product_id', $product->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id'         => $r->id,
+                    'rating'     => $r->rating,
+                    'comment'    => $r->comment,
+                    'images'     => $r->images ?? [],
+                    'videos'     => $r->videos ?? [],
+                    'created_at' => $r->created_at,
+                    'guest_name' => $r->guest_name ?? ($r->user ? $r->user->name : 'Khách'),
+                    'user'       => $r->user ? ['name' => $r->user->name, 'image' => $r->user->image ?? null] : null,
+                ];
+            });
+
+        return response()->json($reviews);
+    }
+
     public function userReviews(Request $request)
     {
         $user = auth('sanctum')->user();
