@@ -1,4 +1,4 @@
-const API_URL = 'https://equator-skiing-symphony.ngrok-free.dev/Web_banhang/backend/public/api';
+const API_URL = 'https://pessimism-joyfully-lair.ngrok-free.dev/Web_banhang/backend/public/api';
 
 const apiFetch = async (endpoint, options = {}) => {
     const token = localStorage.getItem('auth_token');
