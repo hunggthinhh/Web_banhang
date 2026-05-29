@@ -8,12 +8,19 @@ include 'includes/header.php';
     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
     <div
         style="background:#fff; width:450px; border-radius:30px; padding:40px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.2); position:relative; overflow:hidden;">
-        <i class="fas fa-times" onclick="document.getElementById('bank-payment-modal').style.display='none'"
+        <i class="fas fa-times" onclick="closeBankModal()"
             style="position:absolute; top:25px; right:25px; cursor:pointer; font-size:20px; color:#999;"></i>
 
         <h2 style="font-family:'Playfair Display', serif; color:#001f3f; margin-bottom:10px;">Thanh toán đơn hàng</h2>
-        <p style="color:#666; font-size:15px; margin-bottom:25px;">Quét mã VietQR bên dưới để hoàn tất việc thanh toán.
-        </p>
+        <p style="color:#666; font-size:15px; margin-bottom:12px;">Quét mã VietQR bên dưới để hoàn tất việc thanh toán.</p>
+
+        <!-- Countdown Timer -->
+        <div style="display:flex; align-items:center; justify-content:center; gap:10px; background:#fff8e1; border:1.5px solid #ffc107; border-radius:12px; padding:10px 18px; margin-bottom:20px;">
+            <i class="fas fa-clock" style="color:#e65100; font-size:16px;"></i>
+            <span style="font-size:14px; color:#555;">Thời gian còn lại:</span>
+            <b id="bank-countdown" style="font-size:18px; color:#e65100; font-variant-numeric:tabular-nums; min-width:45px;">15:00</b>
+            <span style="font-size:12px; color:#888;">(quá giờ đơn bị huỷ)</span>
+        </div>
 
         <div
             style="background:#fdfaf7; border:2px solid #f0c07d; border-radius:20px; padding:25px; margin-bottom:25px;">
@@ -618,10 +625,9 @@ include 'includes/header.php';
                     const accountName = 'PHAN HUNG THINH';
                     document.getElementById('web-qr-code').src = `https://api.vietqr.io/image/970422-100012113979-compact2.jpg?amount=${amount}&addInfo=${addInfo}&accountName=${accountName}`;
                     document.getElementById('bank-payment-modal').style.display = 'flex';
-                    
                     window.currentCheckoutOrderId = orderId;
                     startPaymentPolling(orderId);
-                    
+                    startCountdown(15 * 60); // 15 phút
                     btn.disabled = false;
                     btn.innerText = 'XÁC NHẬN ĐẶT HÀNG';
                     return;
@@ -668,6 +674,44 @@ include 'includes/header.php';
         window.location.href = 'profile.php?tab=orders';
     }
 
+    let countdownInterval = null;
+
+    function startCountdown(seconds) {
+        if (countdownInterval) clearInterval(countdownInterval);
+        let remaining = seconds;
+        const el = document.getElementById('bank-countdown');
+
+        function tick() {
+            const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+            const s = String(remaining % 60).padStart(2, '0');
+            if (el) el.innerText = `${m}:${s}`;
+
+            // Đổi màu đỏ khi còn dưới 3 phút
+            if (el) el.style.color = remaining <= 180 ? '#c62828' : '#e65100';
+
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                handlePaymentExpired();
+            }
+            remaining--;
+        }
+        tick();
+        countdownInterval = setInterval(tick, 1000);
+    }
+
+    function handlePaymentExpired() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        document.getElementById('bank-payment-modal').style.display = 'none';
+        alert('⏰ Đã quá 15 phút! Đơn hàng của bạn đã bị huỷ do chưa thanh toán. Vui lòng đặt hàng lại.');
+        window.location.href = 'profile.php?tab=orders';
+    }
+
+    function closeBankModal() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (pollingInterval) clearInterval(pollingInterval);
+        document.getElementById('bank-payment-modal').style.display = 'none';
+    }
+
     async function confirmBankTransferWeb() {
         const orderId = window.currentCheckoutOrderId;
         const btn = document.querySelector('#bank-payment-modal button');
@@ -678,9 +722,10 @@ include 'includes/header.php';
             const res = await apiFetch(`/orders/${orderId}/payment-status`);
             if (res && res.payment_status === 'paid') {
                 if (pollingInterval) clearInterval(pollingInterval);
+                if (countdownInterval) clearInterval(countdownInterval);
                 handlePaymentSuccess();
             } else {
-                alert('Hệ thống chưa nhận được thanh toán. V vui lòng chờ hoặc thử lại sau vài giây!');
+                alert('Hệ thống chưa nhận được thanh toán. Vui lòng chờ hoặc thử lại sau vài giây!');
                 btn.disabled = false;
                 btn.innerText = 'TÔI ĐÃ CHUYỂN TIỀN';
             }
